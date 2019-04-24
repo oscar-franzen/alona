@@ -1,6 +1,9 @@
 # About this document
 This is a brief tutorial on how to pre-process a single cell RNA-seq dataset from [NCBI SRA](https://www.ncbi.nlm.nih.gov/sra/) for input into `alona` (https://alona.panglaodb.se). Your data will likely not come from the NCBI SRA, but it serves as an example for this tutorial and it is easy to change. If not anything else is specified, all code are terminal commands.
 
+# Contact
+* Oscar Franzén p.oscar.franzen@gmail.com
+
 # Installation
 ## Aligner (HISAT2)
 There are multiple aligners. Here we will use [HISAT2](https://ccb.jhu.edu/software/hisat2/index.shtml) - a not too memory-hungry aligner. Download the source code, unpack and compile it:
