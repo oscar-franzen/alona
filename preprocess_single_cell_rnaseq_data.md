@@ -17,5 +17,18 @@ cd hisat2-2.1.0
 
 make
 
-# wait for a while, on my computer it took ~20 min.
+# wait for a while, on my computer it took ~5 min.
+
+cd ..
+
+rm -v hisat2-2.1.0-source.zip
+```
+
+# Prepare the reference genome
+Download the reference genome of your species. Here I will download and build an index of the mouse `GRCm38` genome. It is important not to use the reference genome containing complete haplotype sequences, because otherwise some genes located in these blocks will get zero expression as the aligner flag the corresponding sequences as multimappers.
+
+```
+wget ftp://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_mouse/release_M21/GRCm38.primary_assembly.genome.fa.gz
+
+gunzip GRCm38.primary_assembly.genome.fa.gz
 ```
