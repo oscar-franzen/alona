@@ -4,12 +4,6 @@ This is a brief tutorial on how to pre-process a single cell RNA-seq dataset fro
 # Contact
 * Oscar Franzén p.oscar.franzen@gmail.com
 
-# Download data for this example
-We will use a mouse lung dataset generated using Drop-seq ([SRS4031561](https://www.ncbi.nlm.nih.gov/sra/?term=SRR8176398)). The dataset consists of two runs, but for this example we will just use one of the runs:
-```
-./sratoolkit.2.9.6-ubuntu64/bin/prefetch SRR8176398
-```
-
 # Installation
 ## sratoolkit
 Only used for interacting with the NCBI SRA. Choose your system version from https://www.ncbi.nlm.nih.gov/sra/docs/toolkitsoft/. Here I will use the Linux version:
@@ -59,4 +53,11 @@ cat /proc/cpuinfo | grep processor | wc -l
 
 # build the index with 2 CPUs, runtime might be an hour or more.
 ~/Temp/hisat2-2.1.0/hisat2-build -p 2 GRCm38.primary_assembly.genome.fa GRCm38.primary_assembly.genome.fa.hisat2
+```
+
+# Download data for this example
+We will use a mouse lung dataset generated using Drop-seq ([SRS4031561](https://www.ncbi.nlm.nih.gov/sra/?term=SRR8176398)). The dataset consists of two runs, but for this example we will just use one of the runs:
+
+```bash
+./sratoolkit.2.9.6-ubuntu64/bin/prefetch SRR8176398
 ```
