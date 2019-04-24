@@ -5,6 +5,13 @@ This is a brief tutorial on how to pre-process a single cell RNA-seq dataset fro
 * Oscar Franzén p.oscar.franzen@gmail.com
 
 # Installation
+## sratoolkit
+Only used for interacting with the NCBI SRA. Choose your system version from https://www.ncbi.nlm.nih.gov/sra/docs/toolkitsoft/. Here I will use the Linux version:
+
+```bash
+wget https://ftp-trace.ncbi.nlm.nih.gov/sra/sdk/current/sratoolkit.current-ubuntu64.tar.gz
+```
+
 ## Aligner (HISAT2)
 There are multiple aligners. Here we will use [HISAT2](https://ccb.jhu.edu/software/hisat2/index.shtml) - a not too memory-hungry aligner. Download the source code, unpack and compile it:
 
