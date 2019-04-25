@@ -62,6 +62,7 @@ wget ftp://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_mouse/release_M21/gencode
 gunzip gencode.vM21.annotation.gtf.gz
 
 # collapse transcripts into "meta genes"
+python3 gencode_meta_genes.py > gencode.vM21.annotation.meta_genes.gtf
 ```
 
 # Download data for this tutorial (or use your own)
