@@ -76,3 +76,6 @@ mv -v ~/ncbi/public/sra/SRR8176398.sra .
 # dump it to a fastq file
 ./sratoolkit.2.9.6-ubuntu64/bin/fastq-dump SRR8176398.sra
 ```
+
+# Prepare the fastq data
+Identify and extract barcodes and unique molecular identifiers (UMI) and move them to the fastq header. In this experiment barcodes are 12 bp long and located at the start of the sequence, the next 8 bp is the UMI, and the remaining sequence is the transcript.
