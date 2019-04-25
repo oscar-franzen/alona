@@ -96,3 +96,5 @@ First count the number of available barcodes. We expect some noise so we don't n
 ```bash
 awk -v bc_len=12 '$0~/^\@/ { getline; lines[substr($0,0,bc_len)]++; getline; getline; } END { for (i in lines) { print(i,lines[i]) } }' SRR8176398.fastq > SRR8176398.fastq.bc
 ```
+
+The output will be a file with two columns (1. the barcode; 2. number of sequences with the barcode).
