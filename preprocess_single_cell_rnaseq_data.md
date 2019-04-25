@@ -59,6 +59,8 @@ cat /proc/cpuinfo | grep processor | wc -l
 ```
 
 # Preparing genome annotations
+`gencode_meta_genes.py` is available in this repository.
+
 ```bash
 wget ftp://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_mouse/release_M21/gencode.vM21.annotation.gtf.gz
 
