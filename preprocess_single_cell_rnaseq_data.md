@@ -62,4 +62,7 @@ We will use a mouse lung dataset generated using Drop-seq ([SRS4031561](https://
 ./sratoolkit.2.9.6-ubuntu64/bin/prefetch SRR8176398
 
 mv -v ~/ncbi/public/sra/SRR8176398.sra .
+
+# dump it to a fastq file
+./sratoolkit.2.9.6-ubuntu64/bin/fastq-dump SRR8176398.sra
 ```
