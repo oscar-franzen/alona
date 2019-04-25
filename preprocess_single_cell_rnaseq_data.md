@@ -56,7 +56,7 @@ cat /proc/cpuinfo | grep processor | wc -l
 ```
 
 # Download data for this example
-We will use the mouse lung dataset ([SRS4031561](https://www.ncbi.nlm.nih.gov/sra/?term=SRR8176398)), which was generated with Drop-seq [1](https://www.cell.com/abstract/S0092-8674(15)00549-8). The dataset consists of two runs, but for this example we will just use one of the runs:
+We will use the mouse lung dataset [SRS4031561](https://www.ncbi.nlm.nih.gov/sra/?term=SRR8176398), which was generated with Drop-seq [1](https://www.cell.com/abstract/S0092-8674(15)00549-8). The dataset consists of two runs, but for this example we will just use one of the runs:
 
 ```bash
 ./sratoolkit.2.9.6-ubuntu64/bin/prefetch SRR8176398
