@@ -90,7 +90,9 @@ CATGAGTTCGTACGTGGATCTTTTTTTTTGTTGGGGGAGGTAATGATGAGGCTAGGTAAGTGAAGGTGGATTTGGCAACT
                                               transcript
 ```
 
+## Count barcodes
+First count the number of available barcodes. We expect some noise so we don't need to deal with barcodes with very few sequences.
+
 ```bash
-# count barcodes
 awk -v bc_len=12 '$0~/^\@/ { getline; lines[substr($0,0,bc_len)]++; getline; getline; } END { for (i in lines) { print(i,lines[i]) } }' SRR8176398.fastq > SRR8176398.fastq.bc
 ```
