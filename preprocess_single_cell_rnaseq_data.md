@@ -1,6 +1,9 @@
 # About this document
 This is a brief tutorial on how to pre-process a single cell RNA-seq dataset from [NCBI SRA](https://www.ncbi.nlm.nih.gov/sra/) for input into `alona` (https://alona.panglaodb.se). Your data will likely not come from the NCBI SRA, but it serves as an example for this tutorial and it can easily be changed to fit your data. If nothing else is specified, all code are terminal commands.
 
+# Disclaimer
+This guide serves to show the basics. There are several steps that can be optimized or changed.
+
 # Contact
 * Oscar Franzén p.oscar.franzen@gmail.com
 
