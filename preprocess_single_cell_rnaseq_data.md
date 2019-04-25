@@ -90,7 +90,7 @@ CATGAGTTCGTACGTGGATCTTTTTTTTTGTTGGGGGAGGTAATGATGAGGCTAGGTAAGTGAAGGTGGATTTGGCAACT
                                               transcript
 ```
 
-```
+```bash
 # count barcodes
 awk -v bc_len=12 '$0~/^\@/ { getline; lines[substr($0,0,bc_len)]++; getline; getline; } END { for (i in lines) { print(i,lines[i]) } }' SRR8176398.fastq > SRR8176398.fastq.bc
 ```
