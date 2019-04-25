@@ -55,7 +55,7 @@ cat /proc/cpuinfo | grep processor | wc -l
 ~/Temp/hisat2-2.1.0/hisat2-build -p 2 GRCm38.primary_assembly.genome.fa GRCm38.primary_assembly.genome.fa.hisat2
 ```
 
-# Download data for this example
+# Download data for this tutorial (or use your own)
 We will use the mouse lung dataset [SRS4031561](https://www.ncbi.nlm.nih.gov/sra/?term=SRR8176398), which was generated with Drop-seq [[1]](https://www.cell.com/abstract/S0092-8674(15)00549-8). The dataset consists of two sequencing runs, but for this example we will just use one of the runs:
 
 ```bash
