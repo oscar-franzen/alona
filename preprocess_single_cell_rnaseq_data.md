@@ -78,4 +78,14 @@ mv -v ~/ncbi/public/sra/SRR8176398.sra .
 ```
 
 # Prepare the fastq data
-Identify and extract barcodes and unique molecular identifiers (UMI) and move them to the fastq header. In this experiment barcodes are 12 bp long and located at the start of the sequence, the next 8 bp is the UMI, and the remaining sequence is the transcript.
+Identify and extract barcodes and unique molecular identifiers (UMI) and move them to the fastq header. In this experiment barcodes are 12 bp long and located at the start of the sequence, the next 8 bp is the UMI, and the remaining sequence is the transcript:
+
+```
+CATGAGTTCGTACGTGGATCTTTTTTTTTGTTGGGGGAGGTAATGATGAGGCTAGGTAAGTGAAGGTGGATTTGGCAACTG
+^^^^^^^^^^
+ barcode
+          ^^^^^^^^
+            UMI
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+                                              transcript
+```
