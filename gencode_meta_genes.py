@@ -12,7 +12,7 @@
  Oscar Franzen <p.oscar.franzen@gmail.com>
 """
 
-import sys,re
+import re
 
 from collections import defaultdict
 
