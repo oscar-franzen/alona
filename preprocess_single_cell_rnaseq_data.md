@@ -56,6 +56,13 @@ cat /proc/cpuinfo | grep processor | wc -l
 ```
 
 # Preparing genome annotations
+```bash
+wget ftp://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_mouse/release_M21/gencode.vM21.annotation.gtf.gz
+
+gunzip gencode.vM21.annotation.gtf.gz
+
+# collapse transcripts into "meta genes"
+```
 
 # Download data for this tutorial (or use your own)
 We will use the mouse lung dataset [SRS4031561](https://www.ncbi.nlm.nih.gov/sra/?term=SRR8176398), which was generated with Drop-seq [[1]](https://www.cell.com/abstract/S0092-8674(15)00549-8). The dataset consists of two sequencing runs, but for this example we will just use one of the runs:
