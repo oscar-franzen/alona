@@ -91,7 +91,7 @@ CATGAGTTCGTACGTGGATCTTTTTTTTTGTTGGGGGAGGTAATGATGAGGCTAGGTAAGTGAAGGTGGATTTGGCAACT
 ```
 
 ## Count barcodes
-First count the number of available barcodes. We expect some noise so we don't need to deal with barcodes with very few sequences.
+First count the number of available barcodes. We expect some noise so we don't need to deal with barcodes with very few sequences. This step can be performed with any scripting language, here we will use `awk` - a swiss-knife language for text manipulation and analysis. Set `bc_len` to the barcode length.
 
 ```bash
 awk -v bc_len=12 '$0~/^\@/ { getline; lines[substr($0,0,bc_len)]++; getline; getline; } END { for (i in lines) { print(i,lines[i]) } }' SRR8176398.fastq > SRR8176398.fastq.bc
