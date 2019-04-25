@@ -102,4 +102,4 @@ First count the number of available barcodes. We expect some noise so we don't n
 awk -v bc_len=12 '$0~/^\@/ { getline; lines[substr($0,0,bc_len)]++; getline; getline; } END { for (i in lines) { print(i,lines[i]) } }' SRR8176398.fastq > SRR8176398.fastq.bc
 ```
 
-The output will be a file with two columns (1. the barcode; 2. number of sequences with the barcode).
+The output will be a file with two columns (1. the barcode; 2. number of sequences with the barcode). If we take a look at the output file we see that there are numerous singleton barcodes as well as barcodes with just a few reads, these can be safely excluded.
