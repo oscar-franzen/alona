@@ -161,7 +161,7 @@ $ python3 organize_fastq.py -i SRR8176398.fastq \
 ```
 
 # Align the FASTQ file
-Confirm the quality score encoding of your FASTQ data. For SRA data, this encoding is Phred33.
+Confirm the quality score encoding of your FASTQ data. For SRA data, this encoding is Phred33. Note the additional pipe in the script below is a filter, which keeps unique alignments. Filtering in this way prevents writing of uninformative (multimapping) sequences to your disk, which may save time.
 
 ```bash
 # always --phred33 with SRA
