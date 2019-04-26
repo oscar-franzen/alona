@@ -52,8 +52,6 @@ def prep_fq_file(input_fq_file):
         print(seq)
         print('+%s' % new_header[1:])
         print(quals)
-        
-        d = sys.stdin.readline()
 
 def main():
   try:
