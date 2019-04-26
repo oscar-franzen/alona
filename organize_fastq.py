@@ -39,7 +39,7 @@ def prep_fq_file(input_fq_file):
       line1 = line
       line2 = next(f).rstrip('\n')
       line3 = next(f)
-      line4 = next(f)
+      line4 = next(f).rstrip('\n')
       
       bc = line2[0:12]
       umi = line2[12:12+8]
