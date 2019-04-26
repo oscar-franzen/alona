@@ -170,3 +170,10 @@ $ time (hisat2 --phred33 -p 2 \
 
 10777.77s user 162.88s system 206% cpu 1:28:17.88 total
 ```
+
+# Convert to BAM
+```bash
+time ./samtools-1.9/installed/bin/samtools view -@ 2 \
+                                           -T GRCm38.primary_assembly.genome.fa \
+                                           -bS SRR8176398.sam > SRR8176398.bam
+```
