@@ -119,3 +119,5 @@ CCGACGTCTTAG 399235
 TGGGTTCGTGAA 383446
 CGATCCGGCACT 373765
 ```
+
+The top ranking barcode "AAAAAAAAAAAA" seems suspicious, indicating we should remove barcodes consisting of 100% one nucleotide.
