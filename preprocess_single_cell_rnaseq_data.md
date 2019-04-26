@@ -159,3 +159,14 @@ $ python3 organize_fastq.py -i SRR8176398.fastq \
                             -b SRR8176398.fastq.bc \
                             -c 1000 > SRR8176398.clean.fastq
 ```
+
+# Align the FASTQ file
+Confirm the quality score encoding of your FASTQ data. For SRA data, this encoding is Phred33.
+
+```bash
+# always --phred33 with SRA
+time (hisat2 --phred33 -p 2 \
+      -x GRCm38.primary_assembly.genome.fa.hisat2 \
+      -U SRR8176398.clean.fastq | awk '$5 >= 60' > SRR8176398.sam)
+
+```
