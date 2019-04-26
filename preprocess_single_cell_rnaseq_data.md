@@ -71,6 +71,8 @@ $ cat /proc/cpuinfo | grep processor | wc -l
 # build the index with 2 CPUs, runtime might be an hour or more.
 $ time ~/Temp/hisat2-2.1.0/hisat2-build -p 2 \
       GRCm38.primary_assembly.genome.fa GRCm38.primary_assembly.genome.fa.hisat2
+
+4817.61s user 28.27s system 202% cpu 39:49.91 total
 ```
 
 # Preparing genome annotations
