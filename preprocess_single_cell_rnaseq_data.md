@@ -173,7 +173,7 @@ $ time (hisat2 --phred33 -p 2 \
 
 # Convert to BAM
 ```bash
-time ./samtools-1.9/installed/bin/samtools view -@ 2 \
-                                           -T GRCm38.primary_assembly.genome.fa \
-                                           -bS SRR8176398.sam > SRR8176398.bam
+$ time ./samtools-1.9/installed/bin/samtools view -@ 2 \
+                                                  -T GRCm38.primary_assembly.genome.fa \
+                                                  -bS SRR8176398.sam > SRR8176398.bam
 ```
