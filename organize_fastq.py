@@ -37,7 +37,7 @@ def prep_fq_file(input_fq_file):
   with open(input_fq_file,'r') as f:
     for line in f:
       line1 = line
-      line2 = next(f)
+      line2 = next(f).rstrip('\n')
       line3 = next(f)
       line4 = next(f)
       
