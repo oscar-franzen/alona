@@ -127,6 +127,6 @@ We will move barcode and UMI to the FASTQ sequence header using the helper scrip
 
 ```bash
 $ python3 organize_fastq.py -i SRR8176398.fastq \
-                              -b SRR8176398.fastq.bc \
-                              -c 1000 > SRR8176398.clean.fastq
+                            -b SRR8176398.fastq.bc \
+                            -c 1000 > SRR8176398.clean.fastq
 ```
