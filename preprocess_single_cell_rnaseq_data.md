@@ -96,7 +96,7 @@ CATGAGTTCGTACGTGGATCTTTTTTTTTGTTGGGGGAGGTAATGATGAGGCTAGGTAAGTGAAGGTGGATTTGGCAACT
 ```
 
 ## Count barcodes
-First count the number of available barcodes. We expect some noise so we don't need to deal with barcodes with very few sequences. This step can be performed with any scripting language, here we will use `awk` - a swiss-knife language for text manipulation and analysis. Set `bc_len` to the barcode length. **Note on awk's `substr(...)`, the first character of the  string has position 1.**
+First count the number of available barcodes. We expect some noise so we don't need to deal with barcodes with very few sequences. This step can be performed with any scripting language, here we will use a one-liner with `awk` - a swiss-knife language for text manipulation. Set `bc_len` to the barcode length. **Note on awk's `substr(...)`, the first character of the  string has position 1.**
 
 ```bash
 $ awk -v bc_len=12 '$0~/^\@/ { getline; lines[substr($0,1,bc_len)]++; getline; getline; } END { for (i in lines) { print(i,lines[i]) } }' SRR8176398.fastq > SRR8176398.fastq.bc
@@ -126,7 +126,7 @@ The top ranking barcode "AAAAAAAAAAAA" seems suspicious, indicating that in the 
 We will move barcode and UMI to the FASTQ sequence header using the helper script `organize_fastq.py` (available in this repository).
 
 ```bash
-python3 ./organize_fastq.py -i ~/Temp/SRR8176398.fastq \
+$ python3 ./organize_fastq.py -i ~/Temp/SRR8176398.fastq \
                             -b ~/Temp/SRR8176398.fastq.bc \
                             -c 1000 > ~/Temp/SRR8176398.clean.fastq
 ```
