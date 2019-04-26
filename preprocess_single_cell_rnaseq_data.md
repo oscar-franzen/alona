@@ -69,7 +69,8 @@ $ gunzip GRCm38.primary_assembly.genome.fa.gz
 $ cat /proc/cpuinfo | grep processor | wc -l
 
 # build the index with 2 CPUs, runtime might be an hour or more.
-$ ~/Temp/hisat2-2.1.0/hisat2-build -p 2 GRCm38.primary_assembly.genome.fa GRCm38.primary_assembly.genome.fa.hisat2
+$ time ~/Temp/hisat2-2.1.0/hisat2-build -p 2 \
+      GRCm38.primary_assembly.genome.fa GRCm38.primary_assembly.genome.fa.hisat2
 ```
 
 # Preparing genome annotations
