@@ -120,4 +120,7 @@ TGGGTTCGTGAA 383446
 CGATCCGGCACT 373765
 ```
 
-The top ranking barcode "AAAAAAAAAAAA" seems suspicious, indicating we should remove barcodes consisting of 100% one nucleotide.
+The top ranking barcode "AAAAAAAAAAAA" seems suspicious, indicating that in the next step we should remove barcodes consisting of 100% one nucleotide.
+
+## Organize the fastq file
+We will move barcode and UMI to the FASTQ sequence header using the helper script `organize_fastq.py`.
