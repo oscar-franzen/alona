@@ -96,10 +96,10 @@ CATGAGTTCGTACGTGGATCTTTTTTTTTGTTGGGGGAGGTAATGATGAGGCTAGGTAAGTGAAGGTGGATTTGGCAACT
 ```
 
 ## Count barcodes
-First count the number of available barcodes. We expect some noise so we don't need to deal with barcodes with very few sequences. This step can be performed with any scripting language, here we will use `awk` - a swiss-knife language for text manipulation and analysis. Set `bc_len` to the barcode length.
+First count the number of available barcodes. We expect some noise so we don't need to deal with barcodes with very few sequences. This step can be performed with any scripting language, here we will use `awk` - a swiss-knife language for text manipulation and analysis. Set `bc_len` to the barcode length. **Note on awk's `substr(...)`, the first character of the  string has position 1.**
 
 ```bash
-awk -v bc_len=12 '$0~/^\@/ { getline; lines[substr($0,0,bc_len)]++; getline; getline; } END { for (i in lines) { print(i,lines[i]) } }' SRR8176398.fastq > SRR8176398.fastq.bc
+awk -v bc_len=12 '$0~/^\@/ { getline; lines[substr($0,1,bc_len)]++; getline; getline; } END { for (i in lines) { print(i,lines[i]) } }' SRR8176398.fastq > SRR8176398.fastq.bc
 ```
 
 The output will be a file with two columns (1. the barcode; 2. number of sequences with the barcode). If we take a look at the output file we see that there are numerous singleton barcodes as well as barcodes with just a few reads, these can be safely excluded.
