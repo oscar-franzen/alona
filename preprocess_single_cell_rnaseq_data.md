@@ -54,7 +54,7 @@ $ cd samtools-1.9 && mkdir installed && cd installed && pwd && cd ../
 
 $ ./configure --prefix=/full/path/to/samtools-1.9/installed
 
-$ make
+$ make && make install
 ```
 
 # Prepare the reference genome
