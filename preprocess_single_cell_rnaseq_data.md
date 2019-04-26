@@ -126,7 +126,7 @@ The top ranking barcode "AAAAAAAAAAAA" seems suspicious, indicating that in the 
 We will move barcode and UMI to the FASTQ sequence header using the helper script `organize_fastq.py` (available in this repository).
 
 ```bash
-$ python3 ./organize_fastq.py -i ~/Temp/SRR8176398.fastq \
-                              -b ~/Temp/SRR8176398.fastq.bc \
-                              -c 1000 > ~/Temp/SRR8176398.clean.fastq
+$ python3 ./organize_fastq.py -i SRR8176398.fastq \
+                              -b SRR8176398.fastq.bc \
+                              -c 1000 > SRR8176398.clean.fastq
 ```
