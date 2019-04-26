@@ -164,9 +164,9 @@ $ python3 organize_fastq.py -i SRR8176398.fastq \
 Confirm the quality score encoding of your FASTQ data. For SRA data, this encoding is Phred33. The additional pipe in the script below is a filter, which keeps unique alignments. Filtering in this way prevents writing of uninformative (multimapping) sequence alignments to your disk, which may save time. **Note that quality scores in your FASTQ file are unrelated with the mapping qualities in the SAM file.**
 
 ```bash
-# always --phred33 with SRA
-time (hisat2 --phred33 -p 2 \
+$ time (hisat2 --phred33 -p 2 \
       -x GRCm38.primary_assembly.genome.fa.hisat2 \
       -U SRR8176398.clean.fastq | awk '$5 >= 60' > SRR8176398.sam)
 
+10777.77s user 162.88s system 206% cpu 1:28:17.88 total
 ```
