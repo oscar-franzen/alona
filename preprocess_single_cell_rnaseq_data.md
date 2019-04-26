@@ -43,6 +43,20 @@ $ cd ..
 $ rm -v hisat2-2.1.0-source.zip
 ```
 
+## samtools
+Samtools is used for SAM to BAM conversion and sorting.
+```
+$ wget https://github.com/samtools/samtools/releases/download/1.9/samtools-1.9.tar.bz2
+
+$ tar -jxvf samtools-1.9.tar.bz2
+
+$ cd samtools-1.9 && mkdir installed && cd installed && pwd && cd ../
+
+$ ./configure --prefix=/full/path/to/samtools-1.9/installed
+
+$ make
+```
+
 # Prepare the reference genome
 Download the reference genome of your species. Here I will download and build an index of the mouse `GRCm38` genome. It is important not to use the reference genome containing complete haplotype sequences, because otherwise some genes located in these blocks will get zero expression as the aligner flag the corresponding reads as multimappers. Finally, to increase alignment sensitivity around splice junctions, you might instead want to consider using an aligner such as [STAR](https://github.com/alexdobin/STAR), which can use exisiting genome annotations when creating the index to improve alignment accuracy around splice junctions.
 
