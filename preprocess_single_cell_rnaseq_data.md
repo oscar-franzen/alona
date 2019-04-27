@@ -172,8 +172,18 @@ $ time (hisat2 --phred33 -p 2 \
 ```
 
 # Convert to BAM
+BAM is the compressed version of SAM. The format is based on gzip and we use it to save space. It has become a standard format for saving sequence alignments from NGS technologies.
+
 ```bash
 $ time ./samtools-1.9/installed/bin/samtools view -@ 2 \
                                                   -T GRCm38.primary_assembly.genome.fa \
                                                   -bS SRR8176398.sam > SRR8176398.bam
+```
+
+# Sort the BAM file
+Sorting the BAM file by alignment coordinates. This is a prerequisite in many downstream operations.
+```bash
+$ time ./samtools-1.9/installed/bin/samtools sort -T . \
+                                                  -m 2G \
+                                                  -@ 2 SRR8176398.bam > SRR8176398.sorted.bam
 ```
