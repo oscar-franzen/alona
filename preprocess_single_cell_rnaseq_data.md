@@ -181,7 +181,8 @@ $ time ./samtools-1.9/installed/bin/samtools view -@ 2 \
 ```
 
 # Sort the BAM file
-Sorting the BAM file by alignment coordinates. This is a prerequisite in many downstream operations.
+Sorting the BAM file by alignment coordinates. This is a prerequisite in many downstream operations. `-T .` selects the present directory as the place to place temporary files. `-m 2G` restricts memory usage. `-@ 2` it will use two sorting threads.
+
 ```bash
 $ time ./samtools-1.9/installed/bin/samtools sort -T . \
                                                   -m 2G \
