@@ -210,6 +210,8 @@ $ time ./samtools-1.9/installed/bin/samtools index SRR8176398.sorted.bam
 ```
 
 # Count reads in genes
+This step annotates each alignment with the gene most likely to be the source of the sequence. **Note, the output is another BAM file.**
+
 ```bash
 $ time ./subread-1.6.4-source/bin/featureCounts -R BAM \
                                                 --tmpDir . \
