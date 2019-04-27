@@ -187,4 +187,15 @@ Sorting the BAM file by alignment coordinates. This is a prerequisite in many do
 $ time ./samtools-1.9/installed/bin/samtools sort -T . \
                                                   -m 2G \
                                                   -@ 2 SRR8176398.bam > SRR8176398.sorted.bam
+
+630.24s user 28.51s system 229% cpu 4:47.47 total
+```
+
+# Create an index of the BAM file
+An index is used for faster lookups. It's needed if we want to open the BAM file in a browser such as the [IGV](https://software.broadinstitute.org/software/igv/).
+
+```
+$ time ./samtools-1.9/installed/bin/samtools index SRR8176398.sorted.bam
+
+44.52s user 0.67s system 99% cpu 45.218 
 ```
