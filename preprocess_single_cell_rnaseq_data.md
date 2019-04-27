@@ -208,3 +208,10 @@ $ time ./samtools-1.9/installed/bin/samtools index SRR8176398.sorted.bam
 
 44.52s user 0.67s system 99% cpu 45.218 
 ```
+
+# Count reads in genes
+```bash
+$ time ./subread-1.6.4-source/bin/featureCounts -R BAM --tmpDir . -T 2 -F GTF -a gencode.vM21.annotation.meta_genes.gtf -o SRR8176398.sorted.bam.featureCounts SRR8176398.sorted.bam
+
+227.62s user 4.38s system 198% cpu 1:56.91 total
+```
