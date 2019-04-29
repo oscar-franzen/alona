@@ -220,8 +220,8 @@ $ time ./samtools-1.9/installed/bin/samtools index SRR8176398.sorted.bam
 44.52s user 0.67s system 99% cpu 45.218 
 ```
 
-# Count alignments in genes
-This step annotates each alignment with the gene most likely to be the source of the sequence. **Note, the output is another BAM file.**
+# Add gene tag to SAM file
+This step annotates each alignment with the gene most likely to be the transcribed source of the sequence. **Note, the output is another BAM file.**
 
 ```bash
 $ time ./subread-1.6.4-source/bin/featureCounts -R BAM \
@@ -245,7 +245,7 @@ $ time ./samtools-1.9/installed/bin/samtools sort -T . \
 
 631.08s user 31.53s system 230% cpu 4:47.10 total
 
-$ time ./samtools-1.9/installed/bin/samtools index SRR8176398.sorted.bam.featureCounts.sorted.bam
+$ ./samtools-1.9/installed/bin/samtools index SRR8176398.sorted.bam.featureCounts.sorted.bam
 ```
 
 # umi-tools
@@ -262,4 +262,16 @@ time umi_tools dedup --no-sort-output \
                      SRR8176398.sorted.bam.featureCounts.sorted.umi_dedup.bam
                      
 1345.55s user 4.82s system 100% cpu 22:30.08 total
+```
+
+# Sort and index final time
+```bash
+$ time ./samtools-1.9/installed/bin/samtools sort -T . \
+                                                  -m 2G \
+                                                  -@ 2 SRR8176398.sorted.bam.featureCounts.sorted.umi_dedup.bam > \
+                                                  SRR8176398.sorted.bam.featureCounts.sorted.umi_dedup.sorted.bam
+
+631.08s user 31.53s system 230% cpu 4:47.10 total
+
+$ ./samtools-1.9/installed/bin/samtools index SRR8176398.sorted.bam.featureCounts.sorted.umi_dedup.sorted.bam
 ```
