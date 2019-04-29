@@ -45,7 +45,7 @@ $ rm -v hisat2-2.1.0-source.zip
 
 ## samtools
 Samtools is used for SAM to BAM conversion and sorting.
-```
+```bash
 $ wget https://github.com/samtools/samtools/releases/download/1.9/samtools-1.9.tar.bz2
 
 $ tar -jxvf samtools-1.9.tar.bz2
@@ -55,6 +55,9 @@ $ cd samtools-1.9 && mkdir installed && cd installed && pwd && cd ../
 $ ./configure --prefix=/full/path/to/samtools-1.9/installed
 
 $ make && make install
+
+# run from terminal or modify your `~/.zshrc` or `~/.bashrc` and restart terminal
+$ export PATH=${PATH}:/full/path/to/samtools-1.9/installed/bin
 ```
 
 ## subread
@@ -194,19 +197,19 @@ $ time (hisat2 --phred33 -p 2 \
 BAM is the compressed version of SAM. The format is based on gzip and we use it to save space. It has become a standard format for saving sequence alignments from NGS technologies.
 
 ```bash
-$ time ./samtools-1.9/installed/bin/samtools view -@ 2 \
-                                                  -T GRCm38.primary_assembly.genome.fa \
-                                                  -bS SRR8176398.sam > SRR8176398.bam
+$ time samtools view -@ 2 \
+                     -T GRCm38.primary_assembly.genome.fa \
+                     -bS SRR8176398.sam > SRR8176398.bam
 ```
 
 # Sort the BAM file
 Sorting the BAM file by alignment coordinates. This is a prerequisite in many downstream operations. `-T .` selects the present directory as the place to place temporary files. `-m 2G` restricts memory usage. `-@ 2` it will use two sorting threads.
 
 ```bash
-$ time ./samtools-1.9/installed/bin/samtools sort -T . \
-                                                  -m 2G \
-                                                  -@ 2 SRR8176398.bam > \
-                                                  SRR8176398.sorted.bam
+$ time samtools sort -T . \
+                     -m 2G \
+                     -@ 2 SRR8176398.bam > \
+                      SRR8176398.sorted.bam
 
 630.24s user 28.51s system 229% cpu 4:47.47 total
 ```
@@ -238,14 +241,14 @@ $ time ./subread-1.6.4-source/bin/featureCounts -R BAM \
 Another round is sorting is needed.
 
 ```bash
-$ time ./samtools-1.9/installed/bin/samtools sort -T . \
-                                                  -m 2G \
-                                                  -@ 2 SRR8176398.sorted.bam.featureCounts.bam > \
-                                                  SRR8176398.sorted.bam.featureCounts.sorted.bam
+$ time samtools sort -T . \
+                     -m 2G \
+                     -@ 2 SRR8176398.sorted.bam.featureCounts.bam > \
+                      SRR8176398.sorted.bam.featureCounts.sorted.bam
 
 631.08s user 31.53s system 230% cpu 4:47.10 total
 
-$ ./samtools-1.9/installed/bin/samtools index SRR8176398.sorted.bam.featureCounts.sorted.bam
+$ samtools index SRR8176398.sorted.bam.featureCounts.sorted.bam
 ```
 
 # umi-tools
@@ -266,21 +269,21 @@ time umi_tools dedup --no-sort-output \
 
 # Sort and index final time
 ```bash
-$ time ./samtools-1.9/installed/bin/samtools sort -T . \
-                                                  -m 2G \
-                                                  -@ 2 SRR8176398.sorted.bam.featureCounts.sorted.umi_dedup.bam > \
-                                                  SRR8176398.sorted.bam.featureCounts.sorted.umi_dedup.sorted.bam
+$ time samtools sort -T . \
+                     -m 2G \
+                     -@ 2 SRR8176398.sorted.bam.featureCounts.sorted.umi_dedup.bam > \
+                      SRR8176398.sorted.bam.featureCounts.sorted.umi_dedup.sorted.bam
 
 631.08s user 31.53s system 230% cpu 4:47.10 total
 
-$ ./samtools-1.9/installed/bin/samtools index SRR8176398.sorted.bam.featureCounts.sorted.umi_dedup.sorted.bam
+$ samtools index SRR8176398.sorted.bam.featureCounts.sorted.umi_dedup.sorted.bam
 ```
 
 # Count reads
 ```bash
-time umi_tools count --per-gene \
-                     --gene-tag=XT \
-                     --per-cell \
-                     -I SRR8176398.sorted.bam.featureCounts.sorted.umi_dedup.sorted.bam \
-                     -S SSRR8176398.sorted.bam.featureCounts.sorted.umi_dedup.sorted.bam.counts
+$ time umi_tools count --per-gene \
+                       --gene-tag=XT \
+                       --per-cell \
+                       -I SRR8176398.sorted.bam.featureCounts.sorted.umi_dedup.sorted.bam \
+                       -S SSRR8176398.sorted.bam.featureCounts.sorted.umi_dedup.sorted.bam.counts
 ```
