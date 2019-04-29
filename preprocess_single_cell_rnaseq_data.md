@@ -324,7 +324,7 @@ As you can see the actual matrix eats up a lot of disk space owing to being zero
 
 A near similar trick is just to compress the plain text table:
 
-```
+```bash
 $ time gzip SSRR8176398.mat.txt
 7.60s user 0.30s system 99% cpu 7.904 total
 
