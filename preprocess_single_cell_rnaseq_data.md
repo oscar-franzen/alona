@@ -275,3 +275,12 @@ $ time ./samtools-1.9/installed/bin/samtools sort -T . \
 
 $ ./samtools-1.9/installed/bin/samtools index SRR8176398.sorted.bam.featureCounts.sorted.umi_dedup.sorted.bam
 ```
+
+# Count reads
+```bash
+time umi_tools count --per-gene \
+                     --gene-tag=XT \
+                     --per-cell \
+                     -I SRR8176398.sorted.bam.featureCounts.sorted.umi_dedup.sorted.bam \
+                     -S SSRR8176398.sorted.bam.featureCounts.sorted.umi_dedup.sorted.bam.counts
+```
