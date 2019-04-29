@@ -209,7 +209,7 @@ $ time ./samtools-1.9/installed/bin/samtools index SRR8176398.sorted.bam
 44.52s user 0.67s system 99% cpu 45.218 
 ```
 
-# Count reads in genes
+# Count alignments in genes
 This step annotates each alignment with the gene most likely to be the source of the sequence. **Note, the output is another BAM file.**
 
 ```bash
