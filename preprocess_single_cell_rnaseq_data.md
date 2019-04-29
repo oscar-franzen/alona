@@ -286,4 +286,6 @@ $ time umi_tools count --per-gene \
                        --per-cell \
                        -I SRR8176398.sorted.bam.featureCounts.sorted.umi_dedup.sorted.bam \
                        -S SSRR8176398.sorted.bam.featureCounts.sorted.umi_dedup.sorted.bam.counts
+                       
+410.74s user 4.60s system 100% cpu 6:54.94 total
 ```
