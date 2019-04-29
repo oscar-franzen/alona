@@ -205,7 +205,8 @@ Sorting the BAM file by alignment coordinates. This is a prerequisite in many do
 ```bash
 $ time ./samtools-1.9/installed/bin/samtools sort -T . \
                                                   -m 2G \
-                                                  -@ 2 SRR8176398.bam > SRR8176398.sorted.bam
+                                                  -@ 2 SRR8176398.bam > \
+                                                  SRR8176398.sorted.bam
 
 630.24s user 28.51s system 229% cpu 4:47.47 total
 ```
