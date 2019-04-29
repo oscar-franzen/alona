@@ -310,9 +310,28 @@ gene	cell	count
 We will borrow some R code to make this table into a matrix. `linear_to_matrix.R` is in the repository.
 
 ```bash
-R --no-save \
-  --no-restore \
-  --slave \
-  --args SSRR8176398.sorted.bam.featureCounts.sorted.umi_dedup.sorted.bam.counts \
-  SSRR8176398.mat < linear_to_matrix.R
+$ R --no-save \
+   --no-restore \
+   --slave \
+   --args SSRR8176398.sorted.bam.featureCounts.sorted.umi_dedup.sorted.bam.counts \
+   SSRR8176398.mat < linear_to_matrix.R
+   
+# ls SSRR8176398.mat.txt SSRR8176398.mat.RDS
+ 19M -rw-rw-r--  1 qwerty  19M 29 Apr 2019 10:46 SSRR8176398.mat.RDS
+1.1G -rw-rw-r--  1 qwerty 1.1G 29 Apr 2019 10:46 SSRR8176398.mat.txt
 ```
+As you can see the actual matrix eats up a lot of disk space owing to being zero inflated. We don't need to write zeros if we assume missing fields are zeros. The second file ending with RDS contains the sparse R representation of this matrix, which can be loaded into R with `readRDS(...)`.
+
+A near similar trick is just to compress the plain text table:
+
+```
+$ time gzip SSRR8176398.mat.txt
+7.60s user 0.30s system 99% cpu 7.904 total
+
+$ ls -lh SSRR8176398.mat.txt.gz
+-rw-rw-r-- 1 qwerty qwerty 16M Apr 29 10:46 SSRR8176398.mat.txt.gz
+
+```
+
+# Done!
+We are done. `SSRR8176398.mat.txt.gz` can be uploaded into `alona`.
