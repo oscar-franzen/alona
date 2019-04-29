@@ -66,6 +66,16 @@ $ tar -zxvf subread-1.6.4-source.tar.gz && cd subread-1.6.4-source/src
 $ make -f Makefile.Linux
 ```
 
+## UMI-tools
+Tools for collapsing unique molecular identifiers, see [this](http://genome.cshlp.org/content/early/2017/01/18/gr.209601.116.abstract) paper.
+```bash
+pip install umi_tools
+
+# or (Python3)
+
+pip3 install umi_tools
+```
+
 # Prepare the reference genome
 Download the reference genome of your species. Here I will download and build an index of the mouse `GRCm38` genome. It is important not to use the reference genome containing complete haplotype sequences, because otherwise some genes located in these blocks will get zero expression as the aligner flag the corresponding reads as multimappers. Finally, to increase alignment sensitivity around splice junctions, you might instead want to consider using an aligner such as [STAR](https://github.com/alexdobin/STAR), which can use exisiting genome annotations when creating the index to improve alignment accuracy around splice junctions.
 
