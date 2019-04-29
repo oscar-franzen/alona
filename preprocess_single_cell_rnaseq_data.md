@@ -69,11 +69,11 @@ $ make -f Makefile.Linux
 ## UMI-tools
 Tools for collapsing unique molecular identifiers, see [this](http://genome.cshlp.org/content/early/2017/01/18/gr.209601.116.abstract) paper.
 ```bash
-pip install umi_tools
+$ pip install umi_tools
 
 # or (Python3)
 
-pip3 install umi_tools
+$ pip3 install umi_tools
 ```
 
 # Prepare the reference genome
