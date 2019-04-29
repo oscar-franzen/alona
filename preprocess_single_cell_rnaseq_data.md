@@ -247,3 +247,10 @@ $ time ./samtools-1.9/installed/bin/samtools sort -T . \
 
 $ time ./samtools-1.9/installed/bin/samtools index SRR8176398.sorted.bam.featureCounts.sorted.bam
 ```
+
+# umi-tools
+Perform UMI deduplication.
+
+```bash
+time umi_tools dedup --no-sort-output --method unique --gene-tag=XT --per-gene --per-cell --log2stderr -I SRR8176398.sorted.bam.featureCounts.sorted.bam > SRR8176398.sorted.bam.featureCounts.sorted.umi_dedup.bam
+```
