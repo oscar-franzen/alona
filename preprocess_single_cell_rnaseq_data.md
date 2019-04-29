@@ -245,5 +245,5 @@ $ time ./samtools-1.9/installed/bin/samtools sort -T . \
 
 631.08s user 31.53s system 230% cpu 4:47.10 total
 
-$ time ./samtools-1.9/samtools index SRR8176398.sorted.bam.featureCounts.sorted.bam
+$ time ./samtools-1.9/installed/bin/samtools index SRR8176398.sorted.bam.featureCounts.sorted.bam
 ```
