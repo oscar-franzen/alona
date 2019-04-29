@@ -79,6 +79,9 @@ $ pip install umi_tools
 $ pip3 install umi_tools
 ```
 
+## R
+Follow instructions from [https://www.r-project.org/](https://www.r-project.org/).
+
 # Prepare the reference genome
 Download the reference genome of your species. Here I will download and build an index of the mouse `GRCm38` genome. It is important not to use the reference genome containing complete haplotype sequences, because otherwise some genes located in these blocks will get zero expression as the aligner flag the corresponding reads as multimappers. Finally, to increase alignment sensitivity around splice junctions, you might instead want to consider using an aligner such as [STAR](https://github.com/alexdobin/STAR), which can use exisiting genome annotations when creating the index to improve alignment accuracy around splice junctions.
 
@@ -301,4 +304,15 @@ gene	cell	count
 0610005C13Rik_ENSMUSG00000109644	TCTGTCGCGCTG	1
 0610005C13Rik_ENSMUSG00000109644	TTCACGGAGCAA	1
 0610005C13Rik_ENSMUSG00000109644	TTGAGTATATTG	1
+```
+
+# Remap into matrix
+We will borrow some R code to make this table into a matrix. `linear_to_matrix.R` is in the repository.
+
+```bash
+R --no-save \
+  --no-restore \
+  --slave \
+  --args SSRR8176398.sorted.bam.featureCounts.sorted.umi_dedup.sorted.bam.counts \
+  SSRR8176398.mat < linear_to_matrix.R
 ```
