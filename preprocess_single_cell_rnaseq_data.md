@@ -234,7 +234,7 @@ $ time ./subread-1.6.4-source/bin/featureCounts -R BAM \
 227.62s user 4.38s system 198% cpu 1:56.91 total
 ```
 
-# Sort again
+# Sort and index again
 Another round is sorting is needed.
 
 ```bash
@@ -243,5 +243,7 @@ $ time ./samtools-1.9/installed/bin/samtools sort -T . \
                                                   -@ 2 SRR8176398.sorted.bam.featureCounts.bam > \
                                                   SRR8176398.sorted.bam.featureCounts.sorted.bam
 
+631.08s user 31.53s system 230% cpu 4:47.10 total
 
+$ time ./samtools-1.9/samtools index SRR8176398.sorted.bam.featureCounts.sorted.bam
 ```
