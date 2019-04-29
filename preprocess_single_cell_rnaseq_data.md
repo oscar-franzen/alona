@@ -239,7 +239,8 @@ Another round is sorting is needed.
 ```bash
 $ time ./samtools-1.9/installed/bin/samtools sort -T . \
                                                   -m 2G \
-                                                  -@ 2 SRR8176398.sorted.bam.featureCounts.bam > SRR8176398.sorted.bam.featureCounts.sorted.bam
+                                                  -@ 2 SRR8176398.sorted.bam.featureCounts.bam > \
+                                                  SRR8176398.sorted.bam.featureCounts.sorted.bam
 
 
 ```
