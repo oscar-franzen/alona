@@ -306,7 +306,7 @@ gene	cell	count
 0610005C13Rik_ENSMUSG00000109644	TTGAGTATATTG	1
 ```
 
-# Remap into matrix
+# Reshape data into a matrix
 We will borrow some R code to make this table into a matrix. `linear_to_matrix.R` is in the repository.
 
 ```bash
