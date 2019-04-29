@@ -260,4 +260,6 @@ time umi_tools dedup --no-sort-output \
                      --log2stderr \
                      -I SRR8176398.sorted.bam.featureCounts.sorted.bam > \
                      SRR8176398.sorted.bam.featureCounts.sorted.umi_dedup.bam
+                     
+1345.55s user 4.82s system 100% cpu 22:30.08 total
 ```
