@@ -6,10 +6,60 @@ Cloud alona: http://alona.panglaodb.se/
 ## Installing the standalone
 First install [Docker](https://en.wikipedia.org/wiki/Docker_(software)) by following instructions from https://docs.docker.com/install/
 
+Check that docker is working:
+
+```
+docker
+```
+
+You should see:
+```
+Usage:	docker [OPTIONS] COMMAND
+
+A self-sufficient runtime for containers
+
+Options:
+      --config string      Location of client config files (default "/home/rand/.docker")
+  -D, --debug              Enable debug mode
+  -H, --host list          Daemon socket(s) to connect to
+  -l, --log-level string   Set the logging level ("debug"|"info"|"warn"|"error"|"fatal") (default "info")
+      --tls                Use TLS; implied by --tlsverify
+      --tlscacert string   Trust certs signed only by this CA (default "/home/rand/.docker/ca.pem")
+      --tlscert string     Path to TLS certificate file (default "/home/rand/.docker/cert.pem")
+      --tlskey string      Path to TLS key file (default "/home/rand/.docker/key.pem")
+      --tlsverify          Use TLS and verify the remote
+  -v, --version            Print version information and quit
+
+Management Commands:
+  builder     Manage builds
+  config      Manage Docker configs
+  container   Manage containers
+  engine      Manage the docker engine
+  image       Manage images
+  network     Manage networks
+  node        Manage Swarm nodes
+  plugin      Manage plugins
+  secret      Manage Docker secrets
+  service     Manage services
+  stack       Manage Docker stacks
+  swarm       Manage Swarm
+  system      Manage Docker
+  trust       Manage trust on Docker images
+  volume      Manage volumes
+```
+
 ### Alternative 1: Download a pre-build Docker image
 
 ### Alternative 2: Create the Docker image from a `Dockerfile`
 1. Create a new directory and place the `Dockerfile` in this directory.
+
+```bash
+mkdir alona
+
+cd alona
+
+wget https://raw.githubusercontent.com/oscar-franzen/alona/master/Dockerfile
+```
 
 2. To build the image issue this command. It will take a while to download all dependencies:
 

@@ -11,7 +11,7 @@ RUN apt-get update && \
     apt-get install -y r-base python3 && \
     apt-get install -y texlive-full
     
-RUN R -e "install.packages(c('ggplot2'), \
+RUN R -e "install.packages(c('devtools','ggplot2'), \
                            dependencies=TRUE, \
                            repos='http://cran.rstudio.com/')"
 
