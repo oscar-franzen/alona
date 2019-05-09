@@ -51,6 +51,8 @@ Management Commands:
 ### Alternative 1: Download a pre-build Docker image
 
 ### Alternative 2: Create the Docker image from a `Dockerfile`
+This alternative may be a little bit slower but should work equally well.
+
 1. Create a new directory and place the `Dockerfile` in this directory.
 
 ```bash
