@@ -8,10 +8,10 @@ First install [Docker](https://en.wikipedia.org/wiki/Docker_(software)) by follo
 
 ### Alternative 1: Download a pre-build Docker image
 
-### Alternative 2: Create the Docker image
+### Alternative 2: Create the Docker image from a `Dockerfile`
 1. Create a new directory and place the `Dockerfile` in this directory.
 
-2. To build the image issue this command. This will take a while to download all dependencies:
+2. To build the image issue this command. It will take a while to download all dependencies:
 
 ```bash
 docker build --tag=alona .
