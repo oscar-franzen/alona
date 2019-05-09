@@ -14,9 +14,13 @@ RUN apt-get update && \
     apt-get install -y libcurl4-openssl-dev libssl-dev && \
     apt-get install -y libssh2-1-dev openssl curl
 
+# R Packages
 RUN R -e "install.packages(c('devtools','ggplot2'), \
                            dependencies=TRUE, \
                            repos='http://cran.rstudio.com/')"
+
+# Python3 packages
+RUN pip3 install click
 
 # Define working directory.
 WORKDIR /alona
