@@ -73,7 +73,7 @@ docker images
 ```
 
 ## Usage
-Enter the environment using Docker's interactive mode:
+Create a new container using the installed image and enter it using Docker's interactive mode:
 ```bash
 docker run -it --entrypoint /bin/bash alona
 ```
