@@ -8,7 +8,7 @@ MAINTAINER Oscar Franzen "p.oscar.franzen@gmail.com"
 # Install some requirements
 RUN apt-get update && \
     apt-get install -y tzdata && \
-    apt-get install -y r-base python3 && \
+    apt-get install -y r-base python3 python3-pip && \
     apt-get install -y texlive-full && \
     apt-get install -y libxml2-dev libudunits2-dev libcairo2 libcairo2-dev && \
     apt-get install -y libcurl4-openssl-dev libssl-dev && \

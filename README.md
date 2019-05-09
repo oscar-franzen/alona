@@ -72,6 +72,12 @@ docker build --tag=alona .
 docker images
 ```
 
+## Usage
+Enter the environment using Docker's interactive mode:
+```bash
+docker run -it --entrypoint /bin/bash alona
+```
+
 ## Contact
 * Oscar Franzen <p.oscar.franzen@gmail.com>
 
