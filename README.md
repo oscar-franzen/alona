@@ -1,11 +1,12 @@
 # alona
-alona is a software pipeline for analysis of single cell RNA sequencing data. It exists as a cloud-based service and as a standalone software.
+alona is a software pipeline for analysis of single cell RNA sequencing data. It exists as a cloud-based service and as a standalone software, which runs inside a [Docker](https://en.wikipedia.org/wiki/Docker_(software)) container.
 
 Cloud alona: http://alona.panglaodb.se/
 
 ## Installing the standalone
+First install [Docker](https://en.wikipedia.org/wiki/Docker_(software)) by following instructions from https://docs.docker.com/install/
+
 ### Alternative 1: Download a pre-build Docker image
-First install Docker by following instructions from https://docs.docker.com/install/
 
 ### Alternative 2: Create a Docker image
 
