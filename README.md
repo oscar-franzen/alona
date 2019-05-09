@@ -11,10 +11,15 @@ First install [Docker](https://en.wikipedia.org/wiki/Docker_(software)) by follo
 ### Alternative 2: Create the Docker image
 1. Create a new directory and place the `Dockerfile` in this directory.
 
-2. 
+2. To build the image issue this command. This will take a while to download all dependencies:
 
 ```bash
 docker build --tag=alona .
+```
+
+3. Inspect that the image is there:
+```bash
+docker images
 ```
 
 ## Contact
