@@ -59,7 +59,7 @@ git clone https://github.com/oscar-franzen/alona
 ### Alternative 2: Create the Docker image from a `Dockerfile`
 This alternative may be a little bit slower but should work equally well.
 
-1. Create a new directory and place the `Dockerfile` in this directory.
+1. Enter the cloned directory where the `Dockerfile` is located.
 
 ```bash
 cd alona
