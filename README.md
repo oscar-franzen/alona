@@ -1,7 +1,7 @@
 # alona
 alona is a software pipeline for analysis of single cell RNA sequencing data. It exists as a cloud-based service and as a standalone software, which runs inside a [Docker](https://en.wikipedia.org/wiki/Docker_(software)) container.
 
-Cloud alona: http://alona.panglaodb.se/
+Cloud based version of alona: http://alona.panglaodb.se/
 
 ## Installing the standalone
 First install [Docker](https://en.wikipedia.org/wiki/Docker_(software)) by following instructions from https://docs.docker.com/install/
@@ -48,8 +48,7 @@ Management Commands:
   volume      Manage volumes
 ```
 
-### Getting started
-Clone the repository.
+### First clone the repository
 
 ```bash
 git clone https://github.com/oscar-franzen/alona
@@ -63,11 +62,7 @@ This alternative may be a little bit slower but should work equally well.
 1. Create a new directory and place the `Dockerfile` in this directory.
 
 ```bash
-mkdir alona
-
 cd alona
-
-wget https://raw.githubusercontent.com/oscar-franzen/alona/master/Dockerfile
 ```
 
 2. To build the image issue this command. It will take a while to download all dependencies:
