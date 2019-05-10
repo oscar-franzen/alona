@@ -46,7 +46,7 @@ class alona_base(object):
         
         return
         
-    def validate(self):
+    def is_file_empty(self):
         if os.stat(self.params['input_filename']).st_size == 0:
             raise file_empty_error()
 
@@ -113,8 +113,6 @@ class alona_base(object):
                 
                 out = out.decode('ascii').replace('\n','')
                 no_files = int(out) - 5
-                
-                print(no_files)
                 
                 if no_files != 1:
                     raise Exception('Error: more than one file in input archive')

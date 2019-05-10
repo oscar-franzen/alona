@@ -59,12 +59,15 @@ is untested.'
 @click.command()
 @click.argument('filename', type=click.Path(exists=True))
 @click.option('--output', help='Specify name of output directory')
+@click.option('--species', help='Species your data comes from.',
+              type=click.Choice(['human', 'mouse']),default='mouse')
 @click.option('--loglevel', help='Set how much runtime information is written to \
                the log file.', type=click.Choice(['regular', 'debug']), default='regular')
 @click.option('--nologo', help='Hide the logo.', is_flag=True)
-@click.option('--version', help='Display version number.', is_flag=True, callback=print_version)
+@click.option('--version', help='Display version number.', is_flag=True,
+              callback=print_version)
 
-def run(filename, output, loglevel, nologo, version):
+def run(filename, output, species, loglevel, nologo, version):
     init_logging(loglevel)
     
     logging.info('starting alona with %s' % filename)
@@ -77,12 +80,13 @@ def run(filename, output, loglevel, nologo, version):
     
     alona_opts = {
         'input_filename' : filename,
-        'output_directory' : output
+        'output_directory' : output,
+        'species' : species
     }
     
     with alona_base(alona_opts) as data:
         try:
-            data.validate()
+            data.is_file_empty()
         except file_empty_error:
             print('ERROR: Input file is empty')
             raise

@@ -864,3 +864,57 @@
 2019-05-10 16:52:08,740 Input file is binary.
 2019-05-10 16:52:08,742 zip data detected.
 2019-05-10 16:52:08,746 finishing alona
+2019-05-10 17:14:39,500 starting alona with ./data/qq.zip
+2019-05-10 17:14:39,500 hiding logo
+2019-05-10 17:14:39,500 creating output directory: qwe 
+2019-05-10 17:14:39,500 Input file is binary.
+2019-05-10 17:14:39,502 zip data detected.
+2019-05-10 17:14:39,507 finishing alona
+2019-05-10 17:44:46,928 starting alona with ./data/qq.zip
+2019-05-10 17:44:46,928 hiding logo
+2019-05-10 17:44:46,928 creating output directory: qwe 
+2019-05-10 17:44:46,928 Input file is binary.
+2019-05-10 17:44:46,931 zip data detected.
+2019-05-10 17:44:46,935 finishing alona
+2019-05-10 17:44:54,430 starting alona with ./data/SRA638923_SRS2797048.mat.gz
+2019-05-10 17:44:54,430 hiding logo
+2019-05-10 17:44:54,431 creating output directory: qwe 
+2019-05-10 17:44:54,431 Input file is binary.
+2019-05-10 17:44:54,435 gzip data detected.
+2019-05-10 17:44:56,176 finishing alona
+2019-05-10 17:45:33,017 starting alona with ./data/SRA638923_SRS2797048.mat.gz
+2019-05-10 17:45:33,017 hiding logo
+2019-05-10 17:45:33,017 creating output directory: qwe 
+2019-05-10 17:45:33,017 Input file is binary.
+2019-05-10 17:45:33,021 gzip data detected.
+2019-05-10 17:45:34,810 finishing alona
+2019-05-10 17:55:28,392 starting alona with ./data/SRA638923_SRS2797048.mat.gz
+2019-05-10 17:55:28,393 hiding logo
+2019-05-10 17:55:28,393 creating output directory: qwe 
+2019-05-10 17:55:28,393 Input file is binary.
+2019-05-10 17:55:28,397 gzip data detected.
+2019-05-10 17:55:30,137 finishing alona
+2019-05-10 17:55:47,699 starting alona with ./data/SRA638923_SRS2797048.mat.gz
+2019-05-10 17:55:47,699 hiding logo
+2019-05-10 17:55:47,699 creating output directory: qwe 
+2019-05-10 17:55:47,699 Input file is binary.
+2019-05-10 17:55:47,703 gzip data detected.
+2019-05-10 17:55:49,454 finishing alona
+2019-05-10 18:02:08,830 starting alona with ./data/SRA638923_SRS2797048.mat.gz
+2019-05-10 18:02:08,830 hiding logo
+2019-05-10 18:02:08,830 creating output directory: qwe 
+2019-05-10 18:02:08,830 Input file is binary.
+2019-05-10 18:02:08,833 gzip data detected.
+2019-05-10 18:02:10,575 finishing alona
+2019-05-10 18:03:02,592 starting alona with ./data/SRA638923_SRS2797048.mat.gz
+2019-05-10 18:03:02,592 hiding logo
+2019-05-10 18:03:02,592 creating output directory: qwe 
+2019-05-10 18:03:02,592 Input file is binary.
+2019-05-10 18:03:02,596 gzip data detected.
+2019-05-10 18:03:04,471 finishing alona
+2019-05-10 18:20:15,031 starting alona with ./data/SRA638923_SRS2797048.mat.gz
+2019-05-10 18:20:15,031 hiding logo
+2019-05-10 18:20:15,031 creating output directory: qwe 
+2019-05-10 18:20:15,031 Input file is binary.
+2019-05-10 18:20:15,035 gzip data detected.
+2019-05-10 18:20:16,778 finishing alona

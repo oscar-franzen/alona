@@ -25,7 +25,10 @@ RUN pip3 install click
 # Define working directory.
 WORKDIR /alona
 
-COPY alona.py /alona
+RUN mkdir /alona/alona
+
+# copy the package into the image
+COPY ./alona/*.py /alona/alona
 
 ENV ALONA_INSIDE_DOCKER Y
 

@@ -48,6 +48,13 @@ Management Commands:
   volume      Manage volumes
 ```
 
+### Getting started
+Clone the repository.
+
+```bash
+git clone https://github.com/oscar-franzen/alona
+```
+
 ### Alternative 1: Download a pre-build Docker image
 
 ### Alternative 2: Create the Docker image from a `Dockerfile`
