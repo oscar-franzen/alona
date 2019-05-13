@@ -267,5 +267,4 @@ class alona_base(object):
         
         if len(cols.keys()) > 1:
             raise irregular_column_count('Rows in your data matrix have different number \
-                                          of columns (every row must have the same \
-                                          number of columns).')
+of columns (every row must have the same number of columns).')
