@@ -28,6 +28,15 @@ class alona_base(object):
         # Set default options
         if self.params['output_directory'] == None:
             self.params['output_directory'] = 'alona_out_%s' % self.random()
+            
+        if self.params['delimiter'] == None:
+            self.params['auto']
+            
+        if self.params['loglevel'] == 'debug':
+            logging.debug('*** parameters *********************')
+            for par in self.params:
+                logging.debug('%s : %s' % (par,self.params[par]))
+            logging.debug('************************************')
         
     def random(self):
         """Get random 8 character string"""
@@ -156,3 +165,9 @@ class alona_base(object):
         for garbage in ('input.mat',):
             logging.debug('removing %s' % garbage)
             os.remove('%s/%s' % self.params['output_directory'],garbage)
+
+    def get_delimiter(self):
+      if job_delimiter == 'auto':
+        return guess_delimiter(temporary_file)
+      else:
+        return job_delimiter

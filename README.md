@@ -1,4 +1,12 @@
 # alona
+
+  ##   #       ####  #    #   ##   
+ #  #  #      #    # ##   #  #  #  
+#    # #      #    # # #  # #    # 
+###### #      #    # #  # # ###### 
+#    # #      #    # #   ## #    # 
+#    # ######  ####  #    # #    #
+
 alona is a software pipeline for analysis of single cell RNA sequencing data. It exists as a cloud-based service and as a standalone software, which runs inside a [Docker](https://en.wikipedia.org/wiki/Docker_(software)) container.
 
 Cloud based version of alona: http://alona.panglaodb.se/
