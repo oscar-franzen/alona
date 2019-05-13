@@ -25,10 +25,12 @@ RUN pip3 install click
 # Define working directory.
 WORKDIR /alona
 
-RUN mkdir /alona/alona
+RUN mkdir /alona/alona/
+RUN mkdir /alona/alona/genome
 
 # copy the package into the image
 COPY ./alona/*.py /alona/alona/
+COPY ./alona/genome/human_to_mouse_1_to_1_orthologs.tsv /alona/alona/genome/
 
 ENV ALONA_INSIDE_DOCKER Y
 
