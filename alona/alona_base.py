@@ -23,6 +23,7 @@ class alona_base(object):
         
         self._is_binary = None
         self._delimiter = None
+        self._has_header = None
             
         self.params.update(params)
         
@@ -234,6 +235,10 @@ class alona_base(object):
             f.close()
             
             # if all fields are non-numerical, it's definitively a header
+            logging.debug('has header: %s' % (total == count_digit))
+            
+            self._has_header = (total == count_digit)
+            
             return total == count_digit
         else:
             return job_header == 'yes'

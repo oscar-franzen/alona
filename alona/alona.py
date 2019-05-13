@@ -127,8 +127,6 @@ def run(filename, output, delimiter, header, species, loglevel, nologo, version)
         raise
     
     ab.get_delimiter()
-    
-    # figure out if the data file uses a header or not
     ab.has_header()
         
     ab.cleanup()
