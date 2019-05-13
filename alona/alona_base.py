@@ -22,6 +22,7 @@ class alona_base(object):
         }
         
         self._is_binary = None
+        self._delimiter = None
             
         self.params.update(params)
         
@@ -42,7 +43,8 @@ class alona_base(object):
         """Get random 8 character string"""
         return str(uuid.uuid4()).split('-')[0]
     
-    def create_work_dir(self):        
+    def create_work_dir(self):
+        """ Creates a working directory for temporary and output files. """
         try:
             logging.debug('creating output directory: %s '% self.params['output_directory'])
             os.mkdir(self.params['output_directory'])
@@ -72,6 +74,7 @@ class alona_base(object):
         return False
 
     def unpack_data(self):
+        """ Unpacks compressed data and if no compression is used, symlinks to data. """
         # Is the file binary?
         self._is_binary = self.is_binary(self.params['input_filename'])
         abs_path = os.path.abspath(self.params['input_filename'])
@@ -160,8 +163,9 @@ class alona_base(object):
         return
         
     def cleanup(self):
-        # remove temporary files
+        """ Removes temporary files. """
         
+        # remove temporary files
         for garbage in ('input.mat',):
             logging.debug('removing %s' % garbage)
             os.remove('%s/%s' % (self.params['output_directory'],garbage))
@@ -191,7 +195,8 @@ class alona_base(object):
 
         return d_sorted[0]
 
-    def get_delimiter(self):        
+    def get_delimiter(self):
+        """ Figures out the data delimiter of the input data. """
         d = ''
         
         if self.params['delimiter'] == 'auto':
@@ -204,6 +209,31 @@ class alona_base(object):
             elif d == 'SPACE':
                 d = ' '
                 
-        logging.debug('delimiter is: %s' % d)
+        logging.debug('delimiter is: "%s" (ASCII code=%s)' % (d,ord(d)))
+        
+        _delimiter = d
         
         return d
+        
+    def has_header(self):
+        """ Figures out if the input data uses a header or not. """
+        if self.params['header'] == 'auto':
+            f = open('%s/input.mat' % self.params['output_directory'],'r')
+            
+            first_line = next(f).replace('\n','')
+            
+            total = 0
+            count_digit = 0
+            
+            for item in first_line.split(self._delimiter):
+                if item.replace('.','',1).isdigit():
+                    count_digit += 1
+                
+                total += 1
+              
+            f.close()
+            
+            # if all fields are non-numerical, it's definitively a header
+            return total == count_digit:
+        else:
+            return job_header == 'yes':

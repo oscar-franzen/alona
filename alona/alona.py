@@ -75,6 +75,8 @@ is untested.'
 @click.option('--output', help='Specify name of output directory')
 @click.option('--delimiter', help='Data delimiter.',
               type=click.Choice(['auto', 'tab','space']), default='auto')
+@click.option('--header', help='Data has a header line.',
+              type=click.Choice(['auto', 'yes','no']), default='auto')
 @click.option('--species', help='Species your data comes from.',
               type=click.Choice(['human', 'mouse']),default='mouse')
 @click.option('--loglevel', help='Set how much runtime information is written to \
@@ -83,7 +85,7 @@ is untested.'
 @click.option('--version', help='Display version number.', is_flag=True,
               callback=print_version)
 
-def run(filename, output, delimiter, species, loglevel, nologo, version):
+def run(filename, output, delimiter, header, species, loglevel, nologo, version):
     init_logging(loglevel)
     
     logging.debug('starting alona with %s' % filename)
@@ -99,7 +101,8 @@ def run(filename, output, delimiter, species, loglevel, nologo, version):
         'output_directory' : output,
         'species' : species,
         'delimiter' : delimiter,
-        'loglevel' : loglevel
+        'loglevel' : loglevel,
+        'header' : header
     }
     
     ab = alona_base(alona_opts)
@@ -124,6 +127,9 @@ def run(filename, output, delimiter, species, loglevel, nologo, version):
         raise
     
     ab.get_delimiter()
+    
+    # figure out if the data file uses a header or not
+    ab.has_header()
         
     ab.cleanup()
     
