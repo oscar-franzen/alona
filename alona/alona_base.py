@@ -234,6 +234,6 @@ class alona_base(object):
             f.close()
             
             # if all fields are non-numerical, it's definitively a header
-            return total == count_digit:
+            return total == count_digit
         else:
-            return job_header == 'yes':
+            return job_header == 'yes'
