@@ -128,8 +128,15 @@ def run(filename, output, delimiter, header, species, loglevel, nologo, version)
     ab.has_header()
     
     try:
-        ab.column_sanity_check()
+        ab.sanity_check_columns()
     except (irregular_column_count) as e:
+        logging.error(e)
+        ab.cleanup()
+        sys.exit(1)
+        
+    try:
+        ab.sanity_check_genes()
+    except (irregular_gene_count) as e:
         logging.error(e)
         ab.cleanup()
         sys.exit(1)

@@ -233,7 +233,9 @@ class alona_base(object):
         
         return ret
 
-    def column_sanity_check(self):
+    def sanity_check_columns(self):
+        """ Sanity check on data integrity. Raises an exception if column count is not
+            consistent. """
         f = open('%s/input.mat' % self.params['output_directory'],'r')
 
         if self._has_header:
@@ -249,3 +251,17 @@ class alona_base(object):
         if len(cols.keys()) > 1:
             raise irregular_column_count('Rows in your data matrix have different number \
 of columns (every row must have the same number of columns).')
+
+    def sanity_check_genes(self):
+        """ Sanity check on gene count. Raises an exception if gene count is too low. """
+        f = open('%s/input.mat' % self.params['output_directory'],'r')
+        if self._has_header:
+            next(f)
+        
+        count = 0
+        for line in f:
+            count += 1
+        f.close()
+        
+        if count < 1000:
+            raise irregular_gene_count('Number of genes in the input data is too low.')

@@ -17,3 +17,6 @@ class input_not_plain_text(alona_error):
 
 class irregular_column_count(alona_error):
     pass
+    
+class irregular_gene_count(alona_error):
+    pass
