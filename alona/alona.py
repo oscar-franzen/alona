@@ -102,26 +102,29 @@ def run(filename, output, delimiter, species, loglevel, nologo, version):
         'loglevel' : loglevel
     }
     
-    with alona_base(alona_opts) as data:
-        try:
-            data.is_file_empty()
-        except file_empty_error:
-            logging.error('Input file is empty.')
-            raise
-        
-        data.create_work_dir()
+    ab = alona_base(alona_opts)
     
-        try:
-            data.unpack_data()
-        except (invalid_file_format,
-                file_corrupt,
-                input_not_plain_text) as e:
-            logging.error(e)
-            raise
-        except Exception as e:
-            logging.error(e)
-            raise
-            
-        data.cleanup()
+    try:
+        ab.is_file_empty()
+    except file_empty_error:
+        logging.error('Input file is empty.')
+        raise
+    
+    ab.create_work_dir()
+
+    try:
+        ab.unpack_data()
+    except (invalid_file_format,
+            file_corrupt,
+            input_not_plain_text) as e:
+        logging.error(e)
+        raise
+    except Exception as e:
+        logging.error(e)
+        raise
+    
+    ab.get_delimiter()
+        
+    ab.cleanup()
     
     logging.debug('finishing alona')

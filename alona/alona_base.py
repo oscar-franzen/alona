@@ -164,10 +164,46 @@ class alona_base(object):
         
         for garbage in ('input.mat',):
             logging.debug('removing %s' % garbage)
-            os.remove('%s/%s' % self.params['output_directory'],garbage)
+            os.remove('%s/%s' % (self.params['output_directory'],garbage))
 
-    def get_delimiter(self):
-      if job_delimiter == 'auto':
-        return guess_delimiter(temporary_file)
-      else:
-        return job_delimiter
+    def __guess_delimiter(self):
+        d = {}
+        d[' '] = 0
+        d['\t'] = 0
+        d[','] = 0
+
+        i = 0
+        f = open('%s/input.mat' % self.params['output_directory'],'r')
+
+        for line in f:
+            d[' '] += line.count(' ')
+            d['\t'] += line.count('\t')
+            d[','] += line.count(',')
+
+            i += 1
+
+            if i > 10:
+                break
+
+        f.close()
+
+        d_sorted = sorted(d, key=d.get, reverse=True)
+
+        return d_sorted[0]
+
+    def get_delimiter(self):        
+        d = ''
+        
+        if self.params['delimiter'] == 'auto':
+            d = self.__guess_delimiter()
+        else:
+            d = self.params['delimiter'].upper()
+          
+            if d == 'TAB':
+                d = '\t'
+            elif d == 'SPACE':
+                d = ' '
+                
+        logging.debug('delimiter is: %s' % d)
+        
+        return d
