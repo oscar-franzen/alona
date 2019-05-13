@@ -37,6 +37,9 @@ class alona_base(object):
             for par in self.params:
                 logging.debug('%s : %s' % (par,self.params[par]))
             logging.debug('************************************')
+            
+    def get_matrix_file(self):
+        return '%s/input.mat' % self.params['output_directory']
         
     def random(self):
         """Get random 8 character string"""
@@ -271,79 +274,71 @@ of columns (every row must have the same number of columns).')
         else:
             logging.info('%s genes detected' % '{:,}'.format(count))
 
-    def human2mouse(temporary_file, delimiter, uses_header):
+    def ortholog_mapper():
         """ Maps mouse genes to the corresponding human ortholog.
-            Only one-to-one orthologs are used. """
+            Only one-to-one orthologs are considered. """
+        # human gene symbols to ens
+        f = open('./genome/hgnc_complete_set.txt','r')
+        hs_symb_to_hs_ens = {}
   
-            # human gene symbols to ens
-  f = open('hgnc_complete_set.txt','r')
-  
-  hs_symb_to_hs_ens = {}
-  
-  for line in f:
-    if re.search('^\S+\t\S+\t',line) and re.search('(ENSG[0-9]+)', line):
-      hs_symbol = line.split('\t')[1]
-      hs_ens = re.search('(ENSG[0-9]+)',line).group(1)
-      hs_symb_to_hs_ens[hs_symbol] = hs_ens
-  
-  f.close()
-  
-  # ortholog mappings
-  f = open('human_to_mouse_1_to_1_orthologs.tsv','r')
-  next(f)
-  
-  human_to_mouse = {}
-  
-  for line in f:
-    if re.search('\tortholog_one2one\t',line):
-      foo = line.split('\t')
-      
-      human_ens = foo[0]
-      mouse_ens = foo[1]
-      
-      human_to_mouse[human_ens] = mouse_ens
-    
-  f.close()
-  
-  f = open(temporary_file,'r')
-  ftemp = open(temporary_file + '.mapped2mouse.mat','w')
-  ftemp2 = open(temporary_file + '.genes_missing_mouse_orthologs','w')
-  
-  if uses_header:
-    header = next(f)
-    ftemp.write(header)
-
-  genes_found = {}
-  switch = 0
-  total = 0
-  unmappable = []
-    
-  for line in f:
-    total += 1
-    
-    # remove quotes
-    line = re.sub('"','',line)
-    foo = line.split(delimiter)
-    
-    gene = foo[0]
-    
-    if re.search('ENSG',gene):
-      gene = re.search('^.+_(ENSG[0-9]+)',gene).group(1)
-
-    if human_to_mouse.get(gene,'') != '':
-      new_gene_name = human_to_mouse[gene]
-      ftemp.write( '%s%s%s' % (new_gene_name, delimiter, delimiter.join(foo[1:])) )
-    elif hs_symb_to_hs_ens.get(gene,'') != '':
-      hs_ens = hs_symb_to_hs_ens[gene]
-      mm_ens = human_to_mouse.get(hs_ens,'')
-    
-      if mm_ens != '':
-        ftemp.write( '%s%s%s' % (mm_ens, delimiter, delimiter.join(foo[1:])) )
-    else:
-      ftemp2.write('%s\n' % (gene))
+        for line in f:
+            if re.search('^\S+\t\S+\t',line) and re.search('(ENSG[0-9]+)', line):
+                hs_symbol = line.split('\t')[1]
+                hs_ens = re.search('(ENSG[0-9]+)',line).group(1)
+                hs_symb_to_hs_ens[hs_symbol] = hs_ens
+        f.close()
         
-  f.close()
-  ftemp.close()
-  ftemp2.close()
+        # ortholog mappings
+        f = open('./genome/human_to_mouse_1_to_1_orthologs.tsv','r')
+        next(f)
+        
+        human_to_mouse = {}
+        for line in f:
+            if re.search('\tortholog_one2one\t',line):
+                foo = line.split('\t')
+                human_ens = foo[0]
+                mouse_ens = foo[1]
+                human_to_mouse[human_ens] = mouse_ens
+        f.close()
+  
+        f = open(get_matrix_file(),'r')
+        ftemp = open(get_matrix_file() + '.mapped2mouse.mat','w')
+        ftemp2 = open(get_matrix_file() + '.genes_missing_mouse_orthologs','w')
+  
+        if self._has_header:
+            header = next(f)
+            ftemp.write(header)
+        
+        genes_found = {}
+        switch = 0
+        total = 0
+        unmappable = []
+        
+        for line in f:
+            total += 1
+        
+        # remove quotes
+        line = re.sub('"','',line)
+        foo = line.split(delimiter)
+        
+        gene = foo[0]
+        
+        if re.search('ENSG',gene):
+            gene = re.search('^.+_(ENSG[0-9]+)',gene).group(1)
 
-  return temporary_file + '.mapped2mouse.mat'
+        if human_to_mouse.get(gene,'') != '':
+            new_gene_name = human_to_mouse[gene]
+            ftemp.write( '%s%s%s' % (new_gene_name, delimiter, delimiter.join(foo[1:])) )
+        elif hs_symb_to_hs_ens.get(gene,'') != '':
+            hs_ens = hs_symb_to_hs_ens[gene]
+            mm_ens = human_to_mouse.get(hs_ens,'')
+        if mm_ens != '':
+            ftemp.write( '%s%s%s' % (mm_ens, delimiter, delimiter.join(foo[1:])) )
+        else:
+            ftemp2.write('%s\n' % (gene))
+
+        f.close()
+        ftemp.close()
+        ftemp2.close()
+
+        return get_matrix_file() + '.mapped2mouse.mat'
