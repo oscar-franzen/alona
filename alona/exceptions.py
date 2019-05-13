@@ -10,3 +10,6 @@ class invalid_file_format(alona_error):
 
 class file_corrupt(alona_error):
     pass
+
+class input_not_plain_text(alona_error):
+    pass

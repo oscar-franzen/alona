@@ -1,6 +1,7 @@
 import re
 import os
 import uuid
+import magic
 import logging
 import subprocess
 
@@ -38,10 +39,8 @@ class alona_base(object):
             logging.debug('creating output directory: %s '% self.params['output_directory'])
             os.mkdir(self.params['output_directory'])
         except FileExistsError:
-            print('Error: Output directory already exists (%s)' %
-                        self.params['output_directory'])
             logging.error('Error: Output directory already exists (%s)' %
-                        self.params['output_directory'])
+                           self.params['output_directory'])
             raise
         
         return
@@ -115,17 +114,11 @@ class alona_base(object):
                 no_files = int(out) - 5
                 
                 if no_files != 1:
-                    raise Exception('Error: more than one file in input archive')
+                    raise Exception('More than one file in input archive.')
                 
                 # Files  created  by  zip  can be uncompressed by gzip only if they have
                 # a single member compressed with the 'deflation' method.
                 os.system('zcat %s > %s' % (abs_path,mat_out))
-              
-                #if not re.search(': ASCII text, with very long lines',o_foo):
-               # if is_binary(random_file_name):
-                #  print('not_plain_text')
-                 # os.system('rm %s' % (random_file_name))
-                 # sys.exit()
             elif re.search(' bzip2 compressed data,', out):
                 logging.debug('bzip2 data detected.')
                 
@@ -137,12 +130,12 @@ class alona_base(object):
                     out = out.decode('ascii')
                 except subprocess.CalledProcessError as exc:
                     if re.search('file ends unexpectedly',exc.output.decode('ascii')):
-                        raise file_corrupt('Error: input file is corrupt.')
+                        raise file_corrupt('Input file is corrupt.')
                         
                 # uncompress
                 os.system('bzip2 -d -c %s > %s' % (abs_path, mat_out))
             else:
-                raise invalid_file_format('Error: invalid format of the input file')
+                raise invalid_file_format('Invalid format of the input file.')
                 
         else:
             logging.debug('Input file is not binary.')
@@ -150,5 +143,17 @@ class alona_base(object):
             # Create a symlink to the data
             cmd = 'ln -sfn %s %s' % (abs_path,mat_out)
             os.system(cmd)
+            
+        f = magic.Magic(mime=True)
+        
+        if f.from_file(mat_out) != 'text/plain':
+            raise input_not_plain_text('Input file is not plain text.')
 
         return
+        
+    def cleanup(self):
+        # remove temporary files
+        
+        for garbage in ('input.mat',):
+            logging.debug('removing %s' % garbage)
+            os.remove('%s/%s' % self.params['output_directory'],garbage)

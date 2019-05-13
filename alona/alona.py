@@ -31,10 +31,24 @@ def init_logging(loglevel):
         _ll = logging.INFO
     elif loglevel == 'debug':
         _ll = logging.DEBUG
-    
+        
     logging.basicConfig(filename='alona.log',
                         level=_ll,
                         format='%(asctime)s %(message)s')
+                        
+    console = logging.StreamHandler()
+    # Logging messages which are less severe than level will be ignored.
+    # Level         Numeric value
+    # CRITICAL      50
+    # ERROR         40
+    # WARNING       30
+    # INFO          20
+    # DEBUG         10
+    # NOTSET        0
+    console.setLevel(_ll)
+    formatter = logging.Formatter('%(levelname)-8s %(message)s')
+    console.setFormatter(formatter)
+    logging.getLogger('').addHandler(console)
 
     return
 
@@ -70,7 +84,7 @@ is untested.'
 def run(filename, output, species, loglevel, nologo, version):
     init_logging(loglevel)
     
-    logging.info('starting alona with %s' % filename)
+    logging.debug('starting alona with %s' % filename)
     show_logo(nologo)
     
     #if not is_inside_container():
@@ -88,18 +102,22 @@ def run(filename, output, species, loglevel, nologo, version):
         try:
             data.is_file_empty()
         except file_empty_error:
-            print('ERROR: Input file is empty')
+            logging.error('Input file is empty.')
             raise
         
         data.create_work_dir()
     
         try:
             data.unpack_data()
-        except (invalid_file_format,file_corrupt) as e:
-            print(e)
+        except (invalid_file_format,
+                file_corrupt,
+                input_not_plain_text) as e:
+            logging.error(e)
             raise
         except Exception as e:
-            print(e)
+            logging.error(e)
             raise
+            
+        data.cleanup()
     
-    logging.info('finishing alona')
+    logging.debug('finishing alona')
