@@ -13,3 +13,6 @@ class file_corrupt(alona_error):
 
 class input_not_plain_text(alona_error):
     pass
+
+class irregular_column_count(alona_error):
+    pass

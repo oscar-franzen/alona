@@ -158,8 +158,12 @@ class alona_base(object):
             
         f = magic.Magic(mime=True)
         
-        if f.from_file(mat_out) != 'text/plain':
-            raise input_not_plain_text('Input file is not plain text.')
+        # don't use `from_file` (it doesn't follow symlinks)
+        f_type = f.from_buffer(open(mat_out,'r').read(1024))
+        
+        if f_type != 'text/plain':
+            raise input_not_plain_text('Input file is not plain text (found type=%s).' %
+                                        f_type)
 
         return
         
@@ -247,3 +251,21 @@ class alona_base(object):
         logging.debug('has header: %s' % self._has_header)
         
         return ret
+
+    def column_sanity_check(self):
+        f = open('%s/input.mat' % self.params['output_directory'],'r')
+
+        if self._has_header:
+            next(f)
+
+        cols = {}
+          
+        for line in f:
+            cols[len(line.split(self._delimiter))] = 1
+          
+        f.close()
+        
+        if len(cols.keys()) > 1:
+            raise irregular_column_count('Rows in your data matrix have different number \
+                                          of columns (every row must have the same \
+                                          number of columns).')

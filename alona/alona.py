@@ -128,6 +128,12 @@ def run(filename, output, delimiter, header, species, loglevel, nologo, version)
     
     ab.get_delimiter()
     ab.has_header()
+    
+    try:
+        ab.column_sanity_check()
+    except (irregular_column_count) as e:
+        logging.error(e)
+        raise
         
     ab.cleanup()
     
