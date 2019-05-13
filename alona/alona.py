@@ -141,6 +141,9 @@ def run(filename, output, delimiter, header, species, loglevel, nologo, version)
         ab.cleanup()
         sys.exit(1)
         
+    if species == 'human':
+        ab.ortholog_mapper()
+        
     ab.cleanup()
     
     logging.debug('finishing alona')

@@ -2,6 +2,7 @@ import re
 import os
 import uuid
 import magic
+import inspect
 import logging
 import subprocess
 
@@ -204,7 +205,7 @@ class alona_base(object):
                 d = ' '
                 
         logging.debug('delimiter is: "%s" (ASCII code=%s)' % (d,ord(d)))
-        _delimiter = d
+        self._delimiter = d
         return d
         
     def has_header(self):
@@ -273,11 +274,12 @@ of columns (every row must have the same number of columns).')
         else:
             logging.info('%s genes detected' % '{:,}'.format(count))
 
-    def ortholog_mapper():
+    def ortholog_mapper(self):        
         """ Maps mouse genes to the corresponding human ortholog.
             Only one-to-one orthologs are considered. """
+            
         # human gene symbols to ens
-        f = open('./genome/hgnc_complete_set.txt','r')
+        f = open(os.path.dirname(inspect.getfile(alona_base)) + '/genome/hgnc_complete_set.txt','r')
         hs_symb_to_hs_ens = {}
   
         for line in f:
@@ -288,7 +290,7 @@ of columns (every row must have the same number of columns).')
         f.close()
         
         # ortholog mappings
-        f = open('./genome/human_to_mouse_1_to_1_orthologs.tsv','r')
+        f = open(os.path.dirname(inspect.getfile(alona_base)) + '/genome/human_to_mouse_1_to_1_orthologs.tsv','r')
         next(f)
         
         human_to_mouse = {}
@@ -307,37 +309,35 @@ of columns (every row must have the same number of columns).')
         if self._has_header:
             header = next(f)
             ftemp.write(header)
-        
-        genes_found = {}
-        switch = 0
-        total = 0
-        unmappable = []
+            
+        orthologs_found = 0
         
         for line in f:
-            total += 1
-        
-        # remove quotes
-        line = re.sub('"','',line)
-        foo = line.split(delimiter)
-        
-        gene = foo[0]
-        
-        if re.search('ENSG',gene):
-            gene = re.search('^.+_(ENSG[0-9]+)',gene).group(1)
-
-        if human_to_mouse.get(gene,'') != '':
-            new_gene_name = human_to_mouse[gene]
-            ftemp.write( '%s%s%s' % (new_gene_name, delimiter, delimiter.join(foo[1:])) )
-        elif hs_symb_to_hs_ens.get(gene,'') != '':
-            hs_ens = hs_symb_to_hs_ens[gene]
-            mm_ens = human_to_mouse.get(hs_ens,'')
-        if mm_ens != '':
-            ftemp.write( '%s%s%s' % (mm_ens, delimiter, delimiter.join(foo[1:])) )
-        else:
-            ftemp2.write('%s\n' % (gene))
+            # remove quotes
+            line = re.sub('"','',line)
+            foo = line.split(self._delimiter)
+            
+            gene = foo[0]
+            
+            if re.search('.+_ENSG[0-9]+',gene):
+                gene = re.search('^.+_(ENSG[0-9]+)',gene).group(1)
+            if human_to_mouse.get(gene,'') != '':
+                new_gene_name = human_to_mouse[gene]
+                ftemp.write('%s%s%s' % (new_gene_name, self._delimiter, self._delimiter.join(foo[1:])))
+                orthologs_found += 1
+            elif hs_symb_to_hs_ens.get(gene,'') != '':
+                hs_ens = hs_symb_to_hs_ens[gene]
+                mm_ens = human_to_mouse.get(hs_ens,'')
+                orthologs_found += 1
+                if mm_ens != '':
+                    ftemp.write('%s%s%s' % (mm_ens, self._delimiter, self._delimiter.join(foo[1:])))
+                else:
+                    ftemp2.write('%s\n' % (gene))
 
         f.close()
         ftemp.close()
         ftemp2.close()
+        
+        logging.info('mapped %s genes to mouse orthologs' % ('{:,}'.format(orthologs_found)))
 
         return self.get_matrix_file() + '.mapped2mouse.mat'
