@@ -31,6 +31,7 @@ RUN mkdir /alona/alona/genome
 # copy the package into the image
 COPY ./alona/*.py /alona/alona/
 COPY ./alona/genome/human_to_mouse_1_to_1_orthologs.tsv /alona/alona/genome/
+COPY ./alona/genome/hgnc_complete_set.txt /alona/alona/genome/
 
 ENV ALONA_INSIDE_DOCKER Y
 
