@@ -244,13 +244,16 @@ class alona_base(object):
         cols = {}
           
         for line in f:
-            cols[len(line.split(self._delimiter))] = 1
+            no_columns = len(line.split(self._delimiter))
+            cols[no_columns] = 1
           
         f.close()
         
         if len(cols.keys()) > 1:
             raise irregular_column_count('Rows in your data matrix have different number \
 of columns (every row must have the same number of columns).')
+        else:
+            logging.debug('%s cells detected.' % '{:,}'.format(cols.popitem()[0]))
 
     def sanity_check_genes(self):
         """ Sanity check on gene count. Raises an exception if gene count is too low. """
@@ -265,3 +268,5 @@ of columns (every row must have the same number of columns).')
         
         if count < 1000:
             raise irregular_gene_count('Number of genes in the input data is too low.')
+        else:
+            logging.debug('%s genes detected' % '{:,}'.format(count))
