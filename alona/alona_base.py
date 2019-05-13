@@ -79,7 +79,7 @@ class alona_base(object):
         # Is the file binary?
         self._is_binary = self.is_binary(self.params['input_filename'])
         abs_path = os.path.abspath(self.params['input_filename'])
-        mat_out = '%s/input.mat' % self.params['output_directory']
+        mat_out = self.get_matrix_file()
         
         if self._is_binary:
             logging.debug('Input file is binary.')
@@ -175,7 +175,7 @@ class alona_base(object):
     def __guess_delimiter(self):
         d = {' ' : 0, '\t' : 0, ',' : 0}
         i = 0
-        f = open('%s/input.mat' % self.params['output_directory'],'r')
+        f = open(self.get_matrix_file(),'r')
 
         for line in f:
             d[' '] += line.count(' ')
@@ -211,7 +211,7 @@ class alona_base(object):
         """ Figures out if the input data uses a header or not. """
         ret = None
         if self.params['header'] == 'auto':
-            f = open('%s/input.mat' % self.params['output_directory'],'r')
+            f = open(self.get_matrix_file(),'r')
             first_line = next(f).replace('\n','')
             
             total = 0
@@ -238,7 +238,7 @@ class alona_base(object):
     def sanity_check_columns(self):
         """ Sanity check on data integrity. Raises an exception if column count is not
             consistent. """
-        f = open('%s/input.mat' % self.params['output_directory'],'r')
+        f = open(self.get_matrix_file(),'r')
 
         if self._has_header:
             next(f)
@@ -259,7 +259,7 @@ of columns (every row must have the same number of columns).')
 
     def sanity_check_genes(self):
         """ Sanity check on gene count. Raises an exception if gene count is too low. """
-        f = open('%s/input.mat' % self.params['output_directory'],'r')
+        f = open(self.get_matrix_file(),'r')
         if self._has_header:
             next(f)
         
@@ -300,9 +300,9 @@ of columns (every row must have the same number of columns).')
                 human_to_mouse[human_ens] = mouse_ens
         f.close()
   
-        f = open(get_matrix_file(),'r')
-        ftemp = open(get_matrix_file() + '.mapped2mouse.mat','w')
-        ftemp2 = open(get_matrix_file() + '.genes_missing_mouse_orthologs','w')
+        f = open(self.get_matrix_file(),'r')
+        ftemp = open(self.get_matrix_file() + '.mapped2mouse.mat','w')
+        ftemp2 = open(self.get_matrix_file() + '.genes_missing_mouse_orthologs','w')
   
         if self._has_header:
             header = next(f)
@@ -340,4 +340,4 @@ of columns (every row must have the same number of columns).')
         ftemp.close()
         ftemp2.close()
 
-        return get_matrix_file() + '.mapped2mouse.mat'
+        return self.get_matrix_file() + '.mapped2mouse.mat'
