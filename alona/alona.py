@@ -55,13 +55,10 @@ def init_logging(loglevel):
 def is_inside_container():
     """ Checks that alona.py is running inside the Docker container. """
     if not os.environ.get('ALONA_INSIDE_DOCKER',False): return False
-    
-    return
 
 def print_version(ctx, param, value):
     if not value or ctx.resilient_parsing:
         return
-        
     print('alona version %s ' % __version__)
     ctx.exit()
     
@@ -111,7 +108,7 @@ def run(filename, output, delimiter, header, species, loglevel, nologo, version)
         ab.is_file_empty()
     except file_empty_error:
         logging.error('Input file is empty.')
-        raise
+        sys.exit(1)
     
     ab.create_work_dir()
 
@@ -121,7 +118,8 @@ def run(filename, output, delimiter, header, species, loglevel, nologo, version)
             file_corrupt,
             input_not_plain_text) as e:
         logging.error(e)
-        raise
+        ab.cleanup()
+        sys.exit(1)
     except Exception as e:
         logging.error(e)
         raise
@@ -133,7 +131,8 @@ def run(filename, output, delimiter, header, species, loglevel, nologo, version)
         ab.column_sanity_check()
     except (irregular_column_count) as e:
         logging.error(e)
-        raise
+        ab.cleanup()
+        sys.exit(1)
         
     ab.cleanup()
     

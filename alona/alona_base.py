@@ -30,10 +30,8 @@ class alona_base(object):
         # Set default options
         if self.params['output_directory'] == None:
             self.params['output_directory'] = 'alona_out_%s' % self.random()
-            
         if self.params['delimiter'] == None:
             self.params['auto']
-            
         if self.params['loglevel'] == 'debug':
             logging.debug('*** parameters *********************')
             for par in self.params:
@@ -157,30 +155,23 @@ class alona_base(object):
             os.system(cmd)
             
         f = magic.Magic(mime=True)
-        
         # don't use `from_file` (it doesn't follow symlinks)
         f_type = f.from_buffer(open(mat_out,'r').read(1024))
         
         if f_type != 'text/plain':
             raise input_not_plain_text('Input file is not plain text (found type=%s).' %
                                         f_type)
-
         return
         
     def cleanup(self):
         """ Removes temporary files. """
-        
         # remove temporary files
         for garbage in ('input.mat',):
             logging.debug('removing %s' % garbage)
             os.remove('%s/%s' % (self.params['output_directory'],garbage))
 
     def __guess_delimiter(self):
-        d = {}
-        d[' '] = 0
-        d['\t'] = 0
-        d[','] = 0
-
+        d = {' ' : 0, '\t' : 0, ',' : 0}
         i = 0
         f = open('%s/input.mat' % self.params['output_directory'],'r')
 
@@ -195,39 +186,30 @@ class alona_base(object):
                 break
 
         f.close()
-
         d_sorted = sorted(d, key=d.get, reverse=True)
-
         return d_sorted[0]
 
     def get_delimiter(self):
         """ Figures out the data delimiter of the input data. """
         d = ''
-        
         if self.params['delimiter'] == 'auto':
             d = self.__guess_delimiter()
         else:
             d = self.params['delimiter'].upper()
-          
             if d == 'TAB':
                 d = '\t'
             elif d == 'SPACE':
                 d = ' '
                 
         logging.debug('delimiter is: "%s" (ASCII code=%s)' % (d,ord(d)))
-        
         _delimiter = d
-        
         return d
         
     def has_header(self):
         """ Figures out if the input data uses a header or not. """
-        
         ret = None
-        
         if self.params['header'] == 'auto':
             f = open('%s/input.mat' % self.params['output_directory'],'r')
-            
             first_line = next(f).replace('\n','')
             
             total = 0
@@ -236,7 +218,6 @@ class alona_base(object):
             for item in first_line.split(self._delimiter):
                 if item.replace('.','',1).isdigit():
                     count_digit += 1
-                
                 total += 1
               
             f.close()
