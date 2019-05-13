@@ -7,7 +7,6 @@ import subprocess
 
 from .exceptions import *
 
-
 class alona_base(object):
     """
     alona_base class
