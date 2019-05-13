@@ -42,7 +42,7 @@ class alona_base(object):
         return '%s/input.mat' % self.params['output_directory']
         
     def random(self):
-        """Get random 8 character string"""
+        """ Get random 8 character string """
         return str(uuid.uuid4()).split('-')[0]
     
     def create_work_dir(self):
@@ -72,7 +72,6 @@ class alona_base(object):
             for block in f:
                 if b'\0' in block:
                     return True
-        
         return False
 
     def unpack_data(self):
