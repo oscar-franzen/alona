@@ -218,6 +218,9 @@ class alona_base(object):
         
     def has_header(self):
         """ Figures out if the input data uses a header or not. """
+        
+        ret = None
+        
         if self.params['header'] == 'auto':
             f = open('%s/input.mat' % self.params['output_directory'],'r')
             
@@ -234,11 +237,13 @@ class alona_base(object):
               
             f.close()
             
-            # if all fields are non-numerical, it's definitively a header
-            logging.debug('has header: %s' % (total == count_digit))
-            
-            self._has_header = (total == count_digit)
-            
-            return total == count_digit
+            ret = not (total == count_digit)
         else:
-            return job_header == 'yes'
+            ret = (self.params['header'] == 'yes')
+            
+        # if all fields are non-numerical, it's likely a header
+        self._has_header = ret
+        
+        logging.debug('has header: %s' % self._has_header)
+        
+        return ret
