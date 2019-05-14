@@ -1,5 +1,4 @@
 from .alona import run
-from .exceptions import *
 
 def main():
     run()

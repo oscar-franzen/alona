@@ -1,55 +1,56 @@
 """
  alona
- 
+
  Description:
  An analysis pipeline for scRNA-seq data.
- 
+
  How to use:
  https://github.com/oscar-franzen/alona/
- 
+
  Details:
  https://alona.panglaodb.se/
- 
+
  Contact:
  Oscar Franzen, <p.oscar.franzen@gmail.com>
 """
 
 import os
 import sys
-import glob
-import click
 import logging
+import click
 
-from .log import *
-from .logo import *
+from .log import (init_logging, log_error)
+from .logo import show_logo
 from .exceptions import *
 from .alonabase import AlonaBase
 from ._version import __version__
 
 def is_inside_container():
     """ Checks that alona.py is running inside the Docker container. """
-    if not os.environ.get('ALONA_INSIDE_DOCKER',False): return False
+    if not os.environ.get('ALONA_INSIDE_DOCKER', False): return False
+    
+    return True
 
 def print_version(ctx, param, value):
     if not value or ctx.resilient_parsing:
         return
     print('alona version %s ' % __version__)
     ctx.exit()
-    
+
 def is_platform_ok():
-    assert(not 'linux' in sys.platform), 'alona is developed on Linux and everything else \
+    assert('linux' not in sys.platform), 'alona is developed on Linux and everything else \
 is untested.'
 
 @click.command()
 @click.argument('filename', type=click.Path(exists=True))
 @click.option('--output', help='Specify name of output directory')
 @click.option('--delimiter', help='Data delimiter.',
-              type=click.Choice(['auto', 'tab','space']), default='auto')
+              type=click.Choice(['auto', 'tab', 'space']), default='auto')
 @click.option('--header', help='Data has a header line.',
-              type=click.Choice(['auto', 'yes','no']), default='auto')
-@click.option('--nomito', help='Exclude mitochondrial genes from analysis.',is_flag=True)
+              type=click.Choice(['auto', 'yes', 'no']), default='auto')
+@click.option('--nomito', help='Exclude mitochondrial genes from analysis.', is_flag=True)
 @click.option('--species', help='Species your data comes from.',
-              type=click.Choice(['human', 'mouse']),default='mouse')
+              type=click.Choice(['human', 'mouse']), default='mouse')
 @click.option('--loglevel', help='Set how much runtime information is written to \
                the log file.', type=click.Choice(['regular', 'debug']), default='regular')
 @click.option('--nologo', help='Hide the logo.', is_flag=True)
@@ -58,15 +59,15 @@ is untested.'
 
 def run(filename, output, delimiter, header, nomito, species, loglevel, nologo, version):
     init_logging(loglevel)
-    
-    logging.debug('starting alona with %s' % filename)
+
+    logging.debug('starting alona with %s', filename)
     show_logo(nologo)
-    
+
     #if not is_inside_container():
         #sys.exit("alona requires several dependencies and should be run through a \
 #Docker container. See https://raw.githubusercontent.com/oscar-franzen/alona/master/\
 #README.md")
-    
+
     alona_opts = {
         'input_filename' : filename,
         'output_directory' : output,
@@ -76,49 +77,49 @@ def run(filename, output, delimiter, header, nomito, species, loglevel, nologo, 
         'header' : header,
         'nomito' : nomito
     }
-    
-    ab = AlonaBase(alona_opts)
-    
-    try:
-        ab.is_file_empty()
-    except file_empty_error:
-        log_error(None,'Input file is empty.')
-    
-    ab.create_work_dir()
+
+    alonabase = AlonaBase(alona_opts)
 
     try:
-        ab.unpack_data()
-    except (invalid_file_format,
-            file_corrupt,
-            input_not_plain_text) as e:
-        log_error(None,e)
-    except Exception as e:
-        logging.error(e)
+        alonabase.is_file_empty()
+    except FileEmptyError:
+        log_error(None, 'Input file is empty.')
+
+    alonabase.create_work_dir()
+
+    try:
+        alonabase.unpack_data()
+    except (InvalidFileFormatError,
+            FileCorruptError,
+            InputNotPlainTextError) as err:
+        log_error(None, err)
+    except Exception as err:
+        logging.error(err)
         raise
-    
-    ab.get_delimiter()
-    ab.has_header()
-    
+
+    alonabase.get_delimiter()
+    alonabase.has_header()
+
     try:
-        ab.sanity_check_columns()
-    except (irregular_column_count) as e:
-        log_error(None,e)
-        
+        alonabase.sanity_check_columns()
+    except (IrregularColumnCountError) as err:
+        log_error(None, err)
+
     try:
-        ab.sanity_check_genes()
-    except (irregular_gene_count) as e:
-        log_error(None,e)
-        
+        alonabase.sanity_check_genes()
+    except (IrregularGeneCountError) as err:
+        log_error(None, err)
+
     if species == 'human':
-        ab.ortholog_mapper()
-        
+        alonabase.ortholog_mapper()
+
     try:
-        ab.sanity_check_gene_dups()
-    except (gene_duplicates) as e:
-        log_error(None,e)
-        
-    ab.map_genes_to_ref()
-        
-    ab.cleanup()
-    
+        alonabase.sanity_check_gene_dups()
+    except (GeneDuplicatesError) as err:
+        log_error(None, err)
+
+    alonabase.map_genes_to_ref()
+
+    alonabase.cleanup()
+
     logging.debug('finishing alona')

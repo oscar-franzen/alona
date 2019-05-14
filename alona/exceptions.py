@@ -1,24 +1,23 @@
-class alona_error(Exception):
+class AlonaError(Exception):
     """Base exception for alona errors"""
+
+class FileEmptyError(AlonaError):
     pass
 
-class file_empty_error(alona_error):
+class InvalidFileFormatError(AlonaError):
     pass
 
-class invalid_file_format(alona_error):
+class FileCorruptError(AlonaError):
     pass
 
-class file_corrupt(alona_error):
+class InputNotPlainTextError(AlonaError):
     pass
 
-class input_not_plain_text(alona_error):
+class IrregularColumnCountError(AlonaError):
     pass
 
-class irregular_column_count(alona_error):
+class IrregularGeneCountError(AlonaError):
     pass
 
-class irregular_gene_count(alona_error):
-    pass
-
-class gene_duplicates(alona_error):
+class GeneDuplicatesError(AlonaError):
     pass
