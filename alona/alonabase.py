@@ -1,3 +1,19 @@
+"""
+ alona
+
+ Description:
+ An analysis pipeline for scRNA-seq data.
+
+ How to use:
+ https://github.com/oscar-franzen/alona/
+
+ Details:
+ https://alona.panglaodb.se/
+
+ Contact:
+ Oscar Franzen, <p.oscar.franzen@gmail.com>
+"""
+
 import re
 import os
 import uuid
@@ -13,6 +29,8 @@ class AlonaBase():
     """
     AlonaBase class
     """
+
+    # pylint: disable=too-many-instance-attributes
 
     params = None
 
@@ -30,6 +48,8 @@ class AlonaBase():
         self.mouse_symbols = {}
         self.mouse_ensembls = {}
         self.mouse_entrez = {}
+
+        self.unmappable = []
 
         self.params.update(params)
 
@@ -353,27 +373,34 @@ of columns (every row must have the same number of columns).')
 
     def sanity_check_gene_dups(self):
         """ Checks for gene duplicates. """
-        with open(self.get_matrix_file(), 'r') as f:
+        with open(self.get_matrix_file(), 'r') as fh:
             if self._has_header:
-                next(f)
+                next(fh)
 
             genes = {}
 
-            for line in f:
+            for line in fh:
                 gene = line.split(self._delimiter)[0]
+
                 if not gene in genes:
                     genes[gene] = 1
                 else:
                     genes[gene] += 1
 
-            if gene in genes:
+            _cancel = 0
+
+            for gene in genes:
                 if genes[gene] > 1:
-                    raise GeneDuplicatesError('Gene duplicates detected.')
+                    _cancel = 1
+                    log_info('%s has duplicates' % gene)
+
+            if _cancel:
+                raise GeneDuplicatesError('Gene duplicates detected.')
 
     def load_mouse_gene_symbols(self):
         """ Loads genome annotations. """
         fh = open(os.path.dirname(inspect.getfile(AlonaBase)) +
-                 '/genome/Mus_musculus.GRCm38.gencode.vM17.primary_assembly.\
+                  '/genome/Mus_musculus.GRCm38.gencode.vM17.primary_assembly.\
 annotation.gene_level.ERCC.gtf', 'r')
 
         for line in fh:
@@ -415,7 +442,6 @@ annotation.gene_level.ERCC.gtf', 'r')
         genes_found = {}
         switch = 0
         total = 0
-        unmappable = []
 
         # are gene symbols "Entrez"? these gene symbols consists of numbers only.
         is_entrez_gene_id = 1
@@ -439,38 +465,38 @@ annotation.gene_level.ERCC.gtf', 'r')
                 gene = gene.split('__')[0]
 
             if is_entrez_gene_id:
-                if ref_entrez_mouse.get(gene, '') != '':
-                    ens = ref_entrez_mouse[gene]
+                if self.mouse_entrez.get(gene, '') != '':
+                    ens = self.mouse_entrez[gene]
 
                     if self.mouse_ensembls.get(ens, '') != '':
                         new_gene_name = self.mouse_ensembls.get(ens, '')
                         genes_found[gene] = 1
 
                         ftemp.write('%s%s%s' % (new_gene_name, delimiter,
-                                    delimiter.join(foo[1:])) )
+                                                delimiter.join(foo[1:])))
 
                         switch = 1
                     else:
-                        unmappable.append(gene)
+                        self.unmappable.append(gene)
                 else:
-                    unmappable.append(gene)
+                    self.unmappable.append(gene)
             elif re.search('^.+_ENSMUSG[0-9]+', gene):
                 ensembl_id = re.search('^.+_(ENSMUSG[0-9]+)', gene).group(1)
 
                 if self.mouse_ensembls.get(ensembl_id, '') != '':
                     genes_found[ensembl_id] = 1
-                    
+
                     if re.search(r'^\S+_ENSMUSG[0-9]+\.[0-9]+$', gene):
                         new_gene_name = re.search(r'^(\S+_ENSMUSG[0-9]+)\.[0-9]+$',
                                                   gene).group(1)
                         ftemp.write('%s%s%s' % (new_gene_name, self._delimiter,
-                                    self._delimiter.join(foo[1:])))
+                                                self._delimiter.join(foo[1:])))
                     else:
                         ftemp.write(line)
 
                     switch = 1
                 else:
-                    unmappable.append(gene)
+                    self.unmappable.append(gene)
             elif re.search('^ENSMUSG[0-9]+', gene):
                 ensembl_id = re.search('^(ENSMUSG[0-9]+)', gene).group(1)
 
@@ -479,11 +505,11 @@ annotation.gene_level.ERCC.gtf', 'r')
 
                     new_gene_name = mouse_ensembls[ensembl_id]
                     ftemp.write('%s%s%s' % (new_gene_name, self._delimiter,
-                                self._delimiter.join(foo[1:])) )
+                                            self._delimiter.join(foo[1:])))
 
                     switch = 1
                 else:
-                    unmappable.append(gene)
+                    self.unmappable.append(gene)
             else:
                 # some pipelines separate aliases with ;
                 foobar = gene.split(';')
@@ -496,27 +522,38 @@ annotation.gene_level.ERCC.gtf', 'r')
                         new_gene_name = self.mouse_symbols[item]
 
                         ftemp.write('%s%s%s' % (new_gene_name, self._delimiter,
-                                    self._delimiter.join(foo[1:])) )
+                                                self._delimiter.join(foo[1:])))
                         switch = 1
                         found = 1
                         break
 
                 if not found:
-                    unmappable.append(gene)
+                    self.unmappable.append(gene)
 
         ftemp.close()
 
         if self.params['species'] == 'human':
-            del unmappable[:]
+            del self.unmappable[:]
 
-            f = open(get_working_dir() + '/input_clean.mat.genes_missing_mouse_orthologs' % (tmp_dir), 'r')
+            f = open(self.get_working_dir() +
+                     '/input_clean.mat.genes_missing_mouse_orthologs', 'r')
 
             for line in f:
-                unmappable.append(line.rstrip('\n'))
+                self.unmappable.append(line.rstrip('\n'))
 
             f.close()
 
-        #if switch:
-        #    os.system('mv -v %s.C %s' % (temporary_file, temporary_file))
+        if switch:
+            os.system('mv %s/input.mat.C %s/input.mat' % (self.get_working_dir(),
+                                                          self.get_working_dir()))
 
-        #return genes_found, (total-len(genes_found)), unmappable
+        if len(self.unmappable) == 0:
+            log_info('All genes were mapped to internal symbols.')
+        else:
+            with open(self.get_working_dir() + '/unmappable.txt', 'w') as fh:
+                for item in self.unmappable:
+                    fh.write("%s\n" % item)
+
+            log_info('%s gene(s) were not mappable.' % '{:,}'.
+                     format(len(self.unmappable)))
+            log_info('These have been written to unmappable.txt')
