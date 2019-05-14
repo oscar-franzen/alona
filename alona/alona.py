@@ -119,7 +119,13 @@ def run(filename, output, delimiter, header, nomito, species, loglevel, nologo, 
         log_error(None, err)
 
     alonabase.load_mouse_gene_symbols()
-    alonabase.map_input_genes()
+    
+    try:
+        alonabase.map_input_genes()
+    except (TooFewGenesMappableError) as err:
+        log_error(None, err)
+        
+    alonabase.check_gene_name_column_id_present()
 
     alonabase.cleanup()
 

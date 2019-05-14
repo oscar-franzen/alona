@@ -44,6 +44,7 @@ class AlonaBase():
         self._is_binary = None
         self._delimiter = None
         self._has_header = None
+        self._has_gene_id_column_id = None
 
         self.mouse_symbols = {}
         self.mouse_ensembls = {}
@@ -557,3 +558,20 @@ annotation.gene_level.ERCC.gtf', 'r')
             log_info('%s gene(s) were not mappable.' % '{:,}'.
                      format(len(self.unmappable)))
             log_info('These have been written to unmappable.txt')
+            
+        if (total-len(self.unmappable)) < 500:
+            raise TooFewGenesMappableError('Input data error. \
+Too few genes were mappable (<500).')
+
+    def check_gene_name_column_id_present(self):
+        logging.debug('running check_gene_name_column_id_present()')
+        
+        with open(self.get_matrix_file(), 'r') as fh:
+            header = next(fh)
+            line2 = next(fh)
+
+            self._has_gene_id_column_id = len(header.split(self._delimiter)) == \
+                                          len(line2.split(self._delimiter))
+
+            if self._has_gene_id_column_id:
+                log_info('A column ID for the gene symbols was identified.')

@@ -21,3 +21,6 @@ class IrregularGeneCountError(AlonaError):
 
 class GeneDuplicatesError(AlonaError):
     pass
+    
+class TooFewGenesMappableError(AlonaError):
+    pass
