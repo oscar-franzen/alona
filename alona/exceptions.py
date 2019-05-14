@@ -20,3 +20,6 @@ class irregular_column_count(alona_error):
     
 class irregular_gene_count(alona_error):
     pass
+    
+class gene_duplicates(alona_error):
+    pass

@@ -6,7 +6,9 @@ import inspect
 import logging
 import subprocess
 
+from .log import *
 from .exceptions import *
+from .colors import (red,green,end)
 
 class alona_base(object):
     """
@@ -52,7 +54,7 @@ class alona_base(object):
             logging.debug('creating output directory: %s '% self.params['output_directory'])
             os.mkdir(self.params['output_directory'])
         except FileExistsError:
-            logging.error('Error: Output directory already exists (%s)' %
+            log_error(self,'Error: Output directory already exists (%s)' %
                            self.params['output_directory'])
             raise
         
@@ -171,7 +173,11 @@ class alona_base(object):
         # remove temporary files
         for garbage in ('input.mat',):
             logging.debug('removing %s' % garbage)
-            os.remove('%s/%s' % (self.params['output_directory'],garbage))
+            
+            try:
+                os.remove('%s/%s' % (self.params['output_directory'],garbage))
+            except FileNotFoundError as e:
+                logging.debug('Not found: %s' % garbage)
 
     def __guess_delimiter(self):
         d = {' ' : 0, '\t' : 0, ',' : 0}
@@ -256,7 +262,7 @@ class alona_base(object):
             raise irregular_column_count('Rows in your data matrix have different number \
 of columns (every row must have the same number of columns).')
         else:
-            logging.info('%s cells detected.' % '{:,}'.format(cols.popitem()[0]))
+            log_info('%s cells detected.' % '{:,}'.format(cols.popitem()[0]))
 
     def sanity_check_genes(self):
         """ Sanity check on gene count. Raises an exception if gene count is too low. """
@@ -272,7 +278,7 @@ of columns (every row must have the same number of columns).')
         if count < 1000:
             raise irregular_gene_count('Number of genes in the input data is too low.')
         else:
-            logging.info('%s genes detected' % '{:,}'.format(count))
+            log_info('%s genes detected' % '{:,}'.format(count))
 
     def ortholog_mapper(self):        
         """ Maps mouse genes to the corresponding human ortholog.
@@ -338,6 +344,26 @@ of columns (every row must have the same number of columns).')
         ftemp.close()
         ftemp2.close()
         
-        logging.info('mapped %s genes to mouse orthologs' % ('{:,}'.format(orthologs_found)))
+        log_info('mapped %s genes to mouse orthologs' % ('{:,}'.format(orthologs_found)))
 
         return self.get_matrix_file() + '.mapped2mouse.mat'
+        
+    def sanity_check_gene_dups(self):
+        """ Checks for gene duplicates. """
+        
+        with open(self.get_matrix_file(),'r') as f:
+            if self._has_header:
+                next(f)
+            
+            genes = {}
+
+            for line in f:
+                gene = line.split(self._delimiter)[0]
+                if not gene in genes:
+                    genes[gene] = 1
+                else:
+                    genes[gene] += 1
+                    
+            if gene in genes:
+                if genes[gene] > 1:
+                    raise gene_duplicates('Gene duplicates detected.')

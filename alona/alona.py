@@ -20,37 +20,11 @@ import glob
 import click
 import logging
 
+from .log import *
 from .logo import *
-from .alona_base import alona_base
 from .exceptions import *
-
+from .alona_base import alona_base
 from ._version import __version__
-
-def init_logging(loglevel):
-    if loglevel == 'regular':
-        _ll = logging.INFO
-    elif loglevel == 'debug':
-        _ll = logging.DEBUG
-        
-    logging.basicConfig(filename='alona.log',
-                        level=_ll,
-                        format='%(asctime)s %(message)s')
-                        
-    console = logging.StreamHandler()
-    # Logging messages which are less severe than level will be ignored.
-    # Level         Numeric value
-    # CRITICAL      50
-    # ERROR         40
-    # WARNING       30
-    # INFO          20
-    # DEBUG         10
-    # NOTSET        0
-    console.setLevel(_ll)
-    formatter = logging.Formatter('%(levelname)-8s %(message)s')
-    console.setFormatter(formatter)
-    logging.getLogger('').addHandler(console)
-
-    return
 
 def is_inside_container():
     """ Checks that alona.py is running inside the Docker container. """
@@ -65,7 +39,6 @@ def print_version(ctx, param, value):
 def is_platform_ok():
     assert(not 'linux' in sys.platform), 'alona is developed on Linux and everything else \
 is untested.'
-        
 
 @click.command()
 @click.argument('filename', type=click.Path(exists=True))
@@ -74,6 +47,7 @@ is untested.'
               type=click.Choice(['auto', 'tab','space']), default='auto')
 @click.option('--header', help='Data has a header line.',
               type=click.Choice(['auto', 'yes','no']), default='auto')
+@click.option('--nomito', help='Exclude mitochondrial genes from analysis.',is_flag=True)
 @click.option('--species', help='Species your data comes from.',
               type=click.Choice(['human', 'mouse']),default='mouse')
 @click.option('--loglevel', help='Set how much runtime information is written to \
@@ -82,7 +56,7 @@ is untested.'
 @click.option('--version', help='Display version number.', is_flag=True,
               callback=print_version)
 
-def run(filename, output, delimiter, header, species, loglevel, nologo, version):
+def run(filename, output, delimiter, header, nomito, species, loglevel, nologo, version):
     init_logging(loglevel)
     
     logging.debug('starting alona with %s' % filename)
@@ -99,7 +73,8 @@ def run(filename, output, delimiter, header, species, loglevel, nologo, version)
         'species' : species,
         'delimiter' : delimiter,
         'loglevel' : loglevel,
-        'header' : header
+        'header' : header,
+        'nomito' : nomito
     }
     
     ab = alona_base(alona_opts)
@@ -107,8 +82,7 @@ def run(filename, output, delimiter, header, species, loglevel, nologo, version)
     try:
         ab.is_file_empty()
     except file_empty_error:
-        logging.error('Input file is empty.')
-        sys.exit(1)
+        log_error(None,'Input file is empty.')
     
     ab.create_work_dir()
 
@@ -117,9 +91,7 @@ def run(filename, output, delimiter, header, species, loglevel, nologo, version)
     except (invalid_file_format,
             file_corrupt,
             input_not_plain_text) as e:
-        logging.error(e)
-        ab.cleanup()
-        sys.exit(1)
+        log_error(None,e)
     except Exception as e:
         logging.error(e)
         raise
@@ -130,19 +102,20 @@ def run(filename, output, delimiter, header, species, loglevel, nologo, version)
     try:
         ab.sanity_check_columns()
     except (irregular_column_count) as e:
-        logging.error(e)
-        ab.cleanup()
-        sys.exit(1)
+        log_error(None,e)
         
     try:
         ab.sanity_check_genes()
     except (irregular_gene_count) as e:
-        logging.error(e)
-        ab.cleanup()
-        sys.exit(1)
+        log_error(None,e)
         
     if species == 'human':
         ab.ortholog_mapper()
+        
+    try:
+        ab.sanity_check_gene_dups()
+    except (gene_duplicates) as e:
+        log_error(None,e)
         
     ab.cleanup()
     
