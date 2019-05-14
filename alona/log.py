@@ -1,7 +1,7 @@
 import sys
 import logging
 
-from .colors import (red,green,end)
+from .colors import (RED,GREEN,END)
 
 def init_logging(loglevel):
     if loglevel == 'regular':
@@ -30,10 +30,10 @@ def init_logging(loglevel):
     return
 
 def log_info(msg):
-    logging.info('%s%s%s' % (green,msg,end))
+    logging.info('%s%s%s' % (GREEN,msg,END))
     
 def log_error(ab=None,msg='error'):
-    logging.error('%s%s%s' % (red,msg,end))
+    logging.error('%s%s%s' % (RED,msg,END))
     
     if ab != None:
         ab.cleanup()

@@ -1,6 +1,6 @@
 import logging
-from .colors import (red,
-                     end)
+from .colors import (RED,
+                     END)
 from ._version import __version__
 
 def show_logo(nologo):
@@ -12,6 +12,6 @@ def show_logo(nologo):
 %s######%s #      #    # #  # # ###### 
 %s#    #%s #      #    # #   ## #    # 
 %s#    #%s ######  ####  #    # #    #  v.%s
-''' % (red,end,red,end,red,end,red,end,red,end,red,end,__version__))
+''' % (RED,END,RED,END,RED,END,RED,END,RED,END,RED,END,__version__))
     else:
         logging.debug('hiding logo')

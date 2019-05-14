@@ -8,11 +8,10 @@ import subprocess
 
 from .log import *
 from .exceptions import *
-from .colors import (red,green,end)
 
-class alona_base(object):
+class AlonaBase(object):
     """
-    alona_base class
+    AlonaBase class
     """
     
     params = None
@@ -285,7 +284,7 @@ of columns (every row must have the same number of columns).')
             Only one-to-one orthologs are considered. """
             
         # human gene symbols to ens
-        f = open(os.path.dirname(inspect.getfile(alona_base)) +
+        f = open(os.path.dirname(inspect.getfile(AlonaBase)) +
                  '/genome/hgnc_complete_set.txt','r')
         hs_symb_to_hs_ens = {}
   
@@ -297,7 +296,7 @@ of columns (every row must have the same number of columns).')
         f.close()
         
         # ortholog mappings
-        f = open(os.path.dirname(inspect.getfile(alona_base)) +
+        f = open(os.path.dirname(inspect.getfile(AlonaBase)) +
                  '/genome/human_to_mouse_1_to_1_orthologs.tsv','r')
         next(f)
         

@@ -1,6 +1,6 @@
 import sys
 
-name = 'alona'
+NAME = 'alona'
 
 # Check Python version
 if sys.version_info < (3, 0):

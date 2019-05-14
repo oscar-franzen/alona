@@ -23,7 +23,7 @@ import logging
 from .log import *
 from .logo import *
 from .exceptions import *
-from .alona_base import alona_base
+from .alonabase import AlonaBase
 from ._version import __version__
 
 def is_inside_container():
@@ -77,7 +77,7 @@ def run(filename, output, delimiter, header, nomito, species, loglevel, nologo, 
         'nomito' : nomito
     }
     
-    ab = alona_base(alona_opts)
+    ab = AlonaBase(alona_opts)
     
     try:
         ab.is_file_empty()
