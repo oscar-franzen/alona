@@ -21,6 +21,7 @@ RUN R -e "install.packages(c('devtools','ggplot2','data.table'), \
 
 # Python3 packages
 RUN pip3 install click
+RUN pip3 install scanpy
 
 # Define working directory.
 WORKDIR /alona
