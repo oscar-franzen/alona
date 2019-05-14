@@ -285,7 +285,8 @@ of columns (every row must have the same number of columns).')
             Only one-to-one orthologs are considered. """
             
         # human gene symbols to ens
-        f = open(os.path.dirname(inspect.getfile(alona_base)) + '/genome/hgnc_complete_set.txt','r')
+        f = open(os.path.dirname(inspect.getfile(alona_base)) +
+                 '/genome/hgnc_complete_set.txt','r')
         hs_symb_to_hs_ens = {}
   
         for line in f:
@@ -296,7 +297,8 @@ of columns (every row must have the same number of columns).')
         f.close()
         
         # ortholog mappings
-        f = open(os.path.dirname(inspect.getfile(alona_base)) + '/genome/human_to_mouse_1_to_1_orthologs.tsv','r')
+        f = open(os.path.dirname(inspect.getfile(alona_base)) +
+                 '/genome/human_to_mouse_1_to_1_orthologs.tsv','r')
         next(f)
         
         human_to_mouse = {}
@@ -329,14 +331,18 @@ of columns (every row must have the same number of columns).')
                 gene = re.search('^.+_(ENSG[0-9]+)',gene).group(1)
             if human_to_mouse.get(gene,'') != '':
                 new_gene_name = human_to_mouse[gene]
-                ftemp.write('%s%s%s' % (new_gene_name, self._delimiter, self._delimiter.join(foo[1:])))
+                ftemp.write('%s%s%s' % (new_gene_name,
+                                        self._delimiter,
+                                        self._delimiter.join(foo[1:])))
                 orthologs_found += 1
             elif hs_symb_to_hs_ens.get(gene,'') != '':
                 hs_ens = hs_symb_to_hs_ens[gene]
                 mm_ens = human_to_mouse.get(hs_ens,'')
                 orthologs_found += 1
                 if mm_ens != '':
-                    ftemp.write('%s%s%s' % (mm_ens, self._delimiter, self._delimiter.join(foo[1:])))
+                    ftemp.write('%s%s%s' % (mm_ens,
+                                            self._delimiter,
+                                            self._delimiter.join(foo[1:])))
                 else:
                     ftemp2.write('%s\n' % (gene))
 
@@ -367,3 +373,33 @@ of columns (every row must have the same number of columns).')
             if gene in genes:
                 if genes[gene] > 1:
                     raise gene_duplicates('Gene duplicates detected.')
+
+    def map_genes_to_ref(self):
+        """ Maps gene symbols to internal gene symbols. """
+        data = []
+        logging.debug('Mapping genes to reference.')
+        
+        ftemp = open(self.get_matrix_file() + '.C','w')
+        with open(self.get_matrix_file(),'r') as f:
+            if self._has_header:
+                header = next(f)
+                ftemp.write(header)
+            
+            for line in f:
+                data.append(line.replace('"',''))
+                
+        genes_found = {}
+        switch = 0
+        total = 0
+        unmappable = []
+        
+        # are gene symbols "Entrez"? these gene symbols consists of numbers only.
+        is_entrez_gene_ID = 1
+  
+        for line in data:
+            foo = line.split(self._delimiter)
+            gene = foo[0]
+            if not re.search('^[0-9]+$',gene):
+                is_entrez_gene_ID = 0
+        
+        if is_entrez_gene_ID: logging.debug('Gene symbols appear to be Entrez.')

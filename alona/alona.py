@@ -117,6 +117,8 @@ def run(filename, output, delimiter, header, nomito, species, loglevel, nologo, 
     except (gene_duplicates) as e:
         log_error(None,e)
         
+    ab.map_genes_to_ref()
+        
     ab.cleanup()
     
     logging.debug('finishing alona')
