@@ -89,7 +89,8 @@ Create a new container using the installed image and enter it using Docker's int
 ```bash
 docker run -it --entrypoint /bin/bash alona
 
-python3 -m alona
+# Example 1
+python3 -m alona --loglevel debug --header yes --output qwe ./data/qwe.mat
 ```
 
 ## Contact
