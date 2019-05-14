@@ -536,13 +536,13 @@ annotation.gene_level.ERCC.gtf', 'r')
         if self.params['species'] == 'human':
             del self.unmappable[:]
 
-            f = open(self.get_working_dir() +
+            fh = open(self.get_working_dir() +
                      '/input_clean.mat.genes_missing_mouse_orthologs', 'r')
 
-            for line in f:
+            for line in fh:
                 self.unmappable.append(line.rstrip('\n'))
 
-            f.close()
+            fh.close()
 
         if switch:
             os.system('mv %s/input.mat.C %s/input.mat' % (self.get_working_dir(),
@@ -558,14 +558,14 @@ annotation.gene_level.ERCC.gtf', 'r')
             log_info('%s gene(s) were not mappable.' % '{:,}'.
                      format(len(self.unmappable)))
             log_info('These have been written to unmappable.txt')
-            
+
         if (total-len(self.unmappable)) < 500:
             raise TooFewGenesMappableError('Input data error. \
 Too few genes were mappable (<500).')
 
     def check_gene_name_column_id_present(self):
         logging.debug('running check_gene_name_column_id_present()')
-        
+
         with open(self.get_matrix_file(), 'r') as fh:
             header = next(fh)
             line2 = next(fh)
