@@ -118,7 +118,8 @@ def run(filename, output, delimiter, header, nomito, species, loglevel, nologo, 
     except (GeneDuplicatesError) as err:
         log_error(None, err)
 
-    alonabase.map_genes_to_ref()
+    alonabase.load_mouse_gene_symbols()
+    alonabase.map_input_genes()
 
     alonabase.cleanup()
 

@@ -27,10 +27,14 @@ class AlonaBase():
         self._delimiter = None
         self._has_header = None
 
+        self.mouse_symbols = {}
+        self.mouse_ensembls = {}
+        self.mouse_entrez = {}
+
         self.params.update(params)
 
         # Set default options
-        if self.params['output_directory'] is None:
+        if self.get_working_dir() is None:
             self.params['output_directory'] = 'alona_out_%s' % self.random()
         if self.params['loglevel'] == 'debug':
             logging.debug('*** parameters *********************')
@@ -38,8 +42,11 @@ class AlonaBase():
                 logging.debug('%s : %s', par, self.params[par])
             logging.debug('************************************')
 
+    def get_working_dir(self):
+        return self.params['output_directory']
+
     def get_matrix_file(self):
-        return '%s/input.mat' % self.params['output_directory']
+        return '%s/input.mat' % self.get_working_dir()
 
     def random(self):
         """ Get random 8 character string """
@@ -48,11 +55,11 @@ class AlonaBase():
     def create_work_dir(self):
         """ Creates a working directory for temporary and output files. """
         try:
-            logging.debug('creating output directory: %s', self.params['output_directory'])
-            os.mkdir(self.params['output_directory'])
+            logging.debug('creating output directory: %s', self.get_working_dir())
+            os.mkdir(self.get_working_dir())
         except FileExistsError:
             log_error(self, 'Error: Output directory already exists (%s)' %
-                      self.params['output_directory'])
+                      self.get_working_dir())
             raise
 
     def is_file_empty(self):
@@ -167,7 +174,7 @@ class AlonaBase():
             logging.debug('removing %s', garbage)
 
             try:
-                os.remove('%s/%s' % (self.params['output_directory'], garbage))
+                os.remove('%s/%s' % (self.get_working_dir(), garbage))
             except FileNotFoundError:
                 logging.debug('Not found: %s', garbage)
 
@@ -264,7 +271,7 @@ of columns (every row must have the same number of columns).')
         count = 0
         for line in fh:
             count += 1
-            
+
         fh.close()
 
         if count < 1000:
@@ -363,18 +370,46 @@ of columns (every row must have the same number of columns).')
                 if genes[gene] > 1:
                     raise GeneDuplicatesError('Gene duplicates detected.')
 
-    def map_genes_to_ref(self):
+    def load_mouse_gene_symbols(self):
+        """ Loads genome annotations. """
+        fh = open(os.path.dirname(inspect.getfile(AlonaBase)) +
+                 '/genome/Mus_musculus.GRCm38.gencode.vM17.primary_assembly.\
+annotation.gene_level.ERCC.gtf', 'r')
+
+        for line in fh:
+            if not re.search('gene_id "ERCC_', line):
+                m = re.search(r'gene_id "(.+?)_(.+?)\.[0-9]+"', line)
+                symbol, ensembl = m.group(1), m.group(2)
+
+                self.mouse_symbols[symbol] = '%s_%s' % (symbol, ensembl)
+                self.mouse_ensembls[ensembl] = '%s_%s' % (symbol, ensembl)
+
+        fh.close()
+
+        fh = open(os.path.dirname(inspect.getfile(AlonaBase)) +
+                  '/genome/MGI_Gene_Model_Coord.txt.C', 'r')
+        next(fh)
+
+        for line in fh:
+            gene_id_as_number, ens = line.rstrip('\n').split(' ')
+
+            if gene_id_as_number != 'null':
+                self.mouse_entrez[gene_id_as_number] = ens
+
+        fh.close()
+
+    def map_input_genes(self):
         """ Maps gene symbols to internal gene symbols. """
         data = []
         logging.debug('Mapping genes to reference.')
 
         ftemp = open(self.get_matrix_file() + '.C', 'w')
-        with open(self.get_matrix_file(), 'r') as f:
+        with open(self.get_matrix_file(), 'r') as fh:
             if self._has_header:
-                header = next(f)
+                header = next(fh)
                 ftemp.write(header)
 
-            for line in f:
+            for line in fh:
                 data.append(line.replace('"', ''))
 
         genes_found = {}
@@ -392,3 +427,96 @@ of columns (every row must have the same number of columns).')
                 is_entrez_gene_id = 0
 
         if is_entrez_gene_id: logging.debug('Gene symbols appear to be Entrez.')
+
+        for line in data:
+            total += 1
+
+            foo = line.split(self._delimiter)
+            gene = foo[0]
+
+            # some have gene symbols like this: Abc__chr1
+            if gene.find('__') > 0:
+                gene = gene.split('__')[0]
+
+            if is_entrez_gene_id:
+                if ref_entrez_mouse.get(gene, '') != '':
+                    ens = ref_entrez_mouse[gene]
+
+                    if self.mouse_ensembls.get(ens, '') != '':
+                        new_gene_name = self.mouse_ensembls.get(ens, '')
+                        genes_found[gene] = 1
+
+                        ftemp.write('%s%s%s' % (new_gene_name, delimiter,
+                                    delimiter.join(foo[1:])) )
+
+                        switch = 1
+                    else:
+                        unmappable.append(gene)
+                else:
+                    unmappable.append(gene)
+            elif re.search('^.+_ENSMUSG[0-9]+', gene):
+                ensembl_id = re.search('^.+_(ENSMUSG[0-9]+)', gene).group(1)
+
+                if self.mouse_ensembls.get(ensembl_id, '') != '':
+                    genes_found[ensembl_id] = 1
+                    
+                    if re.search(r'^\S+_ENSMUSG[0-9]+\.[0-9]+$', gene):
+                        new_gene_name = re.search(r'^(\S+_ENSMUSG[0-9]+)\.[0-9]+$',
+                                                  gene).group(1)
+                        ftemp.write('%s%s%s' % (new_gene_name, self._delimiter,
+                                    self._delimiter.join(foo[1:])))
+                    else:
+                        ftemp.write(line)
+
+                    switch = 1
+                else:
+                    unmappable.append(gene)
+            elif re.search('^ENSMUSG[0-9]+', gene):
+                ensembl_id = re.search('^(ENSMUSG[0-9]+)', gene).group(1)
+
+                if self.mouse_ensembls.get(ensembl_id, '') != '':
+                    genes_found[ensembl_id] = 1
+
+                    new_gene_name = mouse_ensembls[ensembl_id]
+                    ftemp.write('%s%s%s' % (new_gene_name, self._delimiter,
+                                self._delimiter.join(foo[1:])) )
+
+                    switch = 1
+                else:
+                    unmappable.append(gene)
+            else:
+                # some pipelines separate aliases with ;
+                foobar = gene.split(';')
+                found = 0
+
+                for item in foobar:
+                    # try mapping using gene symbols
+                    if self.mouse_symbols.get(item, '') != '':
+                        genes_found[item] = 1
+                        new_gene_name = self.mouse_symbols[item]
+
+                        ftemp.write('%s%s%s' % (new_gene_name, self._delimiter,
+                                    self._delimiter.join(foo[1:])) )
+                        switch = 1
+                        found = 1
+                        break
+
+                if not found:
+                    unmappable.append(gene)
+
+        ftemp.close()
+
+        if self.params['species'] == 'human':
+            del unmappable[:]
+
+            f = open(get_working_dir() + '/input_clean.mat.genes_missing_mouse_orthologs' % (tmp_dir), 'r')
+
+            for line in f:
+                unmappable.append(line.rstrip('\n'))
+
+            f.close()
+
+        #if switch:
+        #    os.system('mv -v %s.C %s' % (temporary_file, temporary_file))
+
+        #return genes_found, (total-len(genes_found)), unmappable
