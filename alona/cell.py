@@ -13,6 +13,17 @@ class Cell():
         self.alonabase = alonabase
         self.data = None
 
+    def _validate_counts(self):
+        if (np.any(self.data.dtypes != 'int64') and
+           self.alonabase.params['dataformat'] == 'raw'):
+            log_error('Non-count values detected in data matrix while data format is \
+set to raw read counts.')
+        elif self.alonabase.params['dataformat'] == 'log2':
+            if np.any(data>1000):
+                log_error('Data do not appear to be log2 transformed.')
+        else:
+            logging.debug('_validate_counts() finished without a problem')
+
     def load_data(self):
         """ Load expression matrix. """
         logging.debug('loading expression matrix')
@@ -29,3 +40,7 @@ class Cell():
             log_info('%s duplicated genes still detected, removing them.' % np.sum(
             self.data.index.duplicated(False)))
             self.data = self.data.iloc[np.logical_not(self.data.index.duplicated(False))]
+
+        self._validate_counts()
+
+        logging.debug('done loading expression matrix')
