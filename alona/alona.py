@@ -27,27 +27,34 @@ from .cell import Cell
 
 @click.command()
 @click.argument('filename', type=click.Path(exists=True))
-@click.option('--output', help='Specify name of output directory')
-@click.option('--dataformat', help='Data format. Raw = raw read counts; rpkm = \
-RPKM normalized data; log2 = log2 normalized data.',
+@click.option('-o','--output', help='Specify name of output directory')
+@click.option('-df','--dataformat', help='Data format.\n(raw read counts, rpkm, log2 \
+normalized data)',
               type=click.Choice(['raw', 'rpkm', 'log2']), default='raw')
-@click.option('--delimiter', help='Data delimiter. The character used to separate data\
+              
+@click.option('-mr','--minreads', help='Minimum number of reads per cell to keep the cell.',
+              default=1000)
+
+@click.option('-d','--delimiter', help='Data delimiter. The character used to separate data\
 values. Cannot be a mix.',
               type=click.Choice(['auto', 'tab', 'space']), default='auto')
-@click.option('--header', help='Data has a header line.',
+@click.option('-h','--header', help='Data has a header line.',
               type=click.Choice(['auto', 'yes', 'no']), default='auto')
-@click.option('--nomito', help='Exclude mitochondrial genes from analysis.', is_flag=True)
-@click.option('--species', help='Species your data comes from.',
+@click.option('-m','--nomito', help='Exclude mitochondrial genes from analysis.', is_flag=True)
+@click.option('-s','--species', help='Species your data comes from.',
               type=click.Choice(['human', 'mouse']), default='mouse')
-@click.option('--loglevel', help='Set how much runtime information is written to \
-               the log file.', type=click.Choice(['regular', 'debug']), default='regular')
-@click.option('--nologo', help='Hide the logo.', is_flag=True)
-@click.option('--version', help='Display version number.', is_flag=True,
+@click.option('-lf','--logfile', help='Name of log file. Set to /dev/null if you want to \
+disable logging to a file.', default='alona.log')
+@click.option('-ll','--loglevel', help='Set how much runtime information is written to \
+              the log file.', type=click.Choice(['regular', 'debug']), default='regular')
+@click.option('-n','--nologo', help='Hide the logo.', is_flag=True)
+@click.option('-v','--version', help='Display version number.', is_flag=True,
               callback=print_version)
-def run(filename, output, dataformat, delimiter, header, nomito, species, loglevel,
-        nologo, version):
+def run(filename, output, dataformat, minreads, delimiter, header, nomito, species,
+        logfile, loglevel, nologo, version):
+    
     time_start = time.time()
-    init_logging(loglevel)
+    init_logging(loglevel, logfile)
 
     logging.debug('starting alona with %s', filename)
     show_logo(nologo)
@@ -65,7 +72,8 @@ def run(filename, output, dataformat, delimiter, header, nomito, species, loglev
         'loglevel' : loglevel,
         'header' : header,
         'nomito' : nomito,
-        'dataformat' : dataformat
+        'dataformat' : dataformat,
+        'minreads' : minreads,
     }
 
     alonabase = AlonaBase(alona_opts)

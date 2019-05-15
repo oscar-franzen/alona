@@ -62,6 +62,9 @@ class AlonaBase():
             for par in self.params:
                 logging.debug('%s : %s', par, self.params[par])
             logging.debug('************************************')
+            
+        if self.params['minreads'] < 0:
+            log_error(self, '--minreads must be a positive integer.')
 
     def get_working_dir(self):
         return self.params['output_directory']

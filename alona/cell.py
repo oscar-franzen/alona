@@ -67,6 +67,10 @@ set to raw read counts.')
             if np.sum(mt_count) > 0:
                 log_info('detected and removed %s mitochondrial gene(s)' % np.sum(mt_count))
                 self.data = self.data.loc[self.data.index[np.logical_not(mt_count)]]
+                
+    def _quality_filtering():
+        """ Performs basic quality filtering on the data. """
+        pass
 
     def load_data(self):
         """ Load expression matrix. """

@@ -19,13 +19,13 @@ import logging
 
 from .colors import (RED, GREEN, END)
 
-def init_logging(loglevel):
+def init_logging(loglevel, logfile):
     if loglevel == 'regular':
         _ll = logging.INFO
     elif loglevel == 'debug':
         _ll = logging.DEBUG
 
-    logging.basicConfig(filename='alona.log',
+    logging.basicConfig(filename=logfile,
                         level=_ll,
                         format='%(asctime)s %(message)s')
 
