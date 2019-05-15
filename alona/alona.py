@@ -29,26 +29,26 @@ from .cell import Cell
 @click.argument('filename', type=click.Path(exists=True))
 @click.option('-o','--output', help='Specify name of output directory')
 @click.option('-df','--dataformat', help='Data format.\n(raw read counts, rpkm, log2 \
-normalized data)',
+normalized data). Default: raw',
               type=click.Choice(['raw', 'rpkm', 'log2']), default='raw')
               
-@click.option('-mr','--minreads', help='Minimum number of reads per cell to keep the cell.',
+@click.option('-mr','--minreads', help='Minimum number of reads per cell to keep the cell. Default: 1000',
               default=1000)
 
 @click.option('-d','--delimiter', help='Data delimiter. The character used to separate data\
-values. Cannot be a mix.',
+values. Cannot be a mix. Default: auto',
               type=click.Choice(['auto', 'tab', 'space']), default='auto')
-@click.option('-h','--header', help='Data has a header line.',
+@click.option('-h','--header', help='Data has a header line. Default: auto',
               type=click.Choice(['auto', 'yes', 'no']), default='auto')
 @click.option('-m','--nomito', help='Exclude mitochondrial genes from analysis.', is_flag=True)
-@click.option('-s','--species', help='Species your data comes from.',
+@click.option('-s','--species', help='Species your data comes from. Default: mouse',
               type=click.Choice(['human', 'mouse']), default='mouse')
 @click.option('-lf','--logfile', help='Name of log file. Set to /dev/null if you want to \
-disable logging to a file.', default='alona.log')
+disable logging to a file. Default: alona.log', default='alona.log')
 @click.option('-ll','--loglevel', help='Set how much runtime information is written to \
-              the log file.', type=click.Choice(['regular', 'debug']), default='regular')
+the log file. Default: regular', type=click.Choice(['regular', 'debug']), default='regular')
 @click.option('-n','--nologo', help='Hide the logo.', is_flag=True)
-@click.option('-v','--version', help='Display version number.', is_flag=True,
+@click.option('--version', help='Display version number.', is_flag=True,
               callback=print_version)
 def run(filename, output, dataformat, minreads, delimiter, header, nomito, species,
         logfile, loglevel, nologo, version):
