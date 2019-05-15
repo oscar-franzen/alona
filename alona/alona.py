@@ -11,7 +11,7 @@
  https://alona.panglaodb.se/
 
  Contact:
- Oscar Franzen, <p.oscar.franzen@gmail.com>
+ Oscar Franzen <p.oscar.franzen@gmail.com>
 """
 
 import logging

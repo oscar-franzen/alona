@@ -1,3 +1,19 @@
+"""
+ alona
+
+ Description:
+ An analysis pipeline for scRNA-seq data.
+
+ How to use:
+ https://github.com/oscar-franzen/alona/
+
+ Details:
+ https://alona.panglaodb.se/
+
+ Contact:
+ Oscar Franzen <p.oscar.franzen@gmail.com>
+"""
+
 import logging
 import pandas as pd
 import numpy  as np
@@ -14,6 +30,7 @@ class Cell():
         self.data = None
 
     def _validate_counts(self):
+        """ Basic data validation of gene expression values. """
         if (np.any(self.data.dtypes != 'int64') and
            self.alonabase.params['dataformat'] == 'raw'):
             log_error('Non-count values detected in data matrix while data format is \
@@ -23,6 +40,22 @@ set to raw read counts.')
                 log_error('Data do not appear to be log2 transformed.')
         else:
             logging.debug('_validate_counts() finished without a problem')
+            
+    def _remove_empty(self):
+        """ Removes empty cells and genes """
+        data_zero = self.data == 0
+        cells = data_zero.sum(axis=1) # 1 = columns
+        genes = data_zero.sum(axis=0) # 0 = rows
+
+        total_genes = self.data.shape[0]
+        total_cells = self.data.shape[1]
+
+        if np.sum(cells == total_cells) > 0:
+            log_info('%s empty cells will be removed' % (np.sum(cells==total_cells)))
+            self.data = self.data.loc[self.data.index[np.logical_not(cells==total_cells)]]
+        if np.sum(genes == total_genes) > 0:
+            log_info('%s empty genes will be removed' % (np.sum(genes==total_genes)))
+            self.data = self.data[self.data.columns[np.logical_not(genes==total_genes)]]
 
     def load_data(self):
         """ Load expression matrix. """
@@ -42,5 +75,6 @@ set to raw read counts.')
             self.data = self.data.iloc[np.logical_not(self.data.index.duplicated(False))]
 
         self._validate_counts()
+        self._remove_empty()
 
         logging.debug('done loading expression matrix')
