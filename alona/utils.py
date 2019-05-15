@@ -2,6 +2,7 @@ import os
 import sys
 
 from ._version import __version__
+from .log import log_error
 
 def is_inside_container():
     """ Checks that alona.py is running inside the Docker container. """
@@ -15,6 +16,7 @@ def print_version(ctx, param, value):
     print('alona version %s ' % __version__)
     ctx.exit()
 
-def is_platform_ok():
-    assert('linux' not in sys.platform), 'alona is developed on Linux and everything else \
-is untested.'
+def is_platform_linux():
+    if sys.platform != 'linux':
+        print('alona is developed on Linux and all other systems are untested.')
+        sys.exit(1)
