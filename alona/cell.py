@@ -56,6 +56,17 @@ set to raw read counts.')
         if np.sum(genes == total_genes) > 0:
             log_info('%s empty genes will be removed' % (np.sum(genes==total_genes)))
             self.data = self.data[self.data.columns[np.logical_not(genes==total_genes)]]
+            
+    def _remove_mito(self):
+        """ Remove mitochondrial genes. """
+        if self.alonabase.params['nomito']:
+            logging.debug('removing mitochondrial genes')
+
+            mt_count = self.data.index.str.contains('^mt-',regex=True, case=False)
+            
+            if np.sum(mt_count) > 0:
+                log_info('detected and removed %s mitochondrial genes' % np.sum(mt_count))
+                self.data = self.data.loc[self.data.index[np.logical_not(mt_count)]]
 
     def load_data(self):
         """ Load expression matrix. """
@@ -76,5 +87,6 @@ set to raw read counts.')
 
         self._validate_counts()
         self._remove_empty()
+        self._remove_mito()
 
         logging.debug('done loading expression matrix')
