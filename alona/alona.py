@@ -23,6 +23,7 @@ from .log import (init_logging, log_error)
 from .logo import show_logo
 from .exceptions import *
 from .alonabase import AlonaBase
+from .cell import Cell
 
 @click.command()
 @click.argument('filename', type=click.Path(exists=True))
@@ -111,7 +112,10 @@ def run(filename, output, delimiter, header, nomito, species, loglevel, nologo, 
 
     alonabase.check_gene_name_column_id_present()
 
-    alonabase.cleanup()
+    cell = Cell(alonabase)
+    cell.load_data()
+
+    #alonabase.cleanup()
     time_end = time.time()
 
     logging.debug('alona finished in %.2f minutes' % ((time_end - time_start)/60))

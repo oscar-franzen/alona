@@ -22,6 +22,7 @@ RUN R -e "install.packages(c('devtools','ggplot2','data.table'), \
 # Python3 packages
 RUN pip3 install click
 RUN pip3 install scanpy
+RUN pip3 install pandas
 
 # Define working directory.
 WORKDIR /alona
