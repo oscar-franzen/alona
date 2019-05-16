@@ -80,13 +80,15 @@ set to raw read counts.')
     def _read_counts_per_cell_filter(self):
         """ Generates a bar plot of read counts per cell. """
         if self.alonabase.params['dataformat'] == 'raw':
+            min_reads = self.alonabase.params['minreads']
             cell_counts = self.data.sum(axis=0)
 
             plt.clf()
 
             figure(num=None, figsize=(5, 5))
 
-            no_cells_remove = np.sum(np.array(sorted(cell_counts, reverse=True)) < 1000)
+            no_cells_remove = np.sum(np.array(sorted(cell_counts, reverse=True)) < \
+                 min_reads)
             colors = ['#E69F00']*(len(cell_counts)-no_cells_remove) + \
                      ['#999999']*no_cells_remove
 
@@ -94,7 +96,7 @@ set to raw read counts.')
                     color=colors)
             plt.ylabel('raw read counts')
             plt.xlabel('cells (sorted on highest to lowest)')
-            plt.axhline(linewidth=1, color='r', y=1000)
+            plt.axhline(linewidth=1, color='r', y=min_reads)
             plt.legend(handles=[
                 mpatches.Patch(color='#E69F00', label='Passed'),
                 mpatches.Patch(color='#999999', label='Removed')
@@ -104,10 +106,14 @@ set to raw read counts.')
                  FILENAME_BARPLOT_RAW_READ_COUNTS, bbox_inches='tight')
             plt.close()
 
-            #log_info('Keeping %s out of %s cells' % (
-            #     np.sum(cell_counts>1000), len(cell_counts)))
+            log_info('Keeping %s out of %s cells' % (
+                np.sum(cell_counts > min_reads), len(cell_counts)))
 
-            #self.data = self.data[self.data.columns[cell_counts>1000]]
+            self.data = self.data[self.data.columns[cell_counts > min_reads]]
+
+            if self.data.shape[1] < 100:
+                log_error(self.alonabase, 'After removing cells with < %s reads, \
+                   less than 100 reads remain. Please adjust --minreads')
 
     def load_data(self):
         """ Load expression matrix. """
