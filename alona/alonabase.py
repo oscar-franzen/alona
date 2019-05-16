@@ -18,11 +18,10 @@ import re
 import os
 import uuid
 import inspect
-import logging
 import subprocess
 import magic
 
-from .log import (log_info, log_error)
+from .log import (log_info, log_debug, log_error)
 from .exceptions import *
 
 class AlonaBase():
@@ -58,13 +57,15 @@ class AlonaBase():
         if self.get_working_dir() is None:
             self.params['output_directory'] = 'alona_out_%s' % self.random()
         if self.params['loglevel'] == 'debug':
-            logging.debug('*** parameters *********************')
+            log_debug('*** parameters *********************')
             for par in self.params:
-                logging.debug('%s : %s', par, self.params[par])
-            logging.debug('************************************')
-            
+                log_debug('%s : %s' % (par, self.params[par]))
+            log_debug('************************************')
+
         if self.params['minreads'] < 0:
             log_error(self, '--minreads must be a positive integer.')
+        if self.params['minexpgenes'] < 0 or self.params['minexpgenes'] > 99:
+            log_error(self, '--minexpgenes must be a value within [0,100).')
 
     def get_working_dir(self):
         return self.params['output_directory']
@@ -79,7 +80,7 @@ class AlonaBase():
     def create_work_dir(self):
         """ Creates a working directory for temporary and output files. """
         try:
-            logging.debug('creating output directory: %s', self.get_working_dir())
+            log_debug('creating output directory: %s' %self.get_working_dir())
             os.mkdir(self.get_working_dir())
             os.mkdir(self.get_working_dir() + '/plots')
         except FileExistsError:
@@ -112,7 +113,7 @@ class AlonaBase():
         mat_out = self.get_matrix_file()
 
         if self._is_binary:
-            logging.debug('Input file is binary.')
+            log_debug('Input file is binary.')
 
             out = subprocess.check_output("file %s" % (self.params['input_filename']),
                                           shell=True)
@@ -120,7 +121,7 @@ class AlonaBase():
             out = out.decode('ascii')
 
             if re.search(' gzip compressed data,', out):
-                logging.debug('gzip data detected.')
+                log_debug('gzip data detected.')
 
                 # confirm integrity
                 try:
@@ -135,7 +136,7 @@ class AlonaBase():
                 # uncompress
                 os.system('gzip -d -c %s > %s' % (abs_path, mat_out))
             elif re.search(' Zip archive data,', out):
-                logging.debug('zip data detected.')
+                log_debug('zip data detected.')
 
                 # confirm integrity
                 try:
@@ -162,7 +163,7 @@ class AlonaBase():
                 # a single member compressed with the 'deflation' method.
                 os.system('zcat %s > %s' % (abs_path, mat_out))
             elif re.search(' bzip2 compressed data,', out):
-                logging.debug('bzip2 data detected.')
+                log_debug('bzip2 data detected.')
 
                 # confirm integrity
                 try:
@@ -179,7 +180,7 @@ class AlonaBase():
             else:
                 raise InvalidFileFormatError('Invalid format of the input file.')
         else:
-            logging.debug('Input file is not binary.')
+            log_debug('Input file is not binary.')
             # Create a symlink to the data
             cmd = 'ln -sfn %s %s' % (abs_path, mat_out)
             os.system(cmd)
@@ -196,12 +197,12 @@ class AlonaBase():
         """ Removes temporary files. """
         # remove temporary files
         for garbage in ('input.mat',):
-            logging.debug('removing %s', garbage)
+            log_debug('removing %s', garbage)
 
             try:
                 os.remove('%s/%s' % (self.get_working_dir(), garbage))
             except FileNotFoundError:
-                logging.debug('Not found: %s', garbage)
+                log_debug('Not found: %s', garbage)
 
     def __guess_delimiter(self):
         dcount = {' ' : 0, '\t' : 0, ',' : 0}
@@ -234,7 +235,7 @@ class AlonaBase():
             elif used_delim == 'SPACE':
                 used_delim = ' '
 
-        logging.debug('delimiter is: "%s" (ASCII code=%s)', used_delim, ord(used_delim))
+        log_debug('delimiter is: "%s" (ASCII code=%s)' % (used_delim, ord(used_delim)))
         self._delimiter = used_delim
         return used_delim
 
@@ -262,7 +263,7 @@ class AlonaBase():
         # if all fields are non-numerical, it's likely a header
         self._has_header = ret
 
-        logging.debug('has header: %s', self._has_header)
+        log_debug('has header: %s' % self._has_header)
 
         return ret
 
@@ -433,7 +434,7 @@ annotation.gene_level.ERCC.gtf', 'r')
     def map_input_genes(self):
         """ Maps gene symbols to internal gene symbols. """
         data = []
-        logging.debug('Mapping genes to reference.')
+        log_debug('Mapping genes to reference.')
 
         ftemp = open(self.get_matrix_file() + '.C', 'w')
         with open(self.get_matrix_file(), 'r') as fh:
@@ -457,7 +458,7 @@ annotation.gene_level.ERCC.gtf', 'r')
             if not re.search('^[0-9]+$', gene):
                 is_entrez_gene_id = 0
 
-        if is_entrez_gene_id: logging.debug('Gene symbols appear to be Entrez.')
+        if is_entrez_gene_id: log_debug('Gene symbols appear to be Entrez.')
 
         for line in data:
             total += 1
@@ -541,7 +542,7 @@ annotation.gene_level.ERCC.gtf', 'r')
             del self.unmappable[:]
 
             fh = open(self.get_working_dir() +
-                     '/input_clean.mat.genes_missing_mouse_orthologs', 'r')
+                      '/input_clean.mat.genes_missing_mouse_orthologs', 'r')
 
             for line in fh:
                 self.unmappable.append(line.rstrip('\n'))
@@ -568,7 +569,7 @@ annotation.gene_level.ERCC.gtf', 'r')
 Too few genes were mappable (<500).')
 
     def check_gene_name_column_id_present(self):
-        logging.debug('running check_gene_name_column_id_present()')
+        log_debug('running check_gene_name_column_id_present()')
 
         with open(self.get_matrix_file(), 'r') as fh:
             header = next(fh)

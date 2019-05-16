@@ -22,7 +22,7 @@ import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
 from matplotlib.pyplot import figure
 
-from .log import (log_info, log_error)
+from .log import (log_info, log_debug, log_error)
 from .constants import *
 
 class Cell():
@@ -47,7 +47,7 @@ set to raw read counts.')
             if np.any(self.data > 1000):
                 log_error('Data do not appear to be log2 transformed.')
         else:
-            logging.debug('_validate_counts() finished without a problem')
+            log_debug('_validate_counts() finished without a problem')
 
     def _remove_empty(self):
         """ Removes empty cells and genes """
@@ -69,7 +69,7 @@ set to raw read counts.')
     def _remove_mito(self):
         """ Remove mitochondrial genes. """
         if self.alonabase.params['nomito']:
-            logging.debug('removing mitochondrial genes')
+            log_debug('removing mitochondrial genes')
 
             mt_count = self.data.index.str.contains('^mt-', regex=True, case=False)
 
@@ -121,9 +121,10 @@ set to raw read counts.')
         plt.savefig(self.alonabase.get_working_dir() + '/plots/' + \
                  FILENAME_BARPLOT_GENES_EXPRESSED, bbox_inches='tight')
         plt.close()
-        
+
     def _quality_filter(self):
-        """ Removes cells with too few reads (set by --minreads). """
+        """ Removes cells with too few reads (set by --minreads).
+            Removes "underexpressed" genes (set by --minexpgenes). """
         if self.alonabase.params['dataformat'] == 'raw':
             min_reads = self.alonabase.params['minreads']
             cell_counts = self.data.sum(axis=0)
@@ -135,10 +136,17 @@ set to raw read counts.')
             if self.data.shape[1] < 100:
                 log_error(self.alonabase, 'After removing cells with < %s reads, \
                    less than 100 reads remain. Please adjust --minreads' % min_reads)
+        if self.alonabase.params['minexpgenes'] > 0:
+            log_debug('Filtering genes based on --minexpgenes')
+
+            genes_expressed = self.data.apply(lambda x: sum(x > 0)/len(x), axis=1)
+            log_info('Removing %s genes' % (self.data.shape[0] - np.sum(genes_expressed > \
+                self.alonabase.params['minexpgenes'])))
+            self.data = self.data[genes_expressed > self.alonabase.params['minexpgenes']]
 
     def load_data(self):
         """ Load expression matrix. """
-        logging.debug('loading expression matrix')
+        log_debug('loading expression matrix')
         self.data = pd.read_csv(self.alonabase.get_matrix_file(),
                                 delimiter=self.alonabase._delimiter,
                                 header=0 if self.alonabase._has_header else None)
@@ -161,4 +169,4 @@ set to raw read counts.')
         self._genes_expressed_per_cell_barplot()
         self._quality_filter()
 
-        logging.debug('done loading expression matrix')
+        log_debug('done loading expression matrix')

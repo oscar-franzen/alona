@@ -15,11 +15,11 @@
 """
 
 import logging
-import click
 import time
+import click
 
 from .utils import *
-from .log import (init_logging, log_error)
+from .log import (init_logging, log_debug, log_error)
 from .logo import show_logo
 from .exceptions import *
 from .alonabase import AlonaBase
@@ -27,36 +27,39 @@ from .cell import Cell
 
 @click.command()
 @click.argument('filename', type=click.Path(exists=True))
-@click.option('-o','--output', help='Specify name of output directory')
-@click.option('-df','--dataformat', help='Data format.\n(raw read counts, rpkm, log2 \
-normalized data). Default: raw',
-              type=click.Choice(['raw', 'rpkm', 'log2']), default='raw')
-              
-@click.option('-mr','--minreads', help='Minimum number of reads per cell to keep the cell. Default: 1000',
-              default=1000)
+@click.option('-o', '--output', help='Specify name of output directory')
+@click.option('-df', '--dataformat', help='Data format.\n(raw read counts, rpkm, log2 \
+normalized data). Default: raw', type=click.Choice(['raw', 'rpkm', 'log2']), default='raw')
 
-@click.option('-d','--delimiter', help='Data delimiter. The character used to separate data\
+@click.option('-mr', '--minreads', help='Minimum number of reads per cell to keep the \
+cell. Default: 1000', default=1000)
+
+@click.option('-mg', '--minexpgenes', help='Minimum number of expressed genes as \
+percent of all cells, i.e. genes expressed in fewer cells than this are removed. \
+Default: 0.01', default=0.01)
+
+@click.option('-d', '--delimiter', help='Data delimiter. The character used to separate data\
 values. Cannot be a mix. Default: auto',
               type=click.Choice(['auto', 'tab', 'space']), default='auto')
-@click.option('-h','--header', help='Data has a header line. Default: auto',
+@click.option('-h', '--header', help='Data has a header line. Default: auto',
               type=click.Choice(['auto', 'yes', 'no']), default='auto')
-@click.option('-m','--nomito', help='Exclude mitochondrial genes from analysis.', is_flag=True)
-@click.option('-s','--species', help='Species your data comes from. Default: mouse',
+@click.option('-m', '--nomito', help='Exclude mitochondrial genes from analysis.', is_flag=True)
+@click.option('-s', '--species', help='Species your data comes from. Default: mouse',
               type=click.Choice(['human', 'mouse']), default='mouse')
-@click.option('-lf','--logfile', help='Name of log file. Set to /dev/null if you want to \
+@click.option('-lf', '--logfile', help='Name of log file. Set to /dev/null if you want to \
 disable logging to a file. Default: alona.log', default='alona.log')
-@click.option('-ll','--loglevel', help='Set how much runtime information is written to \
+@click.option('-ll', '--loglevel', help='Set how much runtime information is written to \
 the log file. Default: regular', type=click.Choice(['regular', 'debug']), default='regular')
-@click.option('-n','--nologo', help='Hide the logo.', is_flag=True)
+@click.option('-n', '--nologo', help='Hide the logo.', is_flag=True)
 @click.option('--version', help='Display version number.', is_flag=True,
               callback=print_version)
-def run(filename, output, dataformat, minreads, delimiter, header, nomito, species,
-        logfile, loglevel, nologo, version):
-    
+def run(filename, output, dataformat, minreads, minexpgenes, delimiter, header, nomito,
+        species, logfile, loglevel, nologo, version):
+
     time_start = time.time()
     init_logging(loglevel, logfile)
 
-    logging.debug('starting alona with %s', filename)
+    log_debug('starting alona with %s' % filename)
     show_logo(nologo)
 
     #if not is_inside_container():
@@ -74,6 +77,7 @@ def run(filename, output, dataformat, minreads, delimiter, header, nomito, speci
         'nomito' : nomito,
         'dataformat' : dataformat,
         'minreads' : minreads,
+        'minexpgenes' : minexpgenes
     }
 
     alonabase = AlonaBase(alona_opts)
@@ -131,4 +135,4 @@ def run(filename, output, dataformat, minreads, delimiter, header, nomito, speci
     #alonabase.cleanup()
     time_end = time.time()
 
-    logging.debug('alona finished in %.2f minutes' % ((time_end - time_start)/60))
+    log_debug('alona finished in %.2f minutes' % ((time_end - time_start)/60))

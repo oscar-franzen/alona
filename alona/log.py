@@ -45,6 +45,9 @@ def init_logging(loglevel, logfile):
 
 def log_info(msg):
     logging.info('%s%s%s', GREEN, msg, END)
+    
+def log_debug(msg):
+    logging.debug('%s', msg)
 
 def log_error(abobj=None, msg='error'):
     logging.error('%s%s%s', RED, msg, END)
