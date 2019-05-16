@@ -26,7 +26,7 @@ from .exceptions import *
 from .constants import (ENTREZ_GENE_IDS,
                         MOUSE_GENOME_ANNOTATIONS,
                         HUMAN_GENE_SYMBOLS_TO_ENTREZ,
-                        MOUSE_vs_HUMAN_ORTHOLOGS)
+                        MOUSE_VS_HUMAN_ORTHOLOGS)
 
 class AlonaBase():
     """
