@@ -23,10 +23,7 @@ import magic
 
 from .log import (log_info, log_debug, log_error)
 from .exceptions import *
-from .constants import (ENTREZ_GENE_IDS,
-                        MOUSE_GENOME_ANNOTATIONS,
-                        HUMAN_GENE_SYMBOLS_TO_ENTREZ,
-                        MOUSE_VS_HUMAN_ORTHOLOGS)
+from .constants import (genome)
 
 class AlonaBase():
     """
@@ -313,7 +310,7 @@ of columns (every row must have the same number of columns).')
             Only one-to-one orthologs are considered. """
         # human gene symbols to ens
         f = open(os.path.dirname(inspect.getfile(AlonaBase)) + '/' + \
-                 HUMAN_GENE_SYMBOLS_TO_ENTREZ, 'r')
+                 genome['HUMAN_GENE_SYMBOLS_TO_ENTREZ'], 'r')
         hs_symb_to_hs_ens = {}
 
         for line in f:
@@ -325,7 +322,7 @@ of columns (every row must have the same number of columns).')
 
         # ortholog mappings
         f = open(os.path.dirname(inspect.getfile(AlonaBase)) + '/' +
-                 MOUSE_VS_HUMAN_ORTHOLOGS, 'r')
+                 genome['MOUSE_VS_HUMAN_ORTHOLOGS'], 'r')
         next(f)
 
         human_to_mouse = {}
@@ -410,7 +407,7 @@ of columns (every row must have the same number of columns).')
     def load_mouse_gene_symbols(self):
         """ Loads genome annotations. """
         fh = open(os.path.dirname(inspect.getfile(AlonaBase)) + '/' +
-                  MOUSE_GENOME_ANNOTATIONS, 'r')
+                  genome['MOUSE_GENOME_ANNOTATIONS'], 'r')
 
         for line in fh:
             if not re.search('gene_id "ERCC_', line):
@@ -423,7 +420,7 @@ of columns (every row must have the same number of columns).')
         fh.close()
 
         fh = open(os.path.dirname(inspect.getfile(AlonaBase)) + '/' +
-                  ENTREZ_GENE_IDS, 'r')
+                  genome['ENTREZ_GENE_IDS'], 'r')
         next(fh)
 
         for line in fh:

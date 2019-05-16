@@ -149,14 +149,14 @@ set to raw read counts.')
         """ Prints the new dimensions after quality filtering. """
         log_info('Data dimensions after filtering: %s genes and %s cells' % \
         (self.data.shape[0], self.data.shape[1]))
-        
+
     def _rpkm(self):
         if self.alonabase.params['species'] == 'human':
             # TODO: Implement RPKM for human. Then, this should be executed _before_
             # mapping to mouse orthologs (16-May-2019).
             log_info('RPKM for human is not implemented at the moment.')
             raise NotImplementedError('RPKM for human is not implemented at the moment.')
-        elif self.alonabase.params['species'] == 'mouse':
+        else:
             log_debug('Normalizing data to RPKM')
 
     def _normalization(self):

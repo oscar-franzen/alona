@@ -16,6 +16,7 @@
 
 import logging
 import time
+import inspect
 import click
 
 from .utils import *
@@ -24,6 +25,7 @@ from .logo import show_logo
 from .exceptions import *
 from .alonabase import AlonaBase
 from .cell import Cell
+from .constants import genome
 
 @click.command()
 @click.argument('filename', type=click.Path(exists=True))
@@ -56,7 +58,16 @@ the log file. Default: regular', type=click.Choice(['regular', 'debug']), defaul
 @click.option('--version', help='Display version number.', is_flag=True,
               callback=print_version)
 def run(filename, output, dataformat, minreads, minexpgenes, mrnafull, delimiter, header,
-nomito, species, logfile, loglevel, nologo, version):
+        nomito, species, logfile, loglevel, nologo, version):
+
+    # confirm the genome reference files can be found
+    for item in genome:
+        path = os.path.dirname(inspect.getfile(AlonaBase)) + '/' + genome[item]
+
+        if not os.path.exists(path):
+            print('genome directory is not complete. Cannot find file: "%s". I \
+tried this path: %s' % (genome[item], path))
+            sys.exit(1)
 
     time_start = time.time()
     init_logging(loglevel, logfile)
