@@ -2,6 +2,12 @@ ORANGE = '#E69F00'
 FILENAME_BARPLOT_RAW_READ_COUNTS = 'barplot_rrc.pdf'
 FILENAME_BARPLOT_GENES_EXPRESSED = 'barplot_ge.pdf'
 
+# Reference data
+ENTREZ_GENE_IDS = './genome/MGI_Gene_Model_Coord.txt.C'
+MOUSE_GENOME_ANNOTATIONS = './genome/Mus_musculus.GRCm38.gencode.vM17.primary_assembly.annotation.gene_level.ERCC.gtf'
+HUMAN_GENE_SYMBOLS_TO_ENTREZ = './genome/hgnc_complete_set.txt'
+MOUSE_vs_HUMAN_ORTHOLOGS = './genome/human_to_mouse_1_to_1_orthologs.tsv'
+
 # For the terminal
 # https://github.com/s0md3v/Photon/blob/master/core/colors.py
 WHITE = '\033[97m'

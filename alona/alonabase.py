@@ -23,6 +23,10 @@ import magic
 
 from .log import (log_info, log_debug, log_error)
 from .exceptions import *
+from .constants import (ENTREZ_GENE_IDS,
+                        MOUSE_GENOME_ANNOTATIONS,
+                        HUMAN_GENE_SYMBOLS_TO_ENTREZ,
+                        MOUSE_vs_HUMAN_ORTHOLOGS)
 
 class AlonaBase():
     """
@@ -308,8 +312,8 @@ of columns (every row must have the same number of columns).')
         """ Maps mouse genes to the corresponding human ortholog.
             Only one-to-one orthologs are considered. """
         # human gene symbols to ens
-        f = open(os.path.dirname(inspect.getfile(AlonaBase)) +
-                 '/genome/hgnc_complete_set.txt', 'r')
+        f = open(os.path.dirname(inspect.getfile(AlonaBase)) + '/' + \
+                 HUMAN_GENE_SYMBOLS_TO_ENTREZ, 'r')
         hs_symb_to_hs_ens = {}
 
         for line in f:
@@ -320,8 +324,8 @@ of columns (every row must have the same number of columns).')
         f.close()
 
         # ortholog mappings
-        f = open(os.path.dirname(inspect.getfile(AlonaBase)) +
-                 '/genome/human_to_mouse_1_to_1_orthologs.tsv', 'r')
+        f = open(os.path.dirname(inspect.getfile(AlonaBase)) + '/' +
+                 MOUSE_vs_HUMAN_ORTHOLOGS, 'r')
         next(f)
 
         human_to_mouse = {}
@@ -405,9 +409,8 @@ of columns (every row must have the same number of columns).')
 
     def load_mouse_gene_symbols(self):
         """ Loads genome annotations. """
-        fh = open(os.path.dirname(inspect.getfile(AlonaBase)) +
-                  '/genome/Mus_musculus.GRCm38.gencode.vM17.primary_assembly.\
-annotation.gene_level.ERCC.gtf', 'r')
+        fh = open(os.path.dirname(inspect.getfile(AlonaBase)) + '/' +
+                  MOUSE_GENOME_ANNOTATIONS, 'r')
 
         for line in fh:
             if not re.search('gene_id "ERCC_', line):
@@ -419,8 +422,8 @@ annotation.gene_level.ERCC.gtf', 'r')
 
         fh.close()
 
-        fh = open(os.path.dirname(inspect.getfile(AlonaBase)) +
-                  '/genome/MGI_Gene_Model_Coord.txt.C', 'r')
+        fh = open(os.path.dirname(inspect.getfile(AlonaBase)) + '/' +
+                  ENTREZ_GENE_IDS, 'r')
         next(fh)
 
         for line in fh:
