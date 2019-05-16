@@ -33,6 +33,7 @@ class Cell():
     def __init__(self, alonabase):
         self.alonabase = alonabase
         self.data = None
+        self.data_norm = None
 
         # make matplotlib more quiet
         logging.getLogger('matplotlib').setLevel(logging.WARNING)
@@ -144,6 +145,24 @@ set to raw read counts.')
                 self.alonabase.params['minexpgenes'])))
             self.data = self.data[genes_expressed > self.alonabase.params['minexpgenes']]
 
+    def _print_dimensions(self):
+        """ Prints the new dimensions after quality filtering. """
+        log_info('Data dimensions after filtering: %s genes and %s cells' % \
+        (self.data.shape[0], self.data.shape[1]))
+
+    def _normalization(self):
+        """ Performs normalization of the gene expression values. """
+        if not self.alonabase.params['mrnafull']:
+            log_debug('Starting normalization...')
+
+            if self.alonabase.params['dataformat'] == 'raw':
+                col_sums = self.data.apply(lambda x: sum(x), axis=0)
+                self.data_norm = (self.data / col_sums) * 10000
+                self.data_norm = np.log2(self.data_norm+1)
+                pass
+        else:
+            pass
+
     def load_data(self):
         """ Load expression matrix. """
         log_debug('loading expression matrix')
@@ -168,5 +187,9 @@ set to raw read counts.')
         self._read_counts_per_cell_filter()
         self._genes_expressed_per_cell_barplot()
         self._quality_filter()
+        self._print_dimensions()
+
+        # normalize gene expression values
+        self._normalization()
 
         log_debug('done loading expression matrix')

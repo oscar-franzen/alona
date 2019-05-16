@@ -33,10 +33,12 @@ normalized data). Default: raw', type=click.Choice(['raw', 'rpkm', 'log2']), def
 
 @click.option('-mr', '--minreads', help='Minimum number of reads per cell to keep the \
 cell. Default: 1000', default=1000)
-
 @click.option('-mg', '--minexpgenes', help='Minimum number of expressed genes as \
 percent of all cells, i.e. genes expressed in fewer cells than this are removed. \
 Default: 0.01', default=0.01)
+
+@click.option('--mrnafull', help='Data come from a full-length protocol, such as \
+SMART-seq2.', is_flag=True)
 
 @click.option('-d', '--delimiter', help='Data delimiter. The character used to separate data\
 values. Cannot be a mix. Default: auto',
@@ -53,8 +55,8 @@ the log file. Default: regular', type=click.Choice(['regular', 'debug']), defaul
 @click.option('-n', '--nologo', help='Hide the logo.', is_flag=True)
 @click.option('--version', help='Display version number.', is_flag=True,
               callback=print_version)
-def run(filename, output, dataformat, minreads, minexpgenes, delimiter, header, nomito,
-        species, logfile, loglevel, nologo, version):
+def run(filename, output, dataformat, minreads, minexpgenes, mrnafull, delimiter, header,
+nomito, species, logfile, loglevel, nologo, version):
 
     time_start = time.time()
     init_logging(loglevel, logfile)
@@ -77,7 +79,8 @@ def run(filename, output, dataformat, minreads, minexpgenes, delimiter, header, 
         'nomito' : nomito,
         'dataformat' : dataformat,
         'minreads' : minreads,
-        'minexpgenes' : minexpgenes
+        'minexpgenes' : minexpgenes,
+        'mrnafull' : mrnafull
     }
 
     alonabase = AlonaBase(alona_opts)
