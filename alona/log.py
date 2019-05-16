@@ -17,7 +17,7 @@
 import sys
 import logging
 
-from .colors import (RED, GREEN, END)
+from .constants import (RED, GREEN, END)
 
 def init_logging(loglevel, logfile):
     if loglevel == 'regular':

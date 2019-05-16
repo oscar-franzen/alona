@@ -89,7 +89,7 @@ set to raw read counts.')
 
             no_cells_remove = np.sum(np.array(sorted(cell_counts, reverse=True)) < \
                  min_reads)
-            colors = ['#E69F00']*(len(cell_counts)-no_cells_remove) + \
+            colors = [ORANGE]*(len(cell_counts)-no_cells_remove) + \
                      ['#999999']*no_cells_remove
 
             plt.bar(np.arange(len(cell_counts)), sorted(cell_counts, reverse=True),
@@ -101,11 +101,32 @@ set to raw read counts.')
                 mpatches.Patch(color='#E69F00', label='Passed'),
                 mpatches.Patch(color='#999999', label='Removed')
             ])
-
+            plt.title('sequencing reads')
             plt.savefig(self.alonabase.get_working_dir() + '/plots/' + \
                  FILENAME_BARPLOT_RAW_READ_COUNTS, bbox_inches='tight')
             plt.close()
 
+    def _genes_expressed_per_cell_barplot(self):
+        """ Generates a bar plot of number of expressed genes per cell.  """
+        genes_expressed = self.data.apply(lambda x: sum(x > 0), axis=0)
+
+        plt.clf()
+        figure(num=None, figsize=(5, 5))
+        plt.bar(np.arange(len(genes_expressed)), sorted(genes_expressed, reverse=True),
+                color=[ORANGE]*len(genes_expressed))
+        plt.ylabel('number of genes')
+        plt.xlabel('cells (sorted on highest to lowest)')
+        plt.title('expressed genes')
+
+        plt.savefig(self.alonabase.get_working_dir() + '/plots/' + \
+                 FILENAME_BARPLOT_GENES_EXPRESSED, bbox_inches='tight')
+        plt.close()
+        
+    def _quality_filter(self):
+        """ Removes cells with too few reads (set by --minreads). """
+        if self.alonabase.params['dataformat'] == 'raw':
+            min_reads = self.alonabase.params['minreads']
+            cell_counts = self.data.sum(axis=0)
             log_info('Keeping %s out of %s cells' % (
                 np.sum(cell_counts > min_reads), len(cell_counts)))
 
@@ -113,7 +134,7 @@ set to raw read counts.')
 
             if self.data.shape[1] < 100:
                 log_error(self.alonabase, 'After removing cells with < %s reads, \
-                   less than 100 reads remain. Please adjust --minreads')
+                   less than 100 reads remain. Please adjust --minreads' % min_reads)
 
     def load_data(self):
         """ Load expression matrix. """
@@ -132,9 +153,12 @@ set to raw read counts.')
                 self.data.index.duplicated(False)))
             self.data = self.data.iloc[np.logical_not(self.data.index.duplicated(False))]
 
+        # initialize data
         self._validate_counts()
         self._remove_empty()
         self._remove_mito()
         self._read_counts_per_cell_filter()
+        self._genes_expressed_per_cell_barplot()
+        self._quality_filter()
 
         logging.debug('done loading expression matrix')

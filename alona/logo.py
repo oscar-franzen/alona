@@ -1,5 +1,5 @@
 import logging
-from .colors import (RED, END)
+from .constants import (RED, END)
 from ._version import __version__
 
 def show_logo(nologo):
