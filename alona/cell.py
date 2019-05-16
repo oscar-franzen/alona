@@ -20,8 +20,10 @@ import numpy as np
 
 import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
+from matplotlib.pyplot import figure
 
 from .log import (log_info, log_error)
+from .constants import *
 
 class Cell():
     """
@@ -31,6 +33,9 @@ class Cell():
     def __init__(self, alonabase):
         self.alonabase = alonabase
         self.data = None
+
+        # make matplotlib more quiet
+        logging.getLogger('matplotlib').setLevel(logging.WARNING)
 
     def _validate_counts(self):
         """ Basic data validation of gene expression values. """
@@ -79,6 +84,8 @@ set to raw read counts.')
 
             plt.clf()
 
+            figure(num=None, figsize=(5, 5))
+
             no_cells_remove = np.sum(np.array(sorted(cell_counts, reverse=True)) < 1000)
             colors = ['#E69F00']*(len(cell_counts)-no_cells_remove) + \
                      ['#999999']*no_cells_remove
@@ -92,7 +99,9 @@ set to raw read counts.')
                 mpatches.Patch(color='#E69F00', label='Passed'),
                 mpatches.Patch(color='#999999', label='Removed')
             ])
-            plt.savefig('test.pdf', figsize=(5, 5))
+
+            plt.savefig(self.alonabase.get_working_dir() + '/plots/' + \
+                 FILENAME_BARPLOT_RAW_READ_COUNTS, bbox_inches='tight')
             plt.close()
 
             #log_info('Keeping %s out of %s cells' % (

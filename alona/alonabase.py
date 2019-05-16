@@ -81,6 +81,7 @@ class AlonaBase():
         try:
             logging.debug('creating output directory: %s', self.get_working_dir())
             os.mkdir(self.get_working_dir())
+            os.mkdir(self.get_working_dir() + '/plots')
         except FileExistsError:
             log_error(self, 'Error: Output directory already exists (%s)' %
                       self.get_working_dir())
