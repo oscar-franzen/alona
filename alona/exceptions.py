@@ -24,3 +24,6 @@ class GeneDuplicatesError(AlonaError):
     
 class TooFewGenesMappableError(AlonaError):
     pass
+
+class NotImplementedError(AlonaError):
+    pass

@@ -149,19 +149,27 @@ set to raw read counts.')
         """ Prints the new dimensions after quality filtering. """
         log_info('Data dimensions after filtering: %s genes and %s cells' % \
         (self.data.shape[0], self.data.shape[1]))
+        
+    def _rpkm(self):
+        pass
 
     def _normalization(self):
         """ Performs normalization of the gene expression values. """
-        if not self.alonabase.params['mrnafull']:
+        if not self.alonabase.params['mrnafull'] and \
+           self.alonabase.params['dataformat'] == 'raw':
             log_debug('Starting normalization...')
-
-            if self.alonabase.params['dataformat'] == 'raw':
-                col_sums = self.data.apply(lambda x: sum(x), axis=0)
-                self.data_norm = (self.data / col_sums) * 10000
-                self.data_norm = np.log2(self.data_norm+1)
-                pass
+            col_sums = self.data.apply(lambda x: sum(x), axis=0)
+            self.data_norm = (self.data / col_sums) * 10000
+            self.data_norm = np.log2(self.data_norm+1)
+        elif self.alonabase.params['mrnafull'] and \
+             self.alonabase.params['dataformat'] == 'raw':
+            self._rpkm()
+        elif self.alonabase.params['mrnafull'] and \
+             self.alonabase.params['dataformat'] == 'rpkm':
+            log_debug('_normalization() Running log2')
+            self.data_norm = np.log2(self.data+1)
         else:
-            pass
+            log_debug('Normalization is not needed.')
 
     def load_data(self):
         """ Load expression matrix. """
