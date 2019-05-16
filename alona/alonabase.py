@@ -325,7 +325,7 @@ of columns (every row must have the same number of columns).')
 
         # ortholog mappings
         f = open(os.path.dirname(inspect.getfile(AlonaBase)) + '/' +
-                 MOUSE_vs_HUMAN_ORTHOLOGS, 'r')
+                 MOUSE_VS_HUMAN_ORTHOLOGS, 'r')
         next(f)
 
         human_to_mouse = {}
