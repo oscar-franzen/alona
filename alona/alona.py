@@ -25,7 +25,7 @@ from .logo import show_logo
 from .exceptions import *
 from .alonabase import AlonaBase
 from .cell import Cell
-from .constants import genome
+from .constants import GENOME
 
 @click.command()
 @click.argument('filename', type=click.Path(exists=True))
@@ -61,12 +61,12 @@ def run(filename, output, dataformat, minreads, minexpgenes, mrnafull, delimiter
         nomito, species, logfile, loglevel, nologo, version):
 
     # confirm the genome reference files can be found
-    for item in genome:
-        path = os.path.dirname(inspect.getfile(AlonaBase)) + '/' + genome[item]
+    for item in GENOME:
+        path = os.path.dirname(inspect.getfile(AlonaBase)) + '/' + GENOME[item]
 
         if not os.path.exists(path):
             print('genome directory is not complete. Cannot find file: "%s". I \
-tried this path: %s' % (genome[item], path))
+tried this path: %s' % (GENOME[item], path))
             sys.exit(1)
 
     time_start = time.time()
