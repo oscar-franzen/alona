@@ -158,9 +158,38 @@ set to raw read counts.')
             raise NotImplementedError('RPKM for human is not implemented at the moment.')
         else:
             log_debug('Normalizing data to RPKM')
-            
+
             # the file contains _combined_ lengths of all exons of the particular gene
-            exon_lengths = pd.read_csv(GENOME['MOUSE_EXON_LENGTHS'],delimiter=' ')
+            exon_lengths = pd.read_csv(GENOME['MOUSE_EXON_LENGTHS'], delimiter=' ',
+                                       header=None)
+            exon_lengths.columns = ['gene', 'length']
+
+            # intersects and sorts
+            temp = pd.merge(self.data, exon_lengths, how='inner', left_on=self.data.index,
+                            right_on=exon_lengths['gene'])
+            temp.index = temp['gene']
+            exon_lengths = temp['length']
+            temp = temp.drop(['gene', 'length'], axis=1)
+            temp = temp[temp.columns[1:]]
+
+            # gene length in kilobases
+            kb = exon_lengths/1000
+
+            index = 0
+
+            def _foo(x):
+                global index
+                index = index + 1
+
+                s = sum(x)/1000000
+                rpm = x/s
+                rpkm = rpm/kb
+
+                return rpkm
+
+            _q = temp.apply(_foo, axis=0) # 0 applying to each column
+
+            self.data_norm = np.log2(_q+1)
 
     def _normalization(self):
         """ Performs normalization of the gene expression values. """
