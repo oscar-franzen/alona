@@ -67,4 +67,8 @@ class AlonaAnalysis():
 
     def PCA(self):
         """ Principal component analysis. """
-        pass
+        sliced = self._alonacell.data_norm[self._alonacell.data_norm.index.isin( \
+             self.top_hvg.index)]
+
+        self.pca = sklearn.decomposition.PCA(75)
+        self.pca.fit(sliced)
