@@ -51,7 +51,7 @@ values. Cannot be a mix. Default: auto',
               is_flag=True)
 @click.option('-s', '--species', help='Species your data comes from. Default: mouse',
               type=click.Choice(['human', 'mouse']), default='mouse')
-@click.option('--nocleanup', help='Do _not_ perform cleanup of temporary files.',
+@click.option('--cleanup', help='Perform cleanup of temporary files.',
               is_flag=True)
 @click.option('-lf', '--logfile', help='Name of log file. Set to /dev/null if you want to \
 disable logging to a file. Default: alona.log', default='alona.log')
@@ -61,7 +61,7 @@ the log file. Default: regular', type=click.Choice(['regular', 'debug']), defaul
 @click.option('--version', help='Display version number.', is_flag=True,
               callback=print_version)
 def run(filename, output, dataformat, minreads, minexpgenes, mrnafull, delimiter, header,
-        nomito, species, nocleanup, logfile, loglevel, nologo, version):
+        nomito, species, cleanup, logfile, loglevel, nologo, version):
 
     # confirm the genome reference files can be found
     for item in GENOME:
@@ -95,57 +95,11 @@ tried this path: %s' % (GENOME[item], path))
         'minreads' : minreads,
         'minexpgenes' : minexpgenes,
         'mrnafull' : mrnafull,
-        'nocleanup' : nocleanup
+        'cleanup' : cleanup
     }
 
     alonabase = AlonaBase(alona_opts)
-
-    try:
-        alonabase.is_file_empty()
-    except FileEmptyError:
-        log_error(None, 'Input file is empty.')
-
-    alonabase.create_work_dir()
-
-    try:
-        alonabase.unpack_data()
-    except (InvalidFileFormatError,
-            FileCorruptError,
-            InputNotPlainTextError) as err:
-        log_error(None, err)
-    except Exception as err:
-        logging.error(err)
-        raise
-
-    alonabase.get_delimiter()
-    alonabase.has_header()
-
-    try:
-        alonabase.sanity_check_columns()
-    except (IrregularColumnCountError) as err:
-        log_error(None, err)
-
-    try:
-        alonabase.sanity_check_genes()
-    except (IrregularGeneCountError) as err:
-        log_error(None, err)
-
-    if species == 'human':
-        alonabase.ortholog_mapper()
-
-    try:
-        alonabase.sanity_check_gene_dups()
-    except (GeneDuplicatesError) as err:
-        log_error(None, err)
-
-    alonabase.load_mouse_gene_symbols()
-
-    try:
-        alonabase.map_input_genes()
-    except (TooFewGenesMappableError) as err:
-        log_error(None, err)
-
-    alonabase.check_gene_name_column_id_present()
+    alonabase.prepare()
 
     alonacell = AlonaCell(alonabase)
     alonacell.load_data()

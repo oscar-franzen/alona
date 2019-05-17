@@ -15,6 +15,8 @@
 """
 
 import pandas as pd
+import sklearn.decomposition
+
 from .log import (log_info, log_debug, log_error)
 
 class AlonaAnalysis():
@@ -38,7 +40,7 @@ class AlonaAnalysis():
         calculated and returned. Z-scores are ranked and the top 1000 are selected.
         """
         log_debug('Finding variable genes')
-        
+
         # number of bins
         num_bin = 20
         top_genes = 1000
@@ -60,6 +62,9 @@ class AlonaAnalysis():
         ret = ret.sort_values(ascending=False)
         self.top_hvg = ret.head(top_genes)
 
-        if self._alonacell.alonabase.params['loglevel'] == 'debug':
-            wd = self._alonacell.alonabase.get_working_dir_fp()
-            print(wd)
+        wd = self._alonacell.alonabase.get_working_dir()
+        self.top_hvg.to_csv(wd + '/csvs/highly_variable_genes.csv', header=False)
+
+    def PCA(self):
+        """ Principal component analysis. """
+        pass

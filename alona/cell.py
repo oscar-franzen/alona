@@ -14,9 +14,11 @@
  Oscar Franzen <p.oscar.franzen@gmail.com>
 """
 
+import os
 import logging
 import pandas as pd
 import numpy as np
+from joblib import dump, load
 
 import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
@@ -35,7 +37,7 @@ class AlonaCell():
         self.alonabase = alonabase
         self.data = None
         self.data_norm = None
-        
+
         self._alona_analysis = AlonaAnalysis(self)
 
         # make matplotlib more quiet
@@ -161,43 +163,55 @@ set to raw read counts.')
             # to mouse orthologs (16-May-2019).
             log_info('RPKM for "--species human" is not implemented at the moment.')
             raise NotImplementedError('RPKM for human is not implemented at the moment.')
-        else:
-            log_debug('Normalizing data to RPKM')
+            
+        log_debug('Normalizing data to RPKM')
 
-            # the file contains _combined_ lengths of all exons of the particular gene
-            exon_lengths = pd.read_csv(GENOME['MOUSE_EXON_LENGTHS'], delimiter=' ',
-                                       header=None)
-            exon_lengths.columns = ['gene', 'length']
+        # the file contains _combined_ lengths of all exons of the particular gene
+        exon_lengths = pd.read_csv(GENOME['MOUSE_EXON_LENGTHS'], delimiter=' ',
+                                   header=None)
+        exon_lengths.columns = ['gene', 'length']
 
-            # intersects and sorts
-            temp = pd.merge(self.data, exon_lengths, how='inner', left_on=self.data.index,
-                            right_on=exon_lengths['gene'])
-            temp.index = temp['gene']
-            exon_lengths = temp['length']
-            temp = temp.drop(['gene', 'length'], axis=1)
-            temp = temp[temp.columns[1:]]
+        # intersects and sorts
+        temp = pd.merge(self.data, exon_lengths, how='inner', left_on=self.data.index,
+                        right_on=exon_lengths['gene'])
+        temp.index = temp['gene']
+        exon_lengths = temp['length']
+        temp = temp.drop(['gene', 'length'], axis=1)
+        temp = temp[temp.columns[1:]]
 
-            # gene length in kilobases
-            kb = exon_lengths/1000
+        # gene length in kilobases
+        kb = exon_lengths/1000
 
-            index = 0
+        index = 0
 
-            def _foo(x):
-                global index
-                index = index + 1
+        def _foo(x):
+            global index
+            index = index + 1
 
-                s = sum(x)/1000000
-                rpm = x/s
-                rpkm = rpm/kb
+            s = sum(x)/1000000
+            rpm = x/s
+            rpkm = rpm/kb
 
-                return rpkm
+            return rpkm
 
-            _q = temp.apply(_foo, axis=0) # 0 applying to each column
+        _q = temp.apply(_foo, axis=0) # 0 applying to each column
 
-            self.data_norm = np.log2(_q+1)
+        self.data_norm = np.log2(_q+1)
+        
+    @staticmethod
+    def _dump(d, fn='foo.joblib'):
+        log_debug('Writing dump file %s' % fn)
+        dump(d, fn)
 
     def _normalization(self):
         """ Performs normalization of the gene expression values. """
+        norm_mat_path = self.alonabase.get_working_dir() + '/normdata.joblib'
+        
+        if os.path.exists(norm_mat_path):
+            log_debug('Loading data matrix from file')
+            self.data_norm = load(norm_mat_path)
+            return
+        
         if not self.alonabase.params['mrnafull'] and \
            self.alonabase.params['dataformat'] == 'raw':
             log_debug('Starting normalization...')
@@ -212,16 +226,18 @@ set to raw read counts.')
             log_debug('_normalization() Running log2')
             self.data_norm = np.log2(self.data+1)
         else:
+            self.data_norm = self.data
             log_debug('Normalization is not needed.')
-
-    @staticmethod
-    def _dump(d,fn='foo.joblib'):
-        log_debug('Writing dump file %s' % fn)
-        from joblib import dump
-        dump(d, fn)
+        
+        self._dump(self.data_norm, norm_mat_path)
 
     def load_data(self):
         """ Load expression matrix. """
+        norm_mat_path = self.alonabase.get_working_dir() + '/normdata.joblib'
+        if os.path.exists(norm_mat_path):
+            self.data_norm = load(norm_mat_path)
+            return
+            
         log_debug('loading expression matrix')
         self.data = pd.read_csv(self.alonabase.get_matrix_file(),
                                 delimiter=self.alonabase._delimiter,
@@ -248,12 +264,10 @@ set to raw read counts.')
 
         # normalize gene expression values
         self._normalization()
-        
-        self._dump(self.data_norm)
 
         log_debug('done loading expression matrix')
 
     def analysis(self):
         log_debug('Running analysis...')
         self._alona_analysis.find_variable_genes()
-        pass
+        self._alona_analysis.PCA()

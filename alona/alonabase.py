@@ -45,12 +45,11 @@ class AlonaBase():
         self._delimiter = None
         self._has_header = None
         self._has_gene_id_column_id = None
-
         self.mouse_symbols = {}
         self.mouse_ensembls = {}
         self.mouse_entrez = {}
-
         self.unmappable = []
+        self.state = {}
 
         self.params.update(params)
 
@@ -67,11 +66,6 @@ class AlonaBase():
             log_error(self, '--minreads must be a positive integer.')
         if self.params['minexpgenes'] < 0 or self.params['minexpgenes'] > 99:
             log_error(self, '--minexpgenes must be a value within [0,100).')
-
-    def get_working_dir_fp(self):
-        """ Retrieves the full path to working dir. """
-        return os.path.dirname(inspect.getfile(AlonaBase)) + '/'  + \
-            self.params['output_directory'] + '/'
 
     def get_working_dir(self):
         """ Retrieves the name of the output directory. """
@@ -90,10 +84,10 @@ class AlonaBase():
             log_debug('creating output directory: %s' %self.get_working_dir())
             os.mkdir(self.get_working_dir())
             os.mkdir(self.get_working_dir() + '/plots')
+            os.mkdir(self.get_working_dir() + '/csvs')
         except FileExistsError:
-            log_error(self, 'Error: Output directory already exists (%s)' %
+            log_info('Output directory already exists (%s), resuming.' %
                       self.get_working_dir())
-            raise
 
     def is_file_empty(self):
         if os.stat(self.params['input_filename']).st_size == 0:
@@ -119,6 +113,10 @@ class AlonaBase():
         self._is_binary = self.is_binary(self.params['input_filename'])
         abs_path = os.path.abspath(self.params['input_filename'])
         mat_out = self.get_matrix_file()
+        
+        if os.path.exists(mat_out):
+            log_info('Data unpacking has already been done.')
+            return
 
         if self._is_binary:
             log_debug('Input file is binary.')
@@ -203,18 +201,17 @@ class AlonaBase():
 
     def cleanup(self):
         """ Removes temporary files. """
-        if self.params['nocleanup']:
-            log_debug('Skipping cleanup (`--nocleanup` is set)')
-            return
+        if self.params['cleanup']:
+            # remove temporary files
+            log_debug('Cleaning up (`--cleanup` is set)')
+            
+            for garbage in ('input.mat','highly_variable_genes.csv',):
+                log_debug('removing %s' % garbage)
 
-        # remove temporary files
-        for garbage in ('input.mat',):
-            log_debug('removing %s' % garbage)
-
-            try:
-                os.remove('%s/%s' % (self.get_working_dir(), garbage))
-            except FileNotFoundError:
-                log_debug('Not found: %s' % garbage)
+                try:
+                    os.remove('%s/%s' % (self.get_working_dir(), garbage))
+                except FileNotFoundError:
+                    log_debug('Not found: %s' % garbage)
 
     def __guess_delimiter(self):
         dcount = {' ' : 0, '\t' : 0, ',' : 0}
@@ -582,3 +579,55 @@ Too few genes were mappable (<500).')
 
             if self._has_gene_id_column_id:
                 log_info('A column ID for the gene symbols was identified.')
+
+    def prepare(self):
+        if os.path.exists(self.get_working_dir() + '/normdata.joblib'):
+            log_debug('prepare(): normdata.joblib detected, skipping some steps')
+            return
+
+        try:
+            self.is_file_empty()
+        except FileEmptyError:
+            log_error(None, 'Input file is empty.')
+
+        self.create_work_dir()
+
+        try:
+            self.unpack_data()
+        except (InvalidFileFormatError,
+                FileCorruptError,
+                InputNotPlainTextError) as err:
+            log_error(None, err)
+        except Exception as err:
+            logging.error(err)
+            raise
+
+        self.get_delimiter()
+        self.has_header()
+
+        try:
+            self.sanity_check_columns()
+        except (IrregularColumnCountError) as err:
+            log_error(None, err)
+
+        try:
+            self.sanity_check_genes()
+        except (IrregularGeneCountError) as err:
+            log_error(None, err)
+
+        if self.params['species'] == 'human':
+            self.ortholog_mapper()
+
+        try:
+            self.sanity_check_gene_dups()
+        except (GeneDuplicatesError) as err:
+            log_error(None, err)
+
+        self.load_mouse_gene_symbols()
+
+        try:
+            self.map_input_genes()
+        except (TooFewGenesMappableError) as err:
+            log_error(None, err)
+
+        self.check_gene_name_column_id_present()
