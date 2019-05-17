@@ -24,7 +24,7 @@ from .log import (init_logging, log_debug, log_error)
 from .logo import show_logo
 from .exceptions import *
 from .alonabase import AlonaBase
-from .cell import Cell
+from .cell import AlonaCell
 from .constants import GENOME
 
 @click.command()
@@ -47,9 +47,12 @@ values. Cannot be a mix. Default: auto',
               type=click.Choice(['auto', 'tab', 'space']), default='auto')
 @click.option('-h', '--header', help='Data has a header line. Default: auto',
               type=click.Choice(['auto', 'yes', 'no']), default='auto')
-@click.option('-m', '--nomito', help='Exclude mitochondrial genes from analysis.', is_flag=True)
+@click.option('-m', '--nomito', help='Exclude mitochondrial genes from analysis.',
+              is_flag=True)
 @click.option('-s', '--species', help='Species your data comes from. Default: mouse',
               type=click.Choice(['human', 'mouse']), default='mouse')
+@click.option('--nocleanup', help='Do _not_ perform cleanup of temporary files.',
+              is_flag=True)
 @click.option('-lf', '--logfile', help='Name of log file. Set to /dev/null if you want to \
 disable logging to a file. Default: alona.log', default='alona.log')
 @click.option('-ll', '--loglevel', help='Set how much runtime information is written to \
@@ -58,7 +61,7 @@ the log file. Default: regular', type=click.Choice(['regular', 'debug']), defaul
 @click.option('--version', help='Display version number.', is_flag=True,
               callback=print_version)
 def run(filename, output, dataformat, minreads, minexpgenes, mrnafull, delimiter, header,
-        nomito, species, logfile, loglevel, nologo, version):
+        nomito, species, nocleanup, logfile, loglevel, nologo, version):
 
     # confirm the genome reference files can be found
     for item in GENOME:
@@ -91,7 +94,8 @@ tried this path: %s' % (GENOME[item], path))
         'dataformat' : dataformat,
         'minreads' : minreads,
         'minexpgenes' : minexpgenes,
-        'mrnafull' : mrnafull
+        'mrnafull' : mrnafull,
+        'nocleanup' : nocleanup
     }
 
     alonabase = AlonaBase(alona_opts)
@@ -143,10 +147,11 @@ tried this path: %s' % (GENOME[item], path))
 
     alonabase.check_gene_name_column_id_present()
 
-    cell = Cell(alonabase)
-    cell.load_data()
+    alonacell = AlonaCell(alonabase)
+    alonacell.load_data()
+    alonacell.analysis()
 
-    #alonabase.cleanup()
+    alonabase.cleanup()
     time_end = time.time()
 
     log_debug('alona finished in %.2f minutes' % ((time_end - time_start)/60))

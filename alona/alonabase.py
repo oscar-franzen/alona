@@ -100,6 +100,7 @@ class AlonaBase():
         return self
 
     def is_binary(self, filename):
+        """ Checks if the file is binary. """
         with open(filename, 'rb') as fh:
             for block in fh:
                 if b'\0' in block:
@@ -196,14 +197,18 @@ class AlonaBase():
 
     def cleanup(self):
         """ Removes temporary files. """
+        if self.params['nocleanup']:
+            log_debug('Skipping cleanup (`--nocleanup` is set)')
+            return
+
         # remove temporary files
         for garbage in ('input.mat',):
-            log_debug('removing %s', garbage)
+            log_debug('removing %s' % garbage)
 
             try:
                 os.remove('%s/%s' % (self.get_working_dir(), garbage))
             except FileNotFoundError:
-                log_debug('Not found: %s', garbage)
+                log_debug('Not found: %s' % garbage)
 
     def __guess_delimiter(self):
         dcount = {' ' : 0, '\t' : 0, ',' : 0}
@@ -269,70 +274,67 @@ class AlonaBase():
         return ret
 
     def sanity_check_columns(self):
-        """ Sanity check on data integrity. Raises an exception if column count is not
-            consistent. """
-        fh = open(self.get_matrix_file(), 'r')
+        """
+        Sanity check on data integrity. Raises an exception if column count is not
+        consistent.
+        """
+        with open(self.get_matrix_file(), 'r') as fh:
+            if self._has_header:
+                next(fh)
 
-        if self._has_header:
-            next(fh)
+            cols = {}
+            for line in fh:
+                no_columns = len(line.split(self._delimiter))
+                cols[no_columns] = 1
 
-        cols = {}
-
-        for line in fh:
-            no_columns = len(line.split(self._delimiter))
-            cols[no_columns] = 1
-
-        fh.close()
-
-        if len(cols.keys()) > 1:
-            raise IrregularColumnCountError('Rows in your data matrix have different number \
-of columns (every row must have the same number of columns).')
-        log_info('%s cells detected.' % '{:,}'.format(cols.popitem()[0]))
+            if len(cols.keys()) > 1:
+                raise IrregularColumnCountError('Rows in your data matrix have different \
+number of columns (every row must have the same number of columns).')
+            log_info('%s cells detected.' % '{:,}'.format(cols.popitem()[0]))
 
     def sanity_check_genes(self):
         """ Sanity check on gene count. Raises an exception if gene count is too low. """
-        fh = open(self.get_matrix_file(), 'r')
-        if self._has_header:
-            next(fh)
+        with open(self.get_matrix_file(), 'r') as fh:
+            if self._has_header:
+                next(fh)
 
-        count = 0
-        for line in fh:
-            count += 1
+            count = 0
+            for line in fh:
+                count += 1
 
-        fh.close()
-
-        if count < 1000:
-            raise IrregularGeneCountError('Number of genes in the input data is too low.')
-        log_info('%s genes detected' % '{:,}'.format(count))
+            if count < 1000:
+                raise IrregularGeneCountError('Number of genes in the input data is too \
+low.')
+            log_info('%s genes detected' % '{:,}'.format(count))
 
     def ortholog_mapper(self):
-        """ Maps mouse genes to the corresponding human ortholog.
-            Only one-to-one orthologs are considered. """
-        # human gene symbols to ens
-        f = open(os.path.dirname(inspect.getfile(AlonaBase)) + '/' + \
-                 GENOME['HUMAN_GENE_SYMBOLS_TO_ENTREZ'], 'r')
+        """
+        Maps mouse genes to the corresponding human ortholog.
+        Only one-to-one orthologs are considered.
+        """
         hs_symb_to_hs_ens = {}
+        human_to_mouse = {}
 
-        for line in f:
-            if re.search(r'^\S+\t\S+\t', line) and re.search('(ENSG[0-9]+)', line):
-                hs_symbol = line.split('\t')[1]
-                hs_ens = re.search('(ENSG[0-9]+)', line).group(1)
-                hs_symb_to_hs_ens[hs_symbol] = hs_ens
-        f.close()
+        # human gene symbols to ens
+        with open(os.path.dirname(inspect.getfile(AlonaBase)) + '/' + \
+                  GENOME['HUMAN_GENE_SYMBOLS_TO_ENTREZ'], 'r') as fh:
+            for line in fh:
+                if re.search(r'^\S+\t\S+\t', line) and re.search('(ENSG[0-9]+)', line):
+                    hs_symbol = line.split('\t')[1]
+                    hs_ens = re.search('(ENSG[0-9]+)', line).group(1)
+                    hs_symb_to_hs_ens[hs_symbol] = hs_ens
 
         # ortholog mappings
-        f = open(os.path.dirname(inspect.getfile(AlonaBase)) + '/' +
-                 GENOME['MOUSE_VS_HUMAN_ORTHOLOGS'], 'r')
-        next(f)
+        with open(os.path.dirname(inspect.getfile(AlonaBase)) + '/' +
+                  GENOME['MOUSE_VS_HUMAN_ORTHOLOGS'], 'r') as fh:
+            next(fh)
 
-        human_to_mouse = {}
-        for line in f:
-            if re.search('\tortholog_one2one\t', line):
-                foo = line.split('\t')
-                human_ens = foo[0]
-                mouse_ens = foo[1]
-                human_to_mouse[human_ens] = mouse_ens
-        f.close()
+            for line in fh:
+                if re.search('\tortholog_one2one\t', line):
+                    foo = line.split('\t')
+                    human_ens = foo[0]
+                    mouse_ens = foo[1]
+                    human_to_mouse[human_ens] = mouse_ens
 
         f = open(self.get_matrix_file(), 'r')
         ftemp = open(self.get_matrix_file() + '.mapped2mouse.mat', 'w')
@@ -406,30 +408,24 @@ of columns (every row must have the same number of columns).')
 
     def load_mouse_gene_symbols(self):
         """ Loads genome annotations. """
-        fh = open(os.path.dirname(inspect.getfile(AlonaBase)) + '/' +
-                  GENOME['MOUSE_GENOME_ANNOTATIONS'], 'r')
+        with open(os.path.dirname(inspect.getfile(AlonaBase)) + '/' +
+                  GENOME['MOUSE_GENOME_ANNOTATIONS'], 'r') as fh:
+            for line in fh:
+                if not re.search('gene_id "ERCC_', line):
+                    m = re.search(r'gene_id "(.+?)_(.+?)\.[0-9]+"', line)
+                    symbol, ensembl = m.group(1), m.group(2)
 
-        for line in fh:
-            if not re.search('gene_id "ERCC_', line):
-                m = re.search(r'gene_id "(.+?)_(.+?)\.[0-9]+"', line)
-                symbol, ensembl = m.group(1), m.group(2)
+                    self.mouse_symbols[symbol] = '%s_%s' % (symbol, ensembl)
+                    self.mouse_ensembls[ensembl] = '%s_%s' % (symbol, ensembl)
 
-                self.mouse_symbols[symbol] = '%s_%s' % (symbol, ensembl)
-                self.mouse_ensembls[ensembl] = '%s_%s' % (symbol, ensembl)
+        with open(os.path.dirname(inspect.getfile(AlonaBase)) + '/' +
+                  GENOME['ENTREZ_GENE_IDS'], 'r') as fh:
+            next(fh)
+            for line in fh:
+                gene_id_as_number, ens = line.rstrip('\n').split(' ')
 
-        fh.close()
-
-        fh = open(os.path.dirname(inspect.getfile(AlonaBase)) + '/' +
-                  GENOME['ENTREZ_GENE_IDS'], 'r')
-        next(fh)
-
-        for line in fh:
-            gene_id_as_number, ens = line.rstrip('\n').split(' ')
-
-            if gene_id_as_number != 'null':
-                self.mouse_entrez[gene_id_as_number] = ens
-
-        fh.close()
+                if gene_id_as_number != 'null':
+                    self.mouse_entrez[gene_id_as_number] = ens
 
     def map_input_genes(self):
         """ Maps gene symbols to internal gene symbols. """

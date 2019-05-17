@@ -24,8 +24,9 @@ from matplotlib.pyplot import figure
 
 from .log import (log_info, log_debug, log_error)
 from .constants import *
+from .analysis import AlonaAnalysis
 
-class Cell():
+class AlonaCell():
     """
     Cell data class.
     """
@@ -34,6 +35,8 @@ class Cell():
         self.alonabase = alonabase
         self.data = None
         self.data_norm = None
+        
+        self._alona_analysis = AlonaAnalysis(self)
 
         # make matplotlib more quiet
         logging.getLogger('matplotlib').setLevel(logging.WARNING)
@@ -108,7 +111,7 @@ set to raw read counts.')
             plt.close()
 
     def _genes_expressed_per_cell_barplot(self):
-        """ Generates a bar plot of number of expressed genes per cell.  """
+        """ Generates a bar plot of number of expressed genes per cell. """
         genes_expressed = self.data.apply(lambda x: sum(x > 0), axis=0)
 
         plt.clf()
@@ -124,8 +127,10 @@ set to raw read counts.')
         plt.close()
 
     def _quality_filter(self):
-        """ Removes cells with too few reads (set by --minreads).
-            Removes "underexpressed" genes (set by --minexpgenes). """
+        """
+        Removes cells with too few reads (set by `--minreads`).
+        Removes "underexpressed" genes (set by `--minexpgenes`).
+        """
         if self.alonabase.params['dataformat'] == 'raw':
             min_reads = self.alonabase.params['minreads']
             cell_counts = self.data.sum(axis=0)
@@ -152,9 +157,9 @@ set to raw read counts.')
 
     def _rpkm(self):
         if self.alonabase.params['species'] == 'human':
-            # TODO: Implement RPKM for human. Then, this should be executed _before_
-            # mapping to mouse orthologs (16-May-2019).
-            log_info('RPKM for human is not implemented at the moment.')
+            # TODO: Implement RPKM for human. This should be executed _before_ mapping
+            # to mouse orthologs (16-May-2019).
+            log_info('RPKM for "--species human" is not implemented at the moment.')
             raise NotImplementedError('RPKM for human is not implemented at the moment.')
         else:
             log_debug('Normalizing data to RPKM')
@@ -209,6 +214,12 @@ set to raw read counts.')
         else:
             log_debug('Normalization is not needed.')
 
+    @staticmethod
+    def _dump(d,fn='foo.joblib'):
+        log_debug('Writing dump file %s' % fn)
+        from joblib import dump
+        dump(d, fn)
+
     def load_data(self):
         """ Load expression matrix. """
         log_debug('loading expression matrix')
@@ -237,5 +248,12 @@ set to raw read counts.')
 
         # normalize gene expression values
         self._normalization()
+        
+        self._dump(self.data_norm)
 
         log_debug('done loading expression matrix')
+
+    def analysis(self):
+        log_debug('Running analysis...')
+        self._alona_analysis.find_variable_genes()
+        pass
