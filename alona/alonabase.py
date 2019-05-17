@@ -68,7 +68,13 @@ class AlonaBase():
         if self.params['minexpgenes'] < 0 or self.params['minexpgenes'] > 99:
             log_error(self, '--minexpgenes must be a value within [0,100).')
 
+    def get_working_dir_fp(self):
+        """ Retrieves the full path to working dir. """
+        return os.path.dirname(inspect.getfile(AlonaBase)) + '/'  + \
+            self.params['output_directory'] + '/'
+
     def get_working_dir(self):
+        """ Retrieves the name of the output directory. """
         return self.params['output_directory']
 
     def get_matrix_file(self):

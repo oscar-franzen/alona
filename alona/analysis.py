@@ -15,6 +15,7 @@
 """
 
 import pandas as pd
+from .log import (log_info, log_debug, log_error)
 
 class AlonaAnalysis():
     """
@@ -36,6 +37,8 @@ class AlonaAnalysis():
         dispersion for each bin as variance to mean ratio. Within each bin, Z-scores are
         calculated and returned. Z-scores are ranked and the top 1000 are selected.
         """
+        log_debug('Finding variable genes')
+        
         # number of bins
         num_bin = 20
         top_genes = 1000
@@ -56,3 +59,7 @@ class AlonaAnalysis():
         ret = pd.concat(ret)
         ret = ret.sort_values(ascending=False)
         self.top_hvg = ret.head(top_genes)
+
+        if self._alonacell.alonabase.params['loglevel'] == 'debug':
+            wd = self._alonacell.alonabase.get_working_dir_fp()
+            print(wd)
