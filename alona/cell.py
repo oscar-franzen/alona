@@ -163,7 +163,7 @@ set to raw read counts.')
             # to mouse orthologs (16-May-2019).
             log_info('RPKM for "--species human" is not implemented at the moment.')
             raise NotImplementedError('RPKM for human is not implemented at the moment.')
-            
+
         log_debug('Normalizing data to RPKM')
 
         # the file contains _combined_ lengths of all exons of the particular gene
@@ -197,7 +197,7 @@ set to raw read counts.')
         _q = temp.apply(_foo, axis=0) # 0 applying to each column
 
         self.data_norm = np.log2(_q+1)
-        
+
     @staticmethod
     def _dump(d, fn='foo.joblib'):
         log_debug('Writing dump file %s' % fn)
@@ -217,7 +217,6 @@ set to raw read counts.')
             log_debug('Starting normalization...')
             # Axis 0 will act on all the ROWS in each COLUMN
             # Axis 1 will act on all the COLUMNS in each ROW
-            
             col_sums = self.data.apply(lambda x: sum(x), axis=0)
             self.data_norm = (self.data / col_sums) * 10000
             self.data_norm = np.log2(self.data_norm+1)
@@ -231,7 +230,7 @@ set to raw read counts.')
         else:
             self.data_norm = self.data
             log_debug('Normalization is not needed.')
-        
+
         self._dump(self.data_norm, norm_mat_path)
 
     def load_data(self):
@@ -240,7 +239,7 @@ set to raw read counts.')
         if os.path.exists(norm_mat_path):
             self.data_norm = load(norm_mat_path)
             return
-            
+
         log_debug('loading expression matrix')
         self.data = pd.read_csv(self.alonabase.get_matrix_file(),
                                 delimiter=self.alonabase._delimiter,
@@ -276,7 +275,7 @@ set to raw read counts.')
 
         if os.path.exists(tsne_path):
             log_debug('Loading embeddings from file')
-            self._alona_analysis.embeddings = pd.read_csv(tsne_path,header=None)
+            self._alona_analysis.embeddings = pd.read_csv(tsne_path, header=None)
         else:
             self._alona_analysis.find_variable_genes()
             self._alona_analysis.PCA()

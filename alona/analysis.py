@@ -77,25 +77,25 @@ class AlonaAnalysis():
     def PCA(self):
         """
         Calculate principal components using irlba.
-        
+
         The augmented implicitly restarted Lanczos bidiagonalization algorithm (IRLBA)
         finds a few approximate largest singular values and corresponding singular
         vectors using a method of Baglama and Reichel.
-        
+
         A fast and memory-efficient way to compute a partial SVD, principal
         components, and some specialized partial eigenvalue decompositions.
-        
+
         Reference:
         Baglama, James, and Lothar Reichel. “Augmented implicitly restarted Lanczos
         bidiagonalization methods.” SIAM Journal on Scientific Computing 27.1 (2005):
         19-42.
-        
+
         Some useful notes about the R implementation:
         http://bwlewis.github.io/irlba/
         """
 
         log_debug('Running PCA...')
-        
+
         index_v = self._alonacell.data_norm.index.isin(self.top_hvg.index)
         sliced = self._alonacell.data_norm[index_v]
         lanc = alona.irlbpy.lanczos(sliced, nval=75, maxit=1000)
@@ -111,7 +111,7 @@ class AlonaAnalysis():
         self.embeddings = tsne.fit_transform(pd.DataFrame(self.pca_components))
         pd.DataFrame(self.embeddings).to_csv(path_or_buf=tsne_out_path, sep=',',
                                              header=None, index=False)
-        
+
         log_debug('Finished t-SNE')
 
         #df = pd.DataFrame(embeddings)
