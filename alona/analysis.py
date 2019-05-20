@@ -40,6 +40,8 @@ class AlonaAnalysis():
 
     @staticmethod
     def _exp_mean(mat):
+        # Axis 0 will act on all the ROWS in each COLUMN
+        # Axis 1 will act on all the COLUMNS in each ROW
         return mat.mean(axis=1)
 
     def find_variable_genes(self):
@@ -106,6 +108,7 @@ class AlonaAnalysis():
         log_debug('Finished PCA')
 
     def tSNE(self, tsne_out_path):
+        """ Projects data to a two dimensional space using the tSNE algorithm. """
         log_debug('Running t-SNE...')
 
         tsne = sklearn.manifold.TSNE(n_components=2, n_iter=2000)
@@ -124,12 +127,12 @@ class AlonaAnalysis():
     
     def cell_scatter_plot(self):
         plt.clf()
-        figure(num=None, figsize=(5, 5))            
+        figure(num=None, figsize=(5, 5))
         df = pd.DataFrame(self.embeddings)
         plt.scatter(df[0], df[1], s=1)
         plt.ylabel('tSNE1')
         plt.xlabel('tSNE2')
-            
+
         plt.savefig(self._alonacell.alonabase.get_working_dir() + \
             OUTPUT['FILENAME_CELL_SCATTER_PLOT'], bbox_inches='tight')
         plt.close()

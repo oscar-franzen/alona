@@ -158,6 +158,8 @@ set to raw read counts.')
         (self.data.shape[0], self.data.shape[1]))
 
     def _rpkm(self):
+        """ Normalize expression values as RPKM. """
+        """ doi:10.1186/s13059-016-0881-8 """
         if self.alonabase.params['species'] == 'human':
             # TODO: Implement RPKM for human. This should be executed _before_ mapping
             # to mouse orthologs (16-May-2019).
@@ -200,6 +202,7 @@ set to raw read counts.')
 
     @staticmethod
     def _dump(d, fn='foo.joblib'):
+        """ Serialize data. """
         log_debug('Writing dump file %s' % fn)
         dump(d, fn)
 
@@ -270,6 +273,7 @@ set to raw read counts.')
         log_debug('done loading expression matrix')
 
     def analysis(self):
+        """ Runs the analysis pipeline. """
         log_debug('Running analysis...')
         tsne_path = self.alonabase.get_working_dir() + OUTPUT['FILENAME_EMBEDDINGS']
 
@@ -282,3 +286,4 @@ set to raw read counts.')
             self._alona_analysis.tSNE(tsne_path)
             
         self._alona_analysis.cell_scatter_plot()
+        self._alona_analysis.cluster()
