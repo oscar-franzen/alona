@@ -14,8 +14,15 @@
  Oscar Franzen <p.oscar.franzen@gmail.com>
 """
 
+import numpy as np
 import pandas as pd
+
 import sklearn.decomposition
+import sklearn.manifold
+
+from sklearn.cluster import DBSCAN
+
+import matplotlib.pyplot as plt
 
 from .log import (log_info, log_debug, log_error)
 
@@ -72,3 +79,21 @@ class AlonaAnalysis():
 
         self.pca = sklearn.decomposition.PCA(75)
         self.pca.fit(sliced)
+        
+    def tSNE(self):
+        tsne = sklearn.manifold.TSNE(n_components=2,n_iter=2000)
+        embeddings = tsne.fit_transform(np.rot90(pd.DataFrame(self.pca.components_)))
+        
+        # running directly on the genes without the PCA works
+        
+        df = pd.DataFrame(embeddings)
+        plt.close()
+        plt.scatter(df[0],df[1])
+        plt.show()
+
+    def cluster(self):
+        """ Cluster cells. """
+        db = DBSCAN(eps=0.3, min_samples=10)
+        db.fit(np.rot90(pca.components_))
+        
+        #np.unique(db.labels_, return_counts=True)

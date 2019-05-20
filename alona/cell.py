@@ -215,6 +215,9 @@ set to raw read counts.')
         if not self.alonabase.params['mrnafull'] and \
            self.alonabase.params['dataformat'] == 'raw':
             log_debug('Starting normalization...')
+            # Axis 0 will act on all the ROWS in each COLUMN
+            # Axis 1 will act on all the COLUMNS in each ROW
+            
             col_sums = self.data.apply(lambda x: sum(x), axis=0)
             self.data_norm = (self.data / col_sums) * 10000
             self.data_norm = np.log2(self.data_norm+1)
@@ -271,3 +274,4 @@ set to raw read counts.')
         log_debug('Running analysis...')
         self._alona_analysis.find_variable_genes()
         self._alona_analysis.PCA()
+        self._alona_analysis.tSNE()
