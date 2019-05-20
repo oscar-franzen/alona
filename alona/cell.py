@@ -280,3 +280,5 @@ set to raw read counts.')
             self._alona_analysis.find_variable_genes()
             self._alona_analysis.PCA()
             self._alona_analysis.tSNE(tsne_path)
+            
+        self._alona_analysis.cell_scatter_plot()

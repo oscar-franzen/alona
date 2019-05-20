@@ -17,6 +17,7 @@
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
+from matplotlib.pyplot import figure
 import sklearn.manifold
 
 from sklearn.cluster import DBSCAN
@@ -114,15 +115,21 @@ class AlonaAnalysis():
 
         log_debug('Finished t-SNE')
 
-        #df = pd.DataFrame(embeddings)
-        #plt.close()
-        #plt.scatter(df[0], df[1])
-        #plt.show()
-
     def cluster(self):
         """ Cluster cells. """
         pass
         #db = DBSCAN(eps=0.3, min_samples=10)
         #db.fit(np.rot90(pca.components_)))
-        
         #np.unique(db.labels_, return_counts=True)
+    
+    def cell_scatter_plot(self):
+        plt.clf()
+        figure(num=None, figsize=(5, 5))            
+        df = pd.DataFrame(self.embeddings)
+        plt.scatter(df[0], df[1], s=1)
+        plt.ylabel('tSNE1')
+        plt.xlabel('tSNE2')
+            
+        plt.savefig(self._alonacell.alonabase.get_working_dir() + \
+            OUTPUT['FILENAME_CELL_SCATTER_PLOT'], bbox_inches='tight')
+        plt.close()
