@@ -16,13 +16,12 @@
 
 import numpy as np
 import pandas as pd
-
-import sklearn.decomposition
+import matplotlib.pyplot as plt
 import sklearn.manifold
 
 from sklearn.cluster import DBSCAN
 
-import matplotlib.pyplot as plt
+import alona.irlbpy
 
 from .log import (log_info, log_debug, log_error)
 
@@ -34,6 +33,8 @@ class AlonaAnalysis():
     def __init__(self, alonacell):
         self._alonacell = alonacell
         self.top_hvg = None
+        self.PCA = None
+        self.embeddings = None
 
     @staticmethod
     def _exp_mean(mat):
@@ -73,27 +74,47 @@ class AlonaAnalysis():
         self.top_hvg.to_csv(wd + '/csvs/highly_variable_genes.csv', header=False)
 
     def PCA(self):
-        """ Principal component analysis. """
+        """
+        Calculate principal components using irlba.
+        
+        The augmented implicitly restarted Lanczos bidiagonalization algorithm (IRLBA)
+        finds a few approximate largest singular values and corresponding singular
+        vectors using a method of Baglama and Reichel.
+        
+        A fast and memory-efficient way to compute a partial SVD, principal
+        components, and some specialized partial eigenvalue decompositions.
+        
+        Reference:
+        Baglama, James, and Lothar Reichel. “Augmented implicitly restarted Lanczos
+        bidiagonalization methods.” SIAM Journal on Scientific Computing 27.1 (2005):
+        19-42.
+        
+        Some useful notes about the R implementation:
+        http://bwlewis.github.io/irlba/
+        """
+        
+        log_debug('Running PCA')
         sliced = self._alonacell.data_norm[self._alonacell.data_norm.index.isin( \
              self.top_hvg.index)]
+        lanc = alona.irlbpy.lanczos(sliced, nval=75, maxit=1000)
 
-        self.pca = sklearn.decomposition.PCA(75)
-        self.pca.fit(sliced)
-        
+        # weighing by var (Seurat-style)
+        self.pca = np.dot(lanc.V, np.diag(lanc.s))
+        log_debug('Finished PCA')
+
     def tSNE(self):
-        tsne = sklearn.manifold.TSNE(n_components=2,n_iter=2000)
-        embeddings = tsne.fit_transform(np.rot90(pd.DataFrame(self.pca.components_)))
-        
-        # running directly on the genes without the PCA works
-        
-        df = pd.DataFrame(embeddings)
-        plt.close()
-        plt.scatter(df[0],df[1])
-        plt.show()
+        tsne = sklearn.manifold.TSNE(n_components=2, n_iter=2000)
+        self.embeddings = tsne.fit_transform(pd.DataFrame(self.pca))
+
+        #df = pd.DataFrame(embeddings)
+        #plt.close()
+        #plt.scatter(df[0], df[1])
+        #plt.show()
 
     def cluster(self):
         """ Cluster cells. """
-        db = DBSCAN(eps=0.3, min_samples=10)
-        db.fit(np.rot90(pca.components_))
+        pass
+        #db = DBSCAN(eps=0.3, min_samples=10)
+        #db.fit(np.rot90(pca.components_)))
         
         #np.unique(db.labels_, return_counts=True)
