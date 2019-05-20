@@ -24,6 +24,7 @@ from sklearn.cluster import DBSCAN
 import alona.irlbpy
 
 from .log import (log_info, log_debug, log_error)
+from .constants import OUTPUT
 
 class AlonaAnalysis():
     """
@@ -33,7 +34,7 @@ class AlonaAnalysis():
     def __init__(self, alonacell):
         self._alonacell = alonacell
         self.top_hvg = None
-        self.PCA = None
+        self.pca_components = None
         self.embeddings = None
 
     @staticmethod
@@ -71,7 +72,7 @@ class AlonaAnalysis():
         self.top_hvg = ret.head(top_genes)
 
         wd = self._alonacell.alonabase.get_working_dir()
-        self.top_hvg.to_csv(wd + '/csvs/highly_variable_genes.csv', header=False)
+        self.top_hvg.to_csv(wd + OUTPUT['FILENAME_HVG'], header=False)
 
     def PCA(self):
         """
@@ -92,19 +93,26 @@ class AlonaAnalysis():
         Some useful notes about the R implementation:
         http://bwlewis.github.io/irlba/
         """
+
+        log_debug('Running PCA...')
         
-        log_debug('Running PCA')
-        sliced = self._alonacell.data_norm[self._alonacell.data_norm.index.isin( \
-             self.top_hvg.index)]
+        index_v = self._alonacell.data_norm.index.isin(self.top_hvg.index)
+        sliced = self._alonacell.data_norm[index_v]
         lanc = alona.irlbpy.lanczos(sliced, nval=75, maxit=1000)
 
         # weighing by var (Seurat-style)
-        self.pca = np.dot(lanc.V, np.diag(lanc.s))
+        self.pca_components = np.dot(lanc.V, np.diag(lanc.s))
         log_debug('Finished PCA')
 
-    def tSNE(self):
+    def tSNE(self, tsne_out_path):
+        log_debug('Running t-SNE...')
+
         tsne = sklearn.manifold.TSNE(n_components=2, n_iter=2000)
-        self.embeddings = tsne.fit_transform(pd.DataFrame(self.pca))
+        self.embeddings = tsne.fit_transform(pd.DataFrame(self.pca_components))
+        pd.DataFrame(self.embeddings).to_csv(path_or_buf=tsne_out_path, sep=',',
+                                             header=None, index=False)
+        
+        log_debug('Finished t-SNE')
 
         #df = pd.DataFrame(embeddings)
         #plt.close()

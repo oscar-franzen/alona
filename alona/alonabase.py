@@ -205,7 +205,7 @@ class AlonaBase():
             # remove temporary files
             log_debug('Cleaning up (`--cleanup` is set)')
             
-            for garbage in ('input.mat','highly_variable_genes.csv',):
+            for item in ('input.mat',)+tuple(OUTPUT.values()):
                 log_debug('removing %s' % garbage)
 
                 try:

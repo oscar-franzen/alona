@@ -108,8 +108,8 @@ set to raw read counts.')
                 mpatches.Patch(color='#999999', label='Removed')
             ])
             plt.title('sequencing reads')
-            plt.savefig(self.alonabase.get_working_dir() + '/plots/' + \
-                 FILENAME_BARPLOT_RAW_READ_COUNTS, bbox_inches='tight')
+            plt.savefig(self.alonabase.get_working_dir() + \
+                OUTPUT['FILENAME_BARPLOT_RAW_READ_COUNTS'], bbox_inches='tight')
             plt.close()
 
     def _genes_expressed_per_cell_barplot(self):
@@ -124,8 +124,8 @@ set to raw read counts.')
         plt.xlabel('cells (sorted on highest to lowest)')
         plt.title('expressed genes')
 
-        plt.savefig(self.alonabase.get_working_dir() + '/plots/' + \
-                 FILENAME_BARPLOT_GENES_EXPRESSED, bbox_inches='tight')
+        plt.savefig(self.alonabase.get_working_dir() + \
+            OUTPUT['FILENAME_BARPLOT_GENES_EXPRESSED'], bbox_inches='tight')
         plt.close()
 
     def _quality_filter(self):
@@ -206,12 +206,12 @@ set to raw read counts.')
     def _normalization(self):
         """ Performs normalization of the gene expression values. """
         norm_mat_path = self.alonabase.get_working_dir() + '/normdata.joblib'
-        
+
         if os.path.exists(norm_mat_path):
             log_debug('Loading data matrix from file')
             self.data_norm = load(norm_mat_path)
             return
-        
+
         if not self.alonabase.params['mrnafull'] and \
            self.alonabase.params['dataformat'] == 'raw':
             log_debug('Starting normalization...')
@@ -272,6 +272,12 @@ set to raw read counts.')
 
     def analysis(self):
         log_debug('Running analysis...')
-        self._alona_analysis.find_variable_genes()
-        self._alona_analysis.PCA()
-        self._alona_analysis.tSNE()
+        tsne_path = self.alonabase.get_working_dir() + OUTPUT['FILENAME_EMBEDDINGS']
+
+        if os.path.exists(tsne_path):
+            log_debug('Loading embeddings from file')
+            self._alona_analysis.embeddings = pd.read_csv(tsne_path,header=None)
+        else:
+            self._alona_analysis.find_variable_genes()
+            self._alona_analysis.PCA()
+            self._alona_analysis.tSNE(tsne_path)

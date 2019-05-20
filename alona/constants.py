@@ -1,6 +1,12 @@
 ORANGE = '#E69F00'
-FILENAME_BARPLOT_RAW_READ_COUNTS = 'barplot_rrc.pdf'
-FILENAME_BARPLOT_GENES_EXPRESSED = 'barplot_ge.pdf'
+
+# Output files
+OUTPUT = {
+    'FILENAME_BARPLOT_RAW_READ_COUNTS' : '/plots/barplot_rrc.pdf',
+    'FILENAME_BARPLOT_GENES_EXPRESSED' : '/plots/barplot_ge.pdf',
+    'FILENAME_EMBEDDINGS' : '/csvs/embeddings.csv',
+    'FILENAME_HVG' : '/csvs/highly_variable_genes.csv'
+}
 
 # Reference data
 GENOME = {
