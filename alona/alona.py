@@ -49,6 +49,10 @@ values. Cannot be a mix. Default: auto',
               type=click.Choice(['auto', 'yes', 'no']), default='auto')
 @click.option('-m', '--nomito', help='Exclude mitochondrial genes from analysis.',
               is_flag=True)
+              
+@click.option('--nn_k', help='Minimum number of reads per cell to keep the \
+cell. Default: 1000', default=10)
+
 @click.option('-s', '--species', help='Species your data comes from. Default: mouse',
               type=click.Choice(['human', 'mouse']), default='mouse')
 @click.option('--cleanup', help='Perform cleanup of temporary files.',

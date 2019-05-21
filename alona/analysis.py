@@ -14,11 +14,18 @@
  Oscar Franzen <p.oscar.franzen@gmail.com>
 """
 
+import os
+import inspect
+
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 from matplotlib.pyplot import figure
 import sklearn.manifold
+
+import numpy.ctypeslib as npct
+import ctypes
+from ctypes import cdll
 
 from sklearn.cluster import DBSCAN
 
@@ -37,6 +44,7 @@ class AlonaAnalysis():
         self.top_hvg = None
         self.pca_components = None
         self.embeddings = None
+        self.nn_idx = None
 
     @staticmethod
     def _exp_mean(mat):
@@ -121,13 +129,70 @@ class AlonaAnalysis():
                                              header=None, index=False)
 
         log_debug('Finished t-SNE')
+        
+    def nn2(self):
+        """
+        Nearest Neighbour Search. Finds the number of near neighbours for each cell.
+        """
+        
+        log_debug('Performing Nearest Neighbour Search')
+        
+        libpath = os.path.dirname(inspect.getfile(AlonaAnalysis)) + '/ANN/annlib.so'
+        lib = cdll.LoadLibrary(libpath)
+        
+        pca_rotated = np.rot90(self.pca_components)
+        npa = np.ndarray.flatten(pca_rotated)
+        npa2 = npa.astype(np.double).ctypes.data_as(ctypes.POINTER(ctypes.c_double))
+
+        lib.get_NN_2Set.restype = None
+        lib.get_NN_2Set.argtypes = [ctypes.POINTER(ctypes.c_double),
+                                    ctypes.POINTER(ctypes.c_double),
+                                    ctypes.POINTER(ctypes.c_int),
+                                    ctypes.POINTER(ctypes.c_int),
+                                    ctypes.POINTER(ctypes.c_int),
+                                    ctypes.POINTER(ctypes.c_int),
+                                    ctypes.POINTER(ctypes.c_double),
+                                    ctypes.POINTER(ctypes.c_int),
+                                    ctypes.POINTER(ctypes.c_int),
+                                    npct.ndpointer(dtype=np.double, ndim=1,
+                                                   flags='CONTIGUOUS'),
+                                    npct.ndpointer(ctypes.c_int),
+                                    npct.ndpointer(dtype=np.double, ndim=1,
+                                                   flags='CONTIGUOUS')]
+        k = 10
+        no_cells = self.pca_components.shape[0]
+        no_comps = self.pca_components.shape[1]
+
+        out_index = np.zeros(no_cells*k, 'int32')
+        out_dists = np.zeros(no_cells*k)
+
+        lib.get_NN_2Set(npa2,
+                        npa2,
+                        ctypes.c_int(no_comps),
+                        ctypes.c_int(no_cells),
+                        ctypes.c_int(no_cells),
+                        ctypes.c_int(k),    # k
+                        ctypes.c_double(0), # EPS
+                        ctypes.c_int(1),    # SEARCHTYPE
+                        ctypes.c_int(1),    # USEBDTREE
+                        np.ndarray(0),      # SQRAD
+                        out_index,
+                        out_dists)
+
+        out_index_mat = np.reshape(out_index, (no_cells, k))
+        out_dists_mat = np.reshape(out_dists, (no_cells, k))
+        
+        self.nn_idx = out_index_mat
+        
+        log_debug('Finished NNS')
 
     def cluster(self):
         """ Cluster cells. """
-        db = DBSCAN(eps=0.3, min_samples=10)
-        db.fit(self.pca_components)
+        self.nn2()
+        
+        #db = DBSCAN(eps=0.3, min_samples=10)
+        #db.fit(self.pca_components)
         #np.unique(db.labels_, return_counts=True)
-        pass
     
     def cell_scatter_plot(self):
         plt.clf()
