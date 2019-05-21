@@ -77,7 +77,7 @@ class AlonaAnalysis():
         wd = self._alonacell.alonabase.get_working_dir()
         self.top_hvg.to_csv(wd + OUTPUT['FILENAME_HVG'], header=False)
 
-    def PCA(self):
+    def PCA(self, out_path):
         """
         Calculate principal components using irlba.
 
@@ -105,25 +105,29 @@ class AlonaAnalysis():
 
         # weighing by var (Seurat-style)
         self.pca_components = np.dot(lanc.V, np.diag(lanc.s))
+        
+        pd.DataFrame(self.pca_components).to_csv(path_or_buf=out_path, sep=',',
+                                             header=None, index=False)
+                                             
         log_debug('Finished PCA')
 
-    def tSNE(self, tsne_out_path):
+    def tSNE(self, out_path):
         """ Projects data to a two dimensional space using the tSNE algorithm. """
         log_debug('Running t-SNE...')
 
         tsne = sklearn.manifold.TSNE(n_components=2, n_iter=2000)
         self.embeddings = tsne.fit_transform(pd.DataFrame(self.pca_components))
-        pd.DataFrame(self.embeddings).to_csv(path_or_buf=tsne_out_path, sep=',',
+        pd.DataFrame(self.embeddings).to_csv(path_or_buf=out_path, sep=',',
                                              header=None, index=False)
 
         log_debug('Finished t-SNE')
 
     def cluster(self):
         """ Cluster cells. """
-        pass
-        #db = DBSCAN(eps=0.3, min_samples=10)
-        #db.fit(np.rot90(pca.components_)))
+        db = DBSCAN(eps=0.3, min_samples=10)
+        db.fit(self.pca_components)
         #np.unique(db.labels_, return_counts=True)
+        pass
     
     def cell_scatter_plot(self):
         plt.clf()

@@ -276,13 +276,15 @@ set to raw read counts.')
         """ Runs the analysis pipeline. """
         log_debug('Running analysis...')
         tsne_path = self.alonabase.get_working_dir() + OUTPUT['FILENAME_EMBEDDINGS']
+        pca_path = self.alonabase.get_working_dir() + OUTPUT['FILENAME_PCA']
 
-        if os.path.exists(tsne_path):
+        if os.path.exists(tsne_path) and os.path.exists(pca_path):
             log_debug('Loading embeddings from file')
             self._alona_analysis.embeddings = pd.read_csv(tsne_path, header=None)
+            self._alona_analysis.pca_components = pd.read_csv(pca_path, header=None)
         else:
             self._alona_analysis.find_variable_genes()
-            self._alona_analysis.PCA()
+            self._alona_analysis.PCA(pca_path)
             self._alona_analysis.tSNE(tsne_path)
             
         self._alona_analysis.cell_scatter_plot()
