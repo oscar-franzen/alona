@@ -39,7 +39,7 @@ COPY ./alona/irlbpy/*.py /alona/alona/irlbpy/
 COPY ./alona/genome/* /alona/alona/genome/
 COPY ./alona/ANN/ /alona/alona/ANN
 
-RUN /alona/alona/ANN/compile
+RUN cd /alona/alona/ANN/ && /alona/alona/ANN/compile
 
 ENV ALONA_INSIDE_DOCKER Y
 
