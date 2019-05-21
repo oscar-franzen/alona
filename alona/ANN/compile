@@ -1,0 +1,12 @@
+echo "Compiling..."
+
+for file in *.cpp
+do
+    g++ -c -fPIC -I. -O2 ${file}
+done
+
+g++ -c -fPIC -I. -IANN -O2 NN.cc
+
+g++ -shared -Wl,-soname,annlib.so -o annlib.so *.o
+
+echo "Done"

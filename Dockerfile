@@ -30,11 +30,16 @@ WORKDIR /alona
 
 RUN mkdir /alona/alona/
 RUN mkdir /alona/alona/genome
+RUN mkdir /alona/alona/irlbpy
+RUN mkdir /alona/alona/ANN
 
 # copy the package into the image
 COPY ./alona/*.py /alona/alona/
-COPY ./alona/genome/human_to_mouse_1_to_1_orthologs.tsv /alona/alona/genome/
-COPY ./alona/genome/hgnc_complete_set.txt /alona/alona/genome/
+COPY ./alona/irlbpy/*.py /alona/alona/irlbpy/
+COPY ./alona/genome/* /alona/alona/genome/
+COPY ./alona/ANN/ /alona/alona/ANN
+
+RUN /alona/alona/ANN/compile
 
 ENV ALONA_INSIDE_DOCKER Y
 
