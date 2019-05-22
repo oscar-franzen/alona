@@ -28,6 +28,8 @@ import matplotlib.pyplot as plt
 from matplotlib.pyplot import figure
 import sklearn.manifold
 
+from scipy.sparse import coo_matrix
+
 import alona.irlbpy
 
 from .log import (log_info, log_debug, log_error)
@@ -129,14 +131,14 @@ class AlonaAnalysis():
 
         log_debug('Finished t-SNE')
 
-    def nn2(self, nn2_k):
+    def knn(self, inp_k):
         """
-        Nearest Neighbour Search. Finds the number of near neighbours for each cell.
+        Nearest Neighbour Search. Finds the k number of near neighbours for each cell.
         """
 
         log_debug('Performing Nearest Neighbour Search')
 
-        k = nn2_k
+        k = inp_k
 
         libpath = os.path.dirname(inspect.getfile(AlonaAnalysis)) + '/ANN/annlib.so'
         lib = cdll.LoadLibrary(libpath)
@@ -183,11 +185,88 @@ class AlonaAnalysis():
         out_dists_mat = np.reshape(out_dists, (no_cells, k))
 
         self.nn_idx = out_index_mat
+        
         log_debug('Finished NNS')
+    
+    def snn(self, k, write_snn, prune_snn):
+        """
+        Computes Shared Nearest Neighbor (SNN) Graph
+        In SNN link weights are number of Shared Nearest Neighbors, so we need to get
+        the sum of SNN similarities over all KNNs.
+        See: http://mlwiki.org/index.php/SNN_Clustering
+        """
+        
+        # TODO: add support for the 'prune_snn' parameter
+        # TODO: add flag for prune_thres threshold
+        
+        log_debug('Computing SNN graph...')
+        
+        k_param = k
+        ws = write_snn
+        prune_thres = 1/15
+        
+        # create sparse matrix from tuples
+        melted = pd.DataFrame(self.nn_idx).melt(id_vars=[0])[[0,'value']]
+        
+        rows = np.array(melted[melted.columns[0]])
+        cols = np.array(melted[melted.columns[1]])
+        d = [1]*len(rows)
+
+        rows = np.array(list(melted[melted.columns[0]].values) + \
+            list(range(1,self.nn_idx.shape[0]+1)))
+            
+        cols = np.array(list(melted[melted.columns[1]]) + \
+            list(list(range(1,self.nn_idx.shape[0]+1))))
+        
+        d = [1]*len(rows)
+        
+        knn_sparse = coo_matrix((d, (rows-1, cols-1)),
+                                 shape=(self.nn_idx.shape[0], self.nn_idx.shape[0]))
+        snn_sparse = knn_sparse*knn_sparse.transpose()
+        
+        # prune using same logic as FindClusters in Seurat
+        aa = snn_sparse.nonzero()
+        
+        node1 = []
+        node2 = []
+        
+        pruned_count = 0
+        
+        for q1,q2 in zip(aa[0],aa[1]):
+            val = snn_sparse[q1,q2]
+            strength = val / (k_param + (k_param-val))
+            
+            snn_sparse[q1,q2] = strength
+            
+            if strength < prune_thres:
+                snn_sparse[q1,q2] = 0
+                pruned_count += 1
+            else:
+                node1.append(q1)
+                node2.append(q2)
+
+        log_debug('%s links pruned' % '{:,}'.format(pruned_count))
+        
+        if ws:
+            log_debug('Writing sn graph to disk')
+            
+            df = pd.DataFrame({'source_node' : node1, 'target_node' : node2})
+            df.to_csv(self._alonacell.alonabase.get_working_dir() + \
+                OUTPUT['FILENAME_SNN_GRAPH'], header=None,index=None)
+            
+            #pd.DataFrame(self.nn_idx).to_csv('~/Temp/qq.csv', header=None, index=None)
+            #melted = pd.DataFrame(out_index_mat).melt(id_vars=[0])[[0,'value']]
+            #melted.to_csv(self._alonacell.alonabase.get_working_dir() + \
+            #    OUTPUT['FILENAME_SNN_GRAPH'], header=False, index=False)
+        
+        log_debug('Done computing SNN.')
 
     def cluster(self):
         """ Cluster cells. """
-        self.nn2(self._alonacell.alonabase.params['clustering_k'])
+        k = self._alonacell.alonabase.params['clustering_k']
+        
+        self.knn(k)
+        self.snn(k, self._alonacell.alonabase.params['write_snn_graph'], True)
 
         #db = DBSCAN(eps=0.3, min_samples=10)
         #db.fit(self.pca_components)
