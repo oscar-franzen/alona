@@ -29,15 +29,17 @@ from matplotlib.pyplot import figure
 import sklearn.manifold
 
 from scipy.sparse import coo_matrix
+import leidenalg
+import igraph as ig
 
 import alona.irlbpy
 
 from .log import (log_info, log_debug, log_error)
 from .constants import OUTPUT
 
-class AlonaAnalysis():
+class AlonaClustering():
     """
-    Analysis class.
+    Clustering class.
     """
 
     def __init__(self, alonacell):
@@ -141,7 +143,7 @@ class AlonaAnalysis():
 
         k = inp_k
 
-        libpath = os.path.dirname(inspect.getfile(AlonaAnalysis)) + '/ANN/annlib.so'
+        libpath = os.path.dirname(inspect.getfile(AlonaClustering)) + '/ANN/annlib.so'
         lib = cdll.LoadLibrary(libpath)
 
         pca_rotated = np.rot90(self.pca_components)
@@ -273,6 +275,9 @@ class AlonaAnalysis():
         
         self.knn(k)
         self.snn(k, True)
+        
+        g = ig.Graph.TupleList(self.snn_graph.itertuples(index=False), weights=False)
+        cl = leidenalg.find_partition(g, leidenalg.ModularityVertexPartition);
 
         #db = DBSCAN(eps=0.3, min_samples=10)
         #db.fit(self.pca_components)

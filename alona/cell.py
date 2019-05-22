@@ -26,7 +26,7 @@ from matplotlib.pyplot import figure
 
 from .log import (log_info, log_debug, log_error)
 from .constants import *
-from .analysis import AlonaAnalysis
+from .clustering import AlonaClustering
 
 class AlonaCell():
     """
@@ -38,7 +38,7 @@ class AlonaCell():
         self.data = None
         self.data_norm = None
 
-        self._alona_analysis = AlonaAnalysis(self)
+        self._alona_clustering = AlonaClustering(self)
 
         # make matplotlib more quiet
         logging.getLogger('matplotlib').setLevel(logging.WARNING)
@@ -280,12 +280,12 @@ set to raw read counts.')
 
         if os.path.exists(tsne_path) and os.path.exists(pca_path):
             log_debug('Loading embeddings from file')
-            self._alona_analysis.embeddings = pd.read_csv(tsne_path, header=None)
-            self._alona_analysis.pca_components = pd.read_csv(pca_path, header=None)
+            self._alona_clustering.embeddings = pd.read_csv(tsne_path, header=None)
+            self._alona_clustering.pca_components = pd.read_csv(pca_path, header=None)
         else:
-            self._alona_analysis.find_variable_genes()
-            self._alona_analysis.PCA(pca_path)
-            self._alona_analysis.tSNE(tsne_path)
+            self._alona_clustering.find_variable_genes()
+            self._alona_clustering.PCA(pca_path)
+            self._alona_clustering.tSNE(tsne_path)
             
-        self._alona_analysis.cell_scatter_plot()
-        self._alona_analysis.cluster()
+        self._alona_clustering.cell_scatter_plot()
+        self._alona_clustering.cluster()

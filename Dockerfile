@@ -15,9 +15,9 @@ RUN apt-get update && \
     apt-get install -y libssh2-1-dev openssl curl
 
 # R Packages
-RUN R -e "install.packages(c('devtools','ggplot2','data.table'), \
-                           dependencies=TRUE, \
-                           repos='http://cran.rstudio.com/')"
+#RUN R -e "install.packages(c('devtools','ggplot2','data.table'), \
+#                           dependencies=TRUE, \
+#                           repos='http://cran.rstudio.com/')"
 
 # Python3 packages
 RUN pip3 install click
