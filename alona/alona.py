@@ -55,6 +55,8 @@ values. Cannot be a mix. Default: auto',
               type=click.Choice(['human', 'mouse']), default='mouse')
 @click.option('--cleanup', help='Perform cleanup of temporary files.',
               is_flag=True)
+@click.option('--nodocker', help='Use this flag to run alona without Docker.',
+              is_flag=True, default=False)
 @click.option('-lf', '--logfile', help='Name of log file. Set to /dev/null if you want to \
 disable logging to a file. Default: alona.log', default='alona.log')
 @click.option('-ll', '--loglevel', help='Set how much runtime information is written to \
@@ -63,7 +65,8 @@ the log file. Default: regular', type=click.Choice(['regular', 'debug']), defaul
 @click.option('--version', help='Display version number.', is_flag=True,
               callback=print_version)
 def run(filename, output, dataformat, minreads, minexpgenes, mrnafull, delimiter, header,
-        nomito, clustering_k, species, cleanup, logfile, loglevel, nologo, version):
+        nomito, clustering_k, species, cleanup, nodocker, logfile, loglevel, nologo,
+        version):
 
     # confirm the genome reference files can be found
     for item in GENOME:
@@ -80,10 +83,13 @@ tried this path: %s' % (GENOME[item], path))
     log_debug('starting alona with %s' % filename)
     show_logo(nologo)
 
-    #if not is_inside_container():
-        #sys.exit("alona requires several dependencies and should be run through a \
-#Docker container. See https://raw.githubusercontent.com/oscar-franzen/alona/master/\
-#README.md")
+    if not is_inside_container() and not nodocker:
+        sys.exit('''alona requires several dependencies and should be run through a \
+Docker container. See https://raw.githubusercontent.com/oscar-franzen/alona/master/\
+README.md
+
+Use '--nodocker' flag to overrride.
+''')
 
     alona_opts = {
         'input_filename' : filename,
