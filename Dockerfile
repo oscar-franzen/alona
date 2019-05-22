@@ -24,6 +24,7 @@ RUN pip3 install click
 RUN pip3 install scanpy
 RUN pip3 install pandas
 RUN pip3 install numpy
+RUN pip3 install leidenalg
 
 # Define working directory.
 WORKDIR /alona
