@@ -49,10 +49,8 @@ values. Cannot be a mix. Default: auto',
               type=click.Choice(['auto', 'yes', 'no']), default='auto')
 @click.option('-m', '--nomito', help='Exclude mitochondrial genes from analysis.',
               is_flag=True)
-              
-@click.option('--nn_k', help='Minimum number of reads per cell to keep the \
-cell. Default: 1000', default=10)
-
+@click.option('--clustering_k', help='k in the nearest neighbour search. Default: 10',
+              default=10)
 @click.option('-s', '--species', help='Species your data comes from. Default: mouse',
               type=click.Choice(['human', 'mouse']), default='mouse')
 @click.option('--cleanup', help='Perform cleanup of temporary files.',
@@ -65,7 +63,7 @@ the log file. Default: regular', type=click.Choice(['regular', 'debug']), defaul
 @click.option('--version', help='Display version number.', is_flag=True,
               callback=print_version)
 def run(filename, output, dataformat, minreads, minexpgenes, mrnafull, delimiter, header,
-        nomito, species, cleanup, logfile, loglevel, nologo, version):
+        nomito, clustering_k, species, cleanup, logfile, loglevel, nologo, version):
 
     # confirm the genome reference files can be found
     for item in GENOME:
@@ -99,7 +97,8 @@ tried this path: %s' % (GENOME[item], path))
         'minreads' : minreads,
         'minexpgenes' : minexpgenes,
         'mrnafull' : mrnafull,
-        'cleanup' : cleanup
+        'cleanup' : cleanup,
+        'clustering_k' : clustering_k
     }
 
     alonabase = AlonaBase(alona_opts)

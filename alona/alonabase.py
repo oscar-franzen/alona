@@ -62,10 +62,13 @@ class AlonaBase():
                 log_debug('%s : %s' % (par, self.params[par]))
             log_debug('************************************')
 
+        # validate some of the input parameters
         if self.params['minreads'] < 0:
             log_error(self, '--minreads must be a positive integer.')
         if self.params['minexpgenes'] < 0 or self.params['minexpgenes'] > 99:
             log_error(self, '--minexpgenes must be a value within [0,100).')
+        if self.params['clustering_k'] < 0:
+            log_error(self, '--clustering_k cannot be negative.')
 
     def get_working_dir(self):
         """ Retrieves the name of the output directory. """

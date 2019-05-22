@@ -17,17 +17,16 @@
 import os
 import inspect
 
+import ctypes
+from ctypes import cdll
+
 import numpy as np
+import numpy.ctypeslib as npct
+
 import pandas as pd
 import matplotlib.pyplot as plt
 from matplotlib.pyplot import figure
 import sklearn.manifold
-
-import numpy.ctypeslib as npct
-import ctypes
-from ctypes import cdll
-
-from sklearn.cluster import DBSCAN
 
 import alona.irlbpy
 
@@ -113,10 +112,10 @@ class AlonaAnalysis():
 
         # weighing by var (Seurat-style)
         self.pca_components = np.dot(lanc.V, np.diag(lanc.s))
-        
+
         pd.DataFrame(self.pca_components).to_csv(path_or_buf=out_path, sep=',',
-                                             header=None, index=False)
-                                             
+                                                 header=None, index=False)
+
         log_debug('Finished PCA')
 
     def tSNE(self, out_path):
@@ -129,17 +128,19 @@ class AlonaAnalysis():
                                              header=None, index=False)
 
         log_debug('Finished t-SNE')
-        
-    def nn2(self):
+
+    def nn2(self, nn2_k):
         """
         Nearest Neighbour Search. Finds the number of near neighbours for each cell.
         """
-        
+
         log_debug('Performing Nearest Neighbour Search')
-        
+
+        k = nn2_k
+
         libpath = os.path.dirname(inspect.getfile(AlonaAnalysis)) + '/ANN/annlib.so'
         lib = cdll.LoadLibrary(libpath)
-        
+
         pca_rotated = np.rot90(self.pca_components)
         npa = np.ndarray.flatten(pca_rotated)
         npa2 = npa.astype(np.double).ctypes.data_as(ctypes.POINTER(ctypes.c_double))
@@ -159,7 +160,6 @@ class AlonaAnalysis():
                                     npct.ndpointer(ctypes.c_int),
                                     npct.ndpointer(dtype=np.double, ndim=1,
                                                    flags='CONTIGUOUS')]
-        k = 10
         no_cells = self.pca_components.shape[0]
         no_comps = self.pca_components.shape[1]
 
@@ -181,19 +181,18 @@ class AlonaAnalysis():
 
         out_index_mat = np.reshape(out_index, (no_cells, k))
         out_dists_mat = np.reshape(out_dists, (no_cells, k))
-        
+
         self.nn_idx = out_index_mat
-        
         log_debug('Finished NNS')
 
     def cluster(self):
         """ Cluster cells. """
-        self.nn2()
-        
+        self.nn2(self._alonacell.alonabase.params['clustering_k'])
+
         #db = DBSCAN(eps=0.3, min_samples=10)
         #db.fit(self.pca_components)
         #np.unique(db.labels_, return_counts=True)
-    
+
     def cell_scatter_plot(self):
         plt.clf()
         figure(num=None, figsize=(5, 5))
