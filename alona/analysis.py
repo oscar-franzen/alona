@@ -46,6 +46,7 @@ class AlonaAnalysis():
         self.pca_components = None
         self.embeddings = None
         self.nn_idx = None
+        self.snn_graph = None
 
     @staticmethod
     def _exp_mean(mat):
@@ -187,22 +188,34 @@ class AlonaAnalysis():
         self.nn_idx = out_index_mat
         
         log_debug('Finished NNS')
+        
+        #pd.DataFrame(self.nn_idx).to_csv('~/Temp/qq.csv', header=None, index=None)
+        #melted = pd.DataFrame(out_index_mat).melt(id_vars=[0])[[0,'value']]
+        #melted.to_csv(self._alonacell.alonabase.get_working_dir() + \
+        #    OUTPUT['FILENAME_SNN_GRAPH'], header=False, index=False)
     
-    def snn(self, k, write_snn, prune_snn):
+    def snn(self, k, prune_snn):
         """
         Computes Shared Nearest Neighbor (SNN) Graph
-        In SNN link weights are number of Shared Nearest Neighbors, so we need to get
-        the sum of SNN similarities over all KNNs.
+        Link weights are number of shared nearest neighbors, so we need to get
+        the sum of SNN similarities over all KNNs, which is done with a matrix operation.
         See: http://mlwiki.org/index.php/SNN_Clustering
         """
         
         # TODO: add support for the 'prune_snn' parameter
         # TODO: add flag for prune_thres threshold
         
+        snn_path = self._alonacell.alonabase.get_working_dir() + \
+            OUTPUT['FILENAME_SNN_GRAPH']
+            
+        if os.path.exists(snn_path):
+            log_debug('Loading SNN from file...')
+            self.snn_graph = pd.read_csv(snn_path, header=None)
+            return
+        
         log_debug('Computing SNN graph...')
         
         k_param = k
-        ws = write_snn
         prune_thres = 1/15
         
         # create sparse matrix from tuples
@@ -247,17 +260,10 @@ class AlonaAnalysis():
 
         log_debug('%s links pruned' % '{:,}'.format(pruned_count))
         
-        if ws:
-            log_debug('Writing sn graph to disk')
-            
-            df = pd.DataFrame({'source_node' : node1, 'target_node' : node2})
-            df.to_csv(self._alonacell.alonabase.get_working_dir() + \
-                OUTPUT['FILENAME_SNN_GRAPH'], header=None,index=None)
-            
-            #pd.DataFrame(self.nn_idx).to_csv('~/Temp/qq.csv', header=None, index=None)
-            #melted = pd.DataFrame(out_index_mat).melt(id_vars=[0])[[0,'value']]
-            #melted.to_csv(self._alonacell.alonabase.get_working_dir() + \
-            #    OUTPUT['FILENAME_SNN_GRAPH'], header=False, index=False)
+        df = pd.DataFrame({'source_node' : node1, 'target_node' : node2})
+        df.to_csv(snn_path, header=None,index=None)
+        
+        self.snn_graph = df
         
         log_debug('Done computing SNN.')
 
@@ -266,7 +272,7 @@ class AlonaAnalysis():
         k = self._alonacell.alonabase.params['clustering_k']
         
         self.knn(k)
-        self.snn(k, self._alonacell.alonabase.params['write_snn_graph'], True)
+        self.snn(k, True)
 
         #db = DBSCAN(eps=0.3, min_samples=10)
         #db.fit(self.pca_components)
