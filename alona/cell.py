@@ -25,7 +25,7 @@ import matplotlib.patches as mpatches
 from matplotlib.pyplot import figure
 
 from .log import (log_info, log_debug, log_error)
-from .constants import OUTPUT
+from .constants import (OUTPUT, ORANGE)
 from .clustering import AlonaClustering
 from .celltypes import AlonaCellTypePred
 

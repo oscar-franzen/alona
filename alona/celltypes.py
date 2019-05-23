@@ -55,4 +55,6 @@ class AlonaCellTypePred():
         ui = ma.iloc[:,ma.columns=='ubiquitousness index']
         ma = ma[np.array(ui).flatten()<0.05]
         
+        # reference symbols
+        
         log_debug('Markers loaded')

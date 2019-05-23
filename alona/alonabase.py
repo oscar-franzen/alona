@@ -20,7 +20,7 @@ import uuid
 import subprocess
 import magic
 
-from .log import (log_info, log_debug, log_error)
+from .log import (log_info, log_debug, log_error, log_warning)
 from .exceptions import *
 from .constants import (GENOME)
 from .utils import get_alona_dir
@@ -71,6 +71,10 @@ class AlonaBase():
             log_error(self, '--clustering_k cannot be negative.')
         if self.params['prune_snn'] < 0 or self.params['prune_snn'] > 1:
             log_error(self, '--prune_snn must have a value within [0,1]')
+        if self.params['perplexity'] < 0:
+            log_error(self, 'Perplexity cannot be less than 0.')
+        if self.params['perplexity'] > 100:
+            log_warning('Recommended values of --perplexity is 5-50.')
 
     def get_wd(self):
         """ Retrieves the name of the output directory. """

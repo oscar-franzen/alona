@@ -55,6 +55,9 @@ values. Cannot be a mix. Default: auto',
 with lower value (Jaccard index) than this will be removed. Set to 0 to disable\
 pruning. Increasing this value will result in fewer edges in the graph. \
 Default: 0.067', default=0.067)
+
+@click.option('--perplexity', help='The perplexity parameter in the t-SNE algorithm. \
+Default: 30', default=30)
               
 @click.option('-s', '--species', help='Species your data comes from. Default: mouse',
               type=click.Choice(['human', 'mouse']), default='mouse')
@@ -74,8 +77,8 @@ the log file. Default: regular', type=click.Choice(['regular', 'debug']), defaul
 @click.option('--version', help='Display version number.', is_flag=True,
               callback=print_version)
 def run(filename, output, dataformat, minreads, minexpgenes, mrnafull, delimiter, header,
-        nomito, clustering_k, prune_snn, species, dark_bg, cleanup, nodocker, logfile,
-        loglevel, nologo, version):
+        nomito, clustering_k, prune_snn, perplexity, species, dark_bg, cleanup, nodocker,
+        logfile, loglevel, nologo, version):
 
     # confirm the genome reference files can be found
     for item in GENOME:
@@ -115,7 +118,8 @@ Use '--nodocker' flag to overrride.
         'cleanup' : cleanup,
         'clustering_k' : clustering_k,
         'prune_snn' : prune_snn,
-        'dark_bg' : dark_bg
+        'dark_bg' : dark_bg,
+        'perplexity' : perplexity
     }
 
     alonabase = AlonaBase(alona_opts)

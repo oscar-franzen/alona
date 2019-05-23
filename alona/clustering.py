@@ -136,10 +136,18 @@ class AlonaClustering():
         log_debug('Finished PCA')
 
     def tSNE(self, out_path):
-        """ Projects data to a two dimensional space using the tSNE algorithm. """
+        """
+        Projects data to a two dimensional space using the tSNE algorithm.
+        
+        van der Maaten, L.J.P.; Hinton, G.E. Visualizing High-Dimensional Data
+        Using t-SNE. Journal of Machine Learning Research 9:2579-2605, 2008.
+        """
         log_debug('Running t-SNE...')
 
-        tsne = sklearn.manifold.TSNE(n_components=2, n_iter=2000)
+        tsne = sklearn.manifold.TSNE(n_components=2,
+                                     n_iter=2000,
+                                     perplexity=self.params['perplexity'])
+        
         self.embeddings = tsne.fit_transform(pd.DataFrame(self.pca_components))
         pd.DataFrame(self.embeddings).to_csv(path_or_buf=out_path, sep=',',
                                              header=None, index=False)
