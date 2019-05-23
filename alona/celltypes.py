@@ -26,20 +26,19 @@ class AlonaCellTypePred():
 
     def median_exp(self):
         """ Represent each cluster with median gene expression. """
-        
         log_debug('median_exp() Computing median expression per cluster...')
         
         clust = self.alonaclustering.leiden_cl
         data = self.alonacell.data_norm
         
+        fn = self.wd + OUTPUT['FILENAME_MEDIAN_EXP']        
+        
         # Axis 0 will act on all the ROWS in each COLUMN
         # Axis 1 will act on all the COLUMNS in each ROW
-        
-        fn = self.wd + OUTPUT['FILENAME_MEDIAN_EXP']
-        
-        print(fn)
-        
         ret = data.groupby(clust, axis=1).aggregate(np.median)
         ret.to_csv(fn,header=True)
-
+        
         log_debug('median_exp() finished')
+
+    def CTA_RANK_F(self):
+        pass
