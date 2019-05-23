@@ -37,13 +37,22 @@ class AlonaCellTypePred():
         # Axis 0 will act on all the ROWS in each COLUMN
         # Axis 1 will act on all the COLUMNS in each ROW
         ret = data.groupby(clust, axis=1).aggregate(np.median)
-        ret.to_csv(fn,header=True)
+        ret.to_csv(fn, header=True)
 
         log_debug('median_exp() finished')
 
     def CTA_RANK_F(self):
         pass
 
-    def load_markers(self):        
-        #self.markers = pd.read_csv(get_alona_dir() + MARKERS['PANGLAODB'])
-        print(get_alona_dir())
+    def load_markers(self):
+        log_debug('Loading markers...')
+        ma = pd.read_csv(get_alona_dir() + MARKERS['PANGLAODB'], sep='\t')
+        
+        # restrict to mouse
+        ma = ma[ma.species.str.match('Mm')]
+        self.markers = ma
+        
+        ui = ma.iloc[:,ma.columns=='ubiquitousness index']
+        ma = ma[np.array(ui).flatten()<0.05]
+        
+        log_debug('Markers loaded')
