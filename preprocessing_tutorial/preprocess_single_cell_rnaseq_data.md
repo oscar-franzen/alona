@@ -196,6 +196,27 @@ $ time (hisat2 --phred33 -p 2 \
 10777.77s user 162.88s system 206% cpu 1:28:17.88 total
 ```
 
+### A directory of FASTQ files
+In many cases we don't have one single FASTQ file, rather we have a directory of multiple individual FASTQ files. Instead of writing multiple commands we can cut and paste a `for` loop in the terminal:
+
+```bash
+# create an output directory to prevent litter
+mkdir aln
+
+# data can be compressed with gzip to save space
+for file in ./data/*.gz
+do
+    # truncates the path and first two file extensions (.fastq.gz)
+    out=${file##*/}
+    out=${out%.*}
+    out=${out%.*}
+
+    echo $file
+
+    hisat2 --phred33 -p 20 -x /path/to/GRCm38.primary_assembly.genome.fa.hisat2 -U ${file} | awk '$5 >= 60' > ./aln/${out}.sam
+done
+```
+
 # Convert to BAM
 BAM is the compressed version of SAM. The format is based on gzip and we use it to save space. It has become a standard format for saving sequence alignments from NGS technologies.
 

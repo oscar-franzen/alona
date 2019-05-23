@@ -278,8 +278,8 @@ class AlonaClustering():
         log_debug('%.2f%% (n=%s) of links pruned' % ( perc_pruned,
                                                        '{:,}'.format(pruned_count)))
 
-        if perc_pruned > 10:
-            log_warning('WARNING: more than 80% of the edges were pruned')
+        if perc_pruned > 80:
+            log_warning('more than 80% of the edges were pruned')
 
         df = pd.DataFrame({'source_node' : node1, 'target_node' : node2})
         df.to_csv(snn_path, header=None, index=None)
