@@ -287,5 +287,8 @@ set to raw read counts.')
             self._alona_clustering.PCA(pca_path)
             self._alona_clustering.tSNE(tsne_path)
             
-        self._alona_clustering.cell_scatter_plot()
+        fn = self.alonabase.get_working_dir() + \
+            OUTPUT['FILENAME_CELL_SCATTER_PLOT']
+
         self._alona_clustering.cluster()
+        self._alona_clustering.cell_scatter_plot(fn)

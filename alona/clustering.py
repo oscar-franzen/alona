@@ -1,13 +1,8 @@
 """
- alona
+ This file contains clustering functions used by alona.
 
- Description:
- An analysis pipeline for scRNA-seq data.
-
- How to use:
+ How to use alona:
  https://github.com/oscar-franzen/alona/
-
- Details:
  https://alona.panglaodb.se/
 
  Contact:
@@ -24,11 +19,15 @@ import numpy as np
 import numpy.ctypeslib as npct
 
 import pandas as pd
+
 import matplotlib.pyplot as plt
-from matplotlib.pyplot import figure
+import matplotlib.colors as colors
+import matplotlib.cm as cmx
+
 import sklearn.manifold
 
 from scipy.sparse import coo_matrix
+
 import leidenalg
 import igraph as ig
 
@@ -49,6 +48,7 @@ class AlonaClustering():
         self.embeddings = None
         self.nn_idx = None
         self.snn_graph = None
+        self.leiden_cl = None
 
     @staticmethod
     def _exp_mean(mat):
@@ -268,29 +268,68 @@ class AlonaClustering():
         self.snn_graph = df
         
         log_debug('Done computing SNN.')
+        
+    def leiden(self):
+        """
+        Cluster the SNN graph using the Leiden algorithm.
+        
+        https://github.com/vtraag/leidenalg
+        
+        From Louvain to Leiden: guaranteeing well-connected communities
+        Traag V, Waltman L, van Eck NJ
+        https://arxiv.org/abs/1810.08473
+        """
+
+        log_debug('Running leiden clustering...')
+        
+        # construct the graph object
+        nn = set(self.snn_graph[0])
+        g = ig.Graph()
+        g.add_vertices(len(nn))
+        g.vs['name'] = list(range(1,len(nn)+1))
+
+        ll = []
+
+        for i in self.snn_graph.itertuples(index=False):
+            ll.append(tuple(i))
+
+        g.add_edges(ll)
+
+        cl = leidenalg.find_partition(g, leidenalg.ModularityVertexPartition);
+        self.leiden_cl = cl.membership
+        
+        log_debug('Leiden has finished.')
 
     def cluster(self):
         """ Cluster cells. """
         k = self._alonacell.alonabase.params['clustering_k']
-        
+
         self.knn(k)
         self.snn(k, True)
-        
-        g = ig.Graph.TupleList(self.snn_graph.itertuples(index=False), weights=False)
-        cl = leidenalg.find_partition(g, leidenalg.ModularityVertexPartition);
+        self.leiden()
 
-        #db = DBSCAN(eps=0.3, min_samples=10)
-        #db.fit(self.pca_components)
-        #np.unique(db.labels_, return_counts=True)
-
-    def cell_scatter_plot(self):
+    def cell_scatter_plot(self, filename):
+        """ Generates a tSNE scatter plot with colored clusters. """
         plt.clf()
-        figure(num=None, figsize=(5, 5))
+        plt.figure(num=None, figsize=(5, 5))
         df = pd.DataFrame(self.embeddings)
-        plt.scatter(df[0], df[1], s=1)
+        
+        uniq = list(set(self.leiden_cl))
+
+        z = range(1, len(uniq))
+        hot = plt.get_cmap('hot')
+        cNorm  = colors.Normalize(vmin=0, vmax=len(uniq))
+        scalarMap = cmx.ScalarMappable(norm=cNorm, cmap=hot)
+        
+        for i in range(len(uniq)):
+            idx = np.array(self.leiden_cl) == i
+            e = self.embeddings[idx]
+            
+            #plt.scatter(df[0], df[1], s=1)
+            plt.scatter(e[0], e[1], s=15, color=scalarMap.to_rgba(i), label=uniq[i])
+
         plt.ylabel('tSNE1')
         plt.xlabel('tSNE2')
 
-        plt.savefig(self._alonacell.alonabase.get_working_dir() + \
-            OUTPUT['FILENAME_CELL_SCATTER_PLOT'], bbox_inches='tight')
+        plt.savefig(filename, bbox_inches='tight')
         plt.close()
