@@ -51,7 +51,7 @@ class AlonaClustering():
     Clustering class.
     """
 
-    def __init__(self, alonacell):
+    def __init__(self, alonacell, params):
         self._alonacell = alonacell
         self.top_hvg = None
         self.pca_components = None
@@ -59,6 +59,7 @@ class AlonaClustering():
         self.nn_idx = None
         self.snn_graph = None
         self.leiden_cl = None
+        self.params = params
 
     @staticmethod
     def _exp_mean(mat):
@@ -312,7 +313,18 @@ class AlonaClustering():
         fn = wd + OUTPUT['FILENAME_CLUSTERS_LEIDEN']
         
         pd.DataFrame(self.leiden_cl).to_csv(fn, header=False, index=False)
-
+        
+        log_info('leiden formed %s cell clusters' % len(set(cl.membership)))
+        
+        if self.params['loglevel'] == 'debug':
+            clc = np.bincount(cl.membership)
+            ind = np.nonzero(clc)[0]
+            
+            log_debug(('cluster','cells'))
+            
+            for i in zip(ind,clc):
+                log_debug(i)
+        
         log_debug('Leiden has finished.')
 
     def cluster(self):
@@ -323,8 +335,11 @@ class AlonaClustering():
         self.snn(k, True)
         self.leiden()
 
-    def cell_scatter_plot(self, filename):
+    def cell_scatter_plot(self, filename, dark_bg_param=False):
         """ Generates a tSNE scatter plot with colored clusters. """
+        
+        dark_bg=dark_bg_param
+        
         def get_random_color(pastel_factor = 0.5):
             return [(x+pastel_factor)/(1.0+pastel_factor) for x in [random.uniform(0,1.0) for i in [1,2,3]]]
 
@@ -346,6 +361,11 @@ class AlonaClustering():
 
         plt.clf()
         plt.figure(num=None, figsize=(5, 5))
+        
+        if dark_bg:
+            log_debug('using dark background (--dark_bg is set)')
+            plt.style.use('dark_background')
+        
         df = pd.DataFrame(self.embeddings)
 
         uniq = list(set(self.leiden_cl))

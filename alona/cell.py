@@ -38,7 +38,7 @@ class AlonaCell():
         self.data = None
         self.data_norm = None
 
-        self._alona_clustering = AlonaClustering(self)
+        self._alona_clustering = AlonaClustering(self, alonabase.params)
 
         # make matplotlib more quiet
         logging.getLogger('matplotlib').setLevel(logging.WARNING)
@@ -289,6 +289,7 @@ set to raw read counts.')
             
         fn = self.alonabase.get_working_dir() + \
             OUTPUT['FILENAME_CELL_SCATTER_PLOT']
+        dark_bg = self.alonabase.params['dark_bg']
 
         self._alona_clustering.cluster()
-        self._alona_clustering.cell_scatter_plot(fn)
+        self._alona_clustering.cell_scatter_plot(fn, dark_bg)

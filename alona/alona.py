@@ -53,6 +53,10 @@ values. Cannot be a mix. Default: auto',
               default=10)
 @click.option('-s', '--species', help='Species your data comes from. Default: mouse',
               type=click.Choice(['human', 'mouse']), default='mouse')
+
+@click.option('--dark_bg', help='Use dark background in the scatter plot. Default: False',
+              is_flag=True, default=False)
+
 @click.option('--cleanup', help='Perform cleanup of temporary files.',
               is_flag=True)
 @click.option('--nodocker', help='Use this flag to run alona without Docker.',
@@ -65,7 +69,7 @@ the log file. Default: regular', type=click.Choice(['regular', 'debug']), defaul
 @click.option('--version', help='Display version number.', is_flag=True,
               callback=print_version)
 def run(filename, output, dataformat, minreads, minexpgenes, mrnafull, delimiter, header,
-        nomito, clustering_k, species, cleanup, nodocker, logfile,
+        nomito, clustering_k, species, dark_bg, cleanup, nodocker, logfile,
         loglevel, nologo, version):
 
     # confirm the genome reference files can be found
@@ -105,6 +109,7 @@ Use '--nodocker' flag to overrride.
         'mrnafull' : mrnafull,
         'cleanup' : cleanup,
         'clustering_k' : clustering_k,
+        'dark_bg' : dark_bg
     }
 
     alonabase = AlonaBase(alona_opts)
