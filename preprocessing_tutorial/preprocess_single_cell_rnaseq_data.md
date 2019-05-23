@@ -177,7 +177,7 @@ CGATCCGGCACT 373765
 The top ranking barcode "AAAAAAAAAAAA" seems suspicious, indicating that in the next step we should remove barcodes consisting of 100% one nucleotide.
 
 ## Organize the fastq file
-We will move barcode and UMI to the FASTQ sequence header using the helper script `organize_fastq.py` (available in this repository).
+We will move barcode and UMI to the FASTQ sequence header using the helper script [`organize_fastq.py`](https://github.com/oscar-franzen/alona/blob/master/preprocessing_tutorial/organize_fastq.py) (available in this repository).
 
 ```bash
 $ python3 organize_fastq.py -i SRR8176398.fastq \
