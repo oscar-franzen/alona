@@ -24,7 +24,7 @@ class AlonaCellTypePred():
         self.alonaclustering = alonaclustering
         self.alonacell = alonacell
         self.wd = wd
-        self.median_exp = None
+        self.median_expr = None
 
     def median_exp(self):
         """ Represent each cluster with median gene expression. """
@@ -40,14 +40,24 @@ class AlonaCellTypePred():
         ret = data.groupby(clust, axis=1).aggregate(np.median)
         ret.to_csv(fn, header=True)
         
-        self.median_exp = ret
+        self.median_expr = ret
 
         log_debug('median_exp() finished')
 
     def CTA_RANK_F(self):
-        pass
+        """
+        Cell Type Activity and Rank-based annotation with a one-sided Fisher's Exact test
+        """
+        # reference symbols
+        fn = get_alona_dir() + GENOME['MOUSE_GENE_SYMBOLS']
+        mgs = pd.read_csv(fn, header=None)
+        mgs = mgs[0].str.upper()
+        
+        input_symbols = self.median_expr.index.str.extract('^(.+)_.+')
+        input_symbols = input_symbols[0].str.upper()
 
     def load_markers(self):
+        """ Load gene to cell type markers. """
         log_debug('Loading markers...')
         ma = pd.read_csv(get_alona_dir() + MARKERS['PANGLAODB'], sep='\t')
         
@@ -57,13 +67,4 @@ class AlonaCellTypePred():
         
         ui = ma.iloc[:,ma.columns=='ubiquitousness index']
         ma = ma[np.array(ui).flatten()<0.05]
-        
-        # reference symbols
-        fn = get_alona_dir() + GENOME['MOUSE_GENE_SYMBOLS']
-        mgs = pd.read_csv(fn, header=None)
-        mgs = mgs[0].str.upper()
-        
-        input_symbols = median_exp.index.str.extract('^(.+)_.+')
-        input_symbols = input_symbols[0].str.upper()
-        
         log_debug('Markers loaded')

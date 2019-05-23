@@ -11,6 +11,9 @@ alona is a software pipeline for analysis of single cell RNA sequencing data. It
 
 Cloud based version of alona: http://alona.panglaodb.se/
 
+## Current status
+alona is still under development and not ready for use yet.
+
 ## Installing the standalone
 First install [Docker](https://en.wikipedia.org/wiki/Docker_(software)) by following instructions from https://docs.docker.com/install/
 
