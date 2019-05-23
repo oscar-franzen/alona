@@ -11,6 +11,7 @@
 
 import os
 import inspect
+import random
 
 import ctypes
 from ctypes import cdll
@@ -315,23 +316,39 @@ class AlonaClustering():
 
     def cell_scatter_plot(self, filename):
         """ Generates a tSNE scatter plot with colored clusters. """
+        def get_random_color(pastel_factor = 0.5):
+            return [(x+pastel_factor)/(1.0+pastel_factor) for x in [random.uniform(0,1.0) for i in [1,2,3]]]
+
+        def color_distance(c1, c2):
+            return sum([abs(x[0]-x[1]) for x in zip(c1, c2)])
+
+        def generate_new_color(existing_colors,pastel_factor = 0.5):
+            max_distance = None
+            best_color = None
+            for i in range(0, 100):
+                color = get_random_color(pastel_factor = pastel_factor)
+                if not existing_colors:
+                    return color
+                best_distance = min([color_distance(color, c) for c in existing_colors])
+                if not max_distance or best_distance > max_distance:
+                    max_distance = best_distance
+                    best_color = color
+            return best_color
+
         plt.clf()
         plt.figure(num=None, figsize=(5, 5))
         df = pd.DataFrame(self.embeddings)
 
         uniq = list(set(self.leiden_cl))
-
-        z = range(1, len(uniq))
-        hot = plt.get_cmap('hot')
-        cNorm = colors.Normalize(vmin=0, vmax=len(uniq))
-        scalarMap = cmx.ScalarMappable(norm=cNorm, cmap=hot)
+        colors = []
+        for i in range(0, len(uniq)):
+            colors.append(generate_new_color(colors, pastel_factor = 0.5))
 
         for i in range(len(uniq)):
             idx = np.array(self.leiden_cl) == i
             e = self.embeddings[idx]
-
-            #plt.scatter(df[0], df[1], s=1)
-            plt.scatter(e[0], e[1], s=15, color=scalarMap.to_rgba(i), label=uniq[i])
+            
+            plt.scatter(e[0], e[1], s=3, color=colors[i], label=uniq[i])
 
         plt.ylabel('tSNE1')
         plt.xlabel('tSNE2')
