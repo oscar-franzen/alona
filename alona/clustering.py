@@ -1,12 +1,21 @@
 """
  This file contains clustering functions used by alona.
+ 
+ In general, it flows like this:
+ 
+    1. identify highly variable genes (HVG), retrieve N genes
+    2. perform PCA on the HVG, retrieve N components
+    3. adjust PCAs by weight
+    4. compute KNN
+    5. compute SNN from KNN, prune SNN graph
+    6. identify communities with leiden algo
+    7. run t-SNE on the PCAs
 
  How to use alona:
  https://github.com/oscar-franzen/alona/
  https://alona.panglaodb.se/
 
- Contact:
- Oscar Franzen <p.oscar.franzen@gmail.com>
+ Contact: Oscar Franzen <p.oscar.franzen@gmail.com>
 """
 
 import os
