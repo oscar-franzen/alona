@@ -306,7 +306,8 @@ class AlonaClustering():
 
         g.add_edges(ll)
 
-        cl = leidenalg.find_partition(g, leidenalg.ModularityVertexPartition)
+        cl = leidenalg.find_partition(g,
+                                      leidenalg.ModularityVertexPartition)
         self.leiden_cl = cl.membership
         
         wd = self._alonacell.alonabase.get_working_dir()
@@ -329,7 +330,7 @@ class AlonaClustering():
 
     def cluster(self):
         """ Cluster cells. """
-        k = self._alonacell.alonabase.params['clustering_k']
+        k = self.params['clustering_k']
 
         self.knn(k)
         self.snn(k, True)
