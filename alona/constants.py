@@ -8,7 +8,8 @@ OUTPUT = {
     'FILENAME_PCA' : '/csvs/pca.csv',
     'FILENAME_EMBEDDINGS' : '/csvs/embeddings.csv',
     'FILENAME_HVG' : '/csvs/highly_variable_genes.csv',
-    'FILENAME_SNN_GRAPH' : '/csvs/snn_graph.csv'
+    'FILENAME_SNN_GRAPH' : '/csvs/snn_graph.csv',
+    'FILENAME_CLUSTERS_LEIDEN' : '/csvs/clusters_leiden.csv'
 }
 
 # Reference data

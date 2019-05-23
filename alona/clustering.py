@@ -297,6 +297,11 @@ class AlonaClustering():
 
         cl = leidenalg.find_partition(g, leidenalg.ModularityVertexPartition)
         self.leiden_cl = cl.membership
+        
+        wd = self._alonacell.alonabase.get_working_dir()
+        fn = wd + OUTPUT['FILENAME_CLUSTERS_LEIDEN']
+        
+        pd.DataFrame(self.leiden_cl).to_csv(fn, header=False, index=False)
 
         log_debug('Leiden has finished.')
 
