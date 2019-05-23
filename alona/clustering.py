@@ -216,9 +216,6 @@ class AlonaClustering():
         See: http://mlwiki.org/index.php/SNN_Clustering
         """
 
-        # TODO: add support for the 'prune_snn' parameter
-        # TODO: add flag for prune_thres threshold
-
         snn_path = self._alonacell.alonabase.get_wd() + \
             OUTPUT['FILENAME_SNN_GRAPH']
 
