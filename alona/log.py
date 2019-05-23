@@ -17,7 +17,7 @@
 import sys
 import logging
 
-from .constants import (RED, GREEN, END)
+from .constants import (RED, GREEN, END, YELLOW)
 
 def init_logging(loglevel, logfile):
     if loglevel == 'regular':
@@ -48,6 +48,9 @@ def log_info(msg):
     
 def log_debug(msg):
     logging.debug('%s', msg)
+    
+def log_warning(msg):
+    logging.warning('%s%s%s', YELLOW, msg, END)
 
 def log_error(abobj=None, msg='error'):
     logging.error('%s%s%s', RED, msg, END)

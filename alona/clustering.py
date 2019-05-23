@@ -20,6 +20,7 @@
 
 import os
 import random
+import sys
 
 import ctypes
 from ctypes import cdll
@@ -42,7 +43,7 @@ import igraph as ig
 
 import alona.irlbpy
 
-from .log import (log_info, log_debug, log_error)
+from .log import (log_info, log_debug, log_error, log_warning)
 from .constants import OUTPUT
 from .utils import get_alona_dir
 
@@ -229,7 +230,6 @@ class AlonaClustering():
         log_debug('Computing SNN graph...')
 
         k_param = k
-        prune_thres = 1/15
 
         # create sparse matrix from tuples
         melted = pd.DataFrame(self.nn_idx).melt(id_vars=[0])[[0, 'value']]
@@ -257,6 +257,9 @@ class AlonaClustering():
         node2 = []
 
         pruned_count = 0
+        
+        #print(prune_snn)
+        #d = sys.stdin.readline()
 
         for q1, q2 in zip(aa[0], aa[1]):
             val = snn_sparse[q1, q2]
@@ -264,14 +267,19 @@ class AlonaClustering():
 
             snn_sparse[q1, q2] = strength
 
-            if strength < prune_thres:
+            if strength < prune_snn:
                 snn_sparse[q1, q2] = 0
                 pruned_count += 1
             else:
                 node1.append(q1)
                 node2.append(q2)
 
-        log_debug('%s links pruned' % '{:,}'.format(pruned_count))
+        perc_pruned = (pruned_count/len(aa[0]))*100
+        log_debug('%.2f%% (n=%s) of links pruned' % ( perc_pruned,
+                                                       '{:,}'.format(pruned_count)))
+
+        if perc_pruned > 10:
+            log_warning('WARNING: more than 80% of the edges were pruned')
 
         df = pd.DataFrame({'source_node' : node1, 'target_node' : node2})
         df.to_csv(snn_path, header=None, index=None)
@@ -294,7 +302,7 @@ class AlonaClustering():
         log_debug('Running leiden clustering...')
 
         # construct the graph object
-        nn = set(self.snn_graph[0])
+        nn = set(self.snn_graph[self.snn_graph.columns[0]])
         g = ig.Graph()
         g.add_vertices(len(nn))
         g.vs['name'] = list(range(1, len(nn)+1))
@@ -336,7 +344,7 @@ class AlonaClustering():
         k = self.params['clustering_k']
 
         self.knn(k)
-        self.snn(k, True)
+        self.snn(k, self.params['prune_snn'])
         self.leiden()
 
     def cell_scatter_plot(self, filename, dark_bg_param=False):

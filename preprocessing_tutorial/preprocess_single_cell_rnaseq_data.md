@@ -186,7 +186,7 @@ $ python3 organize_fastq.py -i SRR8176398.fastq \
 ```
 
 # Align the FASTQ file
-Confirm the quality score encoding of your FASTQ data. This small script, [`determine_phred.pl`](https://raw.githubusercontent.com/oscar-franzen/alona/master/preprocessing_tutorial/determine_phred.pl), can be used to determine the quality score format. For SRA data, this encoding is Phred33. The additional pipe in the script below is a filter, which keeps unique alignments. Filtering in this way prevents writing of uninformative (multimapping) sequence alignments to your disk, which may save time. **Note that quality scores in your FASTQ file are unrelated with the mapping qualities in the SAM file.**
+Confirm the quality score encoding of your FASTQ data. This small script, [`determine_phred.pl`](https://raw.githubusercontent.com/oscar-franzen/alona/master/preprocessing_tutorial/determine_phred.pl), can be used to determine the quality score format (will require installation of the `List::MoreUtils` Perl module). For SRA data, this encoding is Phred33. The additional pipe in the script below is a filter, which keeps unique alignments. Filtering in this way prevents writing of uninformative (multimapping) sequence alignments to your disk, which may save time. **Note that quality scores in your FASTQ file are unrelated with the mapping qualities in the SAM file.**
 
 ```bash
 $ time (hisat2 --phred33 -p 2 \
