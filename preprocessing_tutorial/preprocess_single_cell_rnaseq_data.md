@@ -213,7 +213,8 @@ do
 
     echo $file
 
-    hisat2 --phred33 -p 20 -x /path/to/GRCm38.primary_assembly.genome.fa.hisat2 -U ${file} | awk '$5 >= 60' > ./aln/${out}.sam
+    hisat2 --phred33 -p 20 -x /path/to/GRCm38.primary_assembly.genome.fa.hisat2 -U \
+    ${file} | awk '$5 >= 60' > ./aln/${out}.sam
 done
 ```
 
