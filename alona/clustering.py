@@ -188,14 +188,14 @@ class AlonaClustering():
         out_dists_mat = np.reshape(out_dists, (no_cells, k))
 
         self.nn_idx = out_index_mat
-        
+
         log_debug('Finished NNS')
-        
+
         #pd.DataFrame(self.nn_idx).to_csv('~/Temp/qq.csv', header=None, index=None)
         #melted = pd.DataFrame(out_index_mat).melt(id_vars=[0])[[0,'value']]
         #melted.to_csv(self._alonacell.alonabase.get_working_dir() + \
         #    OUTPUT['FILENAME_SNN_GRAPH'], header=False, index=False)
-    
+
     def snn(self, k, prune_snn):
         """
         Computes Shared Nearest Neighbor (SNN) Graph
@@ -203,90 +203,90 @@ class AlonaClustering():
         the sum of SNN similarities over all KNNs, which is done with a matrix operation.
         See: http://mlwiki.org/index.php/SNN_Clustering
         """
-        
+
         # TODO: add support for the 'prune_snn' parameter
         # TODO: add flag for prune_thres threshold
-        
+
         snn_path = self._alonacell.alonabase.get_working_dir() + \
             OUTPUT['FILENAME_SNN_GRAPH']
-            
+
         if os.path.exists(snn_path):
             log_debug('Loading SNN from file...')
             self.snn_graph = pd.read_csv(snn_path, header=None)
             return
-        
+
         log_debug('Computing SNN graph...')
-        
+
         k_param = k
         prune_thres = 1/15
-        
+
         # create sparse matrix from tuples
-        melted = pd.DataFrame(self.nn_idx).melt(id_vars=[0])[[0,'value']]
-        
+        melted = pd.DataFrame(self.nn_idx).melt(id_vars=[0])[[0, 'value']]
+
         rows = np.array(melted[melted.columns[0]])
         cols = np.array(melted[melted.columns[1]])
         d = [1]*len(rows)
 
         rows = np.array(list(melted[melted.columns[0]].values) + \
-            list(range(1,self.nn_idx.shape[0]+1)))
-            
+            list(range(1, self.nn_idx.shape[0]+1)))
+
         cols = np.array(list(melted[melted.columns[1]]) + \
-            list(list(range(1,self.nn_idx.shape[0]+1))))
-        
+            list(list(range(1, self.nn_idx.shape[0]+1))))
+
         d = [1]*len(rows)
-        
+
         knn_sparse = coo_matrix((d, (rows-1, cols-1)),
-                                 shape=(self.nn_idx.shape[0], self.nn_idx.shape[0]))
+                                shape=(self.nn_idx.shape[0], self.nn_idx.shape[0]))
         snn_sparse = knn_sparse*knn_sparse.transpose()
-        
+
         # prune using same logic as FindClusters in Seurat
         aa = snn_sparse.nonzero()
-        
+
         node1 = []
         node2 = []
-        
+
         pruned_count = 0
-        
-        for q1,q2 in zip(aa[0],aa[1]):
-            val = snn_sparse[q1,q2]
+
+        for q1, q2 in zip(aa[0], aa[1]):
+            val = snn_sparse[q1, q2]
             strength = val / (k_param + (k_param-val))
-            
-            snn_sparse[q1,q2] = strength
-            
+
+            snn_sparse[q1, q2] = strength
+
             if strength < prune_thres:
-                snn_sparse[q1,q2] = 0
+                snn_sparse[q1, q2] = 0
                 pruned_count += 1
             else:
                 node1.append(q1)
                 node2.append(q2)
 
         log_debug('%s links pruned' % '{:,}'.format(pruned_count))
-        
+
         df = pd.DataFrame({'source_node' : node1, 'target_node' : node2})
-        df.to_csv(snn_path, header=None,index=None)
-        
+        df.to_csv(snn_path, header=None, index=None)
+
         self.snn_graph = df
-        
+
         log_debug('Done computing SNN.')
-        
+
     def leiden(self):
         """
         Cluster the SNN graph using the Leiden algorithm.
-        
+
         https://github.com/vtraag/leidenalg
-        
+
         From Louvain to Leiden: guaranteeing well-connected communities
         Traag V, Waltman L, van Eck NJ
         https://arxiv.org/abs/1810.08473
         """
 
         log_debug('Running leiden clustering...')
-        
+
         # construct the graph object
         nn = set(self.snn_graph[0])
         g = ig.Graph()
         g.add_vertices(len(nn))
-        g.vs['name'] = list(range(1,len(nn)+1))
+        g.vs['name'] = list(range(1, len(nn)+1))
 
         ll = []
 
@@ -295,9 +295,9 @@ class AlonaClustering():
 
         g.add_edges(ll)
 
-        cl = leidenalg.find_partition(g, leidenalg.ModularityVertexPartition);
+        cl = leidenalg.find_partition(g, leidenalg.ModularityVertexPartition)
         self.leiden_cl = cl.membership
-        
+
         log_debug('Leiden has finished.')
 
     def cluster(self):
@@ -313,18 +313,18 @@ class AlonaClustering():
         plt.clf()
         plt.figure(num=None, figsize=(5, 5))
         df = pd.DataFrame(self.embeddings)
-        
+
         uniq = list(set(self.leiden_cl))
 
         z = range(1, len(uniq))
         hot = plt.get_cmap('hot')
-        cNorm  = colors.Normalize(vmin=0, vmax=len(uniq))
+        cNorm = colors.Normalize(vmin=0, vmax=len(uniq))
         scalarMap = cmx.ScalarMappable(norm=cNorm, cmap=hot)
-        
+
         for i in range(len(uniq)):
             idx = np.array(self.leiden_cl) == i
             e = self.embeddings[idx]
-            
+
             #plt.scatter(df[0], df[1], s=1)
             plt.scatter(e[0], e[1], s=15, color=scalarMap.to_rgba(i), label=uniq[i])
 
