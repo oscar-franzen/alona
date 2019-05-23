@@ -101,7 +101,7 @@ $ time ~/Temp/hisat2-2.1.0/hisat2-build -p 2 \
 ```
 
 # Preparing genome annotations
-`gencode_meta_genes.py` is available in this repository.
+[`gencode_meta_genes.py`](https://github.com/oscar-franzen/alona/blob/master/preprocessing_tutorial/gencode_meta_genes.py) is available in this repository.
 
 ```bash
 $ wget ftp://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_mouse/release_M21/gencode.vM21.annotation.gtf.gz
