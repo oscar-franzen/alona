@@ -25,7 +25,7 @@ import matplotlib.patches as mpatches
 from matplotlib.pyplot import figure
 
 from .log import (log_info, log_debug, log_error)
-from .constants import *
+from .constants import OUTPUT
 from .clustering import AlonaClustering
 from .celltypes import AlonaCellTypePred
 
@@ -109,7 +109,7 @@ set to raw read counts.')
                 mpatches.Patch(color='#999999', label='Removed')
             ])
             plt.title('sequencing reads')
-            plt.savefig(self.alonabase.get_working_dir() + \
+            plt.savefig(self.alonabase.get_wd() + \
                 OUTPUT['FILENAME_BARPLOT_RAW_READ_COUNTS'], bbox_inches='tight')
             plt.close()
 
@@ -125,7 +125,7 @@ set to raw read counts.')
         plt.xlabel('cells (sorted on highest to lowest)')
         plt.title('expressed genes')
 
-        plt.savefig(self.alonabase.get_working_dir() + \
+        plt.savefig(self.alonabase.get_wd() + \
             OUTPUT['FILENAME_BARPLOT_GENES_EXPRESSED'], bbox_inches='tight')
         plt.close()
 
@@ -209,7 +209,7 @@ set to raw read counts.')
 
     def _normalization(self):
         """ Performs normalization of the gene expression values. """
-        norm_mat_path = self.alonabase.get_working_dir() + '/normdata.joblib'
+        norm_mat_path = self.alonabase.get_wd() + '/normdata.joblib'
 
         if os.path.exists(norm_mat_path):
             log_debug('Loading data matrix from file')
@@ -239,7 +239,7 @@ set to raw read counts.')
 
     def load_data(self):
         """ Load expression matrix. """
-        norm_mat_path = self.alonabase.get_working_dir() + '/normdata.joblib'
+        norm_mat_path = self.alonabase.get_wd() + '/normdata.joblib'
         if os.path.exists(norm_mat_path):
             self.data_norm = load(norm_mat_path)
             return
@@ -276,8 +276,8 @@ set to raw read counts.')
     def analysis(self):
         """ Runs the analysis pipeline. """
         log_debug('Running analysis...')
-        tsne_path = self.alonabase.get_working_dir() + OUTPUT['FILENAME_EMBEDDINGS']
-        pca_path = self.alonabase.get_working_dir() + OUTPUT['FILENAME_PCA']
+        tsne_path = self.alonabase.get_wd() + OUTPUT['FILENAME_EMBEDDINGS']
+        pca_path = self.alonabase.get_wd() + OUTPUT['FILENAME_PCA']
 
         if os.path.exists(tsne_path) and os.path.exists(pca_path):
             log_debug('Loading embeddings from file')
@@ -288,9 +288,13 @@ set to raw read counts.')
             self._alona_clustering.PCA(pca_path)
             self._alona_clustering.tSNE(tsne_path)
             
-        fn = self.alonabase.get_working_dir() + \
-            OUTPUT['FILENAME_CELL_SCATTER_PLOT']
+        fn = self.alonabase.get_wd() + OUTPUT['FILENAME_CELL_SCATTER_PLOT']
         dark_bg = self.alonabase.params['dark_bg']
 
         self._alona_clustering.cluster()
         self._alona_clustering.cell_scatter_plot(fn, dark_bg)
+
+        self.alonacelltypepred = AlonaCellTypePred(self.alonabase.get_wd(),
+                                                   self._alona_clustering,
+                                                   self)
+        self.alonacelltypepred.median_exp()

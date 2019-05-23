@@ -9,7 +9,8 @@ OUTPUT = {
     'FILENAME_EMBEDDINGS' : '/csvs/embeddings.csv',
     'FILENAME_HVG' : '/csvs/highly_variable_genes.csv',
     'FILENAME_SNN_GRAPH' : '/csvs/snn_graph.csv',
-    'FILENAME_CLUSTERS_LEIDEN' : '/csvs/clusters_leiden.csv'
+    'FILENAME_CLUSTERS_LEIDEN' : '/csvs/clusters_leiden.csv',
+    'FILENAME_MEDIAN_EXP' : '/csvs/median_exp.csv'
 }
 
 # Reference data

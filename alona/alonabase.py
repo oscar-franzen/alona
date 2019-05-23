@@ -54,7 +54,7 @@ class AlonaBase():
         self.params.update(params)
 
         # Set default options
-        if self.get_working_dir() is None:
+        if self.get_wd() is None:
             self.params['output_directory'] = 'alona_out_%s' % self.random()
         if self.params['loglevel'] == 'debug':
             log_debug('*** parameters *********************')
@@ -70,12 +70,12 @@ class AlonaBase():
         if self.params['clustering_k'] < 0:
             log_error(self, '--clustering_k cannot be negative.')
 
-    def get_working_dir(self):
+    def get_wd(self):
         """ Retrieves the name of the output directory. """
         return self.params['output_directory']
 
     def get_matrix_file(self):
-        return '%s/input.mat' % self.get_working_dir()
+        return '%s/input.mat' % self.get_wd()
 
     def random(self):
         """ Get random 8 character string """
@@ -84,13 +84,13 @@ class AlonaBase():
     def create_work_dir(self):
         """ Creates a working directory for temporary and output files. """
         try:
-            log_debug('creating output directory: %s' %self.get_working_dir())
-            os.mkdir(self.get_working_dir())
-            os.mkdir(self.get_working_dir() + '/plots')
-            os.mkdir(self.get_working_dir() + '/csvs')
+            log_debug('creating output directory: %s' %self.get_wd())
+            os.mkdir(self.get_wd())
+            os.mkdir(self.get_wd() + '/plots')
+            os.mkdir(self.get_wd() + '/csvs')
         except FileExistsError:
             log_info('Output directory already exists (%s), resuming.' %
-                      self.get_working_dir())
+                      self.get_wd())
 
     def is_file_empty(self):
         if os.stat(self.params['input_filename']).st_size == 0:
@@ -212,7 +212,7 @@ class AlonaBase():
                 log_debug('removing %s' % garbage)
 
                 try:
-                    os.remove('%s/%s' % (self.get_working_dir(), garbage))
+                    os.remove('%s/%s' % (self.get_wd(), garbage))
                 except FileNotFoundError:
                     log_debug('Not found: %s' % garbage)
 
@@ -543,7 +543,7 @@ low.')
         if self.params['species'] == 'human':
             del self.unmappable[:]
 
-            fh = open(self.get_working_dir() +
+            fh = open(self.get_wd() +
                       '/input_clean.mat.genes_missing_mouse_orthologs', 'r')
 
             for line in fh:
@@ -552,13 +552,13 @@ low.')
             fh.close()
 
         if switch:
-            os.system('mv %s/input.mat.C %s/input.mat' % (self.get_working_dir(),
-                                                          self.get_working_dir()))
+            os.system('mv %s/input.mat.C %s/input.mat' % (self.get_wd(),
+                                                          self.get_wd()))
 
         if len(self.unmappable) == 0:
             log_info('All genes were mapped to internal symbols.')
         else:
-            with open(self.get_working_dir() + '/unmappable.txt', 'w') as fh:
+            with open(self.get_wd() + '/unmappable.txt', 'w') as fh:
                 for item in self.unmappable:
                     fh.write("%s\n" % item)
 
@@ -584,7 +584,7 @@ Too few genes were mappable (<500).')
                 log_info('A column ID for the gene symbols was identified.')
 
     def prepare(self):
-        if os.path.exists(self.get_working_dir() + '/normdata.joblib'):
+        if os.path.exists(self.get_wd() + '/normdata.joblib'):
             log_debug('prepare(): normdata.joblib detected, skipping some steps')
             return
 

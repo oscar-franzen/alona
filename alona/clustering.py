@@ -97,7 +97,7 @@ class AlonaClustering():
         ret = ret.sort_values(ascending=False)
         self.top_hvg = ret.head(top_genes)
 
-        wd = self._alonacell.alonabase.get_working_dir()
+        wd = self._alonacell.alonabase.get_wd()
         self.top_hvg.to_csv(wd + OUTPUT['FILENAME_HVG'], header=False)
 
     def PCA(self, out_path):
@@ -204,7 +204,7 @@ class AlonaClustering():
 
         #pd.DataFrame(self.nn_idx).to_csv('~/Temp/qq.csv', header=None, index=None)
         #melted = pd.DataFrame(out_index_mat).melt(id_vars=[0])[[0,'value']]
-        #melted.to_csv(self._alonacell.alonabase.get_working_dir() + \
+        #melted.to_csv(self._alonacell.alonabase.get_wd() + \
         #    OUTPUT['FILENAME_SNN_GRAPH'], header=False, index=False)
 
     def snn(self, k, prune_snn):
@@ -218,7 +218,7 @@ class AlonaClustering():
         # TODO: add support for the 'prune_snn' parameter
         # TODO: add flag for prune_thres threshold
 
-        snn_path = self._alonacell.alonabase.get_working_dir() + \
+        snn_path = self._alonacell.alonabase.get_wd() + \
             OUTPUT['FILENAME_SNN_GRAPH']
 
         if os.path.exists(snn_path):
@@ -313,7 +313,7 @@ class AlonaClustering():
                                       n_iterations = 10)
         self.leiden_cl = cl.membership
         
-        wd = self._alonacell.alonabase.get_working_dir()
+        wd = self._alonacell.alonabase.get_wd()
         fn = wd + OUTPUT['FILENAME_CLUSTERS_LEIDEN']
         
         pd.DataFrame(self.leiden_cl).to_csv(fn, header=False, index=False)
