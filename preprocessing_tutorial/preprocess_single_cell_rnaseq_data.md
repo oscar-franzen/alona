@@ -307,7 +307,7 @@ gene	cell	count
 ```
 
 # Reshape data into a matrix
-We will borrow some R code to make this table into a matrix. `linear_to_matrix.R` is in the repository.
+We will borrow some R code to make this table into a matrix. [`linear_to_matrix.R`](https://github.com/oscar-franzen/alona/blob/master/preprocessing_tutorial/linear_to_matrix.R) is in the repository.
 
 ```bash
 $ R --no-save \
