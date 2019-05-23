@@ -41,18 +41,21 @@ Default: 0.01', default=0.01)
 @click.option('--mrnafull', help='Data come from a full-length protocol, such as \
 SMART-seq2.', is_flag=True)
 
-@click.option('-d', '--delimiter', help='Data delimiter. The character used to separate data\
-values. Cannot be a mix. Default: auto',
-              type=click.Choice(['auto', 'tab', 'space']), default='auto')
-@click.option('-h', '--header', help='Data has a header line. Default: auto',
-              type=click.Choice(['auto', 'yes', 'no']), default='auto')
+@click.option('-d', '--delimiter', help='Data delimiter. The character used to separate \
+data values. The default setting is to autodetect this character. Default: auto',
+type=click.Choice(['auto', 'tab', 'space']), default='auto')
+
+@click.option('-h', '--header', help='Data has a header line. The default setting is to \
+autodetect if a header is present or not. Default: auto',
+type=click.Choice(['auto', 'yes', 'no']), default='auto')
+
 @click.option('-m', '--nomito', help='Exclude mitochondrial genes from analysis.',
               is_flag=True)
 @click.option('--clustering_k', help='k in the nearest neighbour search. Default: 10',
               default=10)
               
 @click.option('--prune_snn', help='Threshold for pruning the SNN graph, i.e. the edges \
-with lower value (Jaccard index) than this will be removed. Set to 0 to disable\
+with lower value (Jaccard index) than this will be removed. Set to 0 to disable \
 pruning. Increasing this value will result in fewer edges in the graph. \
 Default: 0.067', default=0.067)
 

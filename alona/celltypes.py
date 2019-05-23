@@ -11,7 +11,7 @@
 import pandas as pd
 import numpy as np
 
-from .constants import (OUTPUT, MARKERS)
+from .constants import (OUTPUT, GENOME, MARKERS)
 from .log import (log_info, log_debug, log_error)
 from .utils import get_alona_dir
 
@@ -56,5 +56,8 @@ class AlonaCellTypePred():
         ma = ma[np.array(ui).flatten()<0.05]
         
         # reference symbols
+        fn = get_alona_dir() + GENOME['MOUSE_GENE_SYMBOLS']
+        mgs = pd.read_csv(fn, header=None)
+        mgs = mgs[0].str.upper()
         
         log_debug('Markers loaded')
