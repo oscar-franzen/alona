@@ -24,6 +24,7 @@ class AlonaCellTypePred():
         self.alonaclustering = alonaclustering
         self.alonacell = alonacell
         self.wd = wd
+        self.median_exp = None
 
     def median_exp(self):
         """ Represent each cluster with median gene expression. """
@@ -38,6 +39,8 @@ class AlonaCellTypePred():
         # Axis 1 will act on all the COLUMNS in each ROW
         ret = data.groupby(clust, axis=1).aggregate(np.median)
         ret.to_csv(fn, header=True)
+        
+        self.median_exp = ret
 
         log_debug('median_exp() finished')
 
@@ -59,5 +62,8 @@ class AlonaCellTypePred():
         fn = get_alona_dir() + GENOME['MOUSE_GENE_SYMBOLS']
         mgs = pd.read_csv(fn, header=None)
         mgs = mgs[0].str.upper()
+        
+        input_symbols = median_exp.index.str.extract('^(.+)_.+')
+        input_symbols = input_symbols[0].str.upper()
         
         log_debug('Markers loaded')
