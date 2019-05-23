@@ -1,5 +1,5 @@
 """
- This file contains clustering functions used by alona.
+ This file contains clustering methods used by alona.
  
  In general, it flows like this:
  
@@ -305,9 +305,12 @@ class AlonaClustering():
             ll.append(tuple(i))
 
         g.add_edges(ll)
+        
+        # TODO: add more flexibility to leiden
 
         cl = leidenalg.find_partition(g,
-                                      leidenalg.ModularityVertexPartition)
+                                      leidenalg.ModularityVertexPartition,
+                                      n_iterations = 10)
         self.leiden_cl = cl.membership
         
         wd = self._alonacell.alonabase.get_working_dir()

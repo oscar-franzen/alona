@@ -27,6 +27,7 @@ from matplotlib.pyplot import figure
 from .log import (log_info, log_debug, log_error)
 from .constants import *
 from .clustering import AlonaClustering
+from .celltypes import AlonaCellTypePred
 
 class AlonaCell():
     """
