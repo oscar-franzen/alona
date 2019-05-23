@@ -22,6 +22,10 @@ GENOME = {
     'MOUSE_EXON_LENGTHS' : './genome/Mus_musculus.GRCm38.gencode.vM17.primary_assembly.annotation.gene_level.gtf.exon_lengths'
 }
 
+MARKERS = {
+    'PANGLAODB' : '/markers/markers.tsv'
+}
+
 # For the terminal
 # https://github.com/s0md3v/Photon/blob/master/core/colors.py
 WHITE = '\033[97m'

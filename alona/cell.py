@@ -298,3 +298,4 @@ set to raw read counts.')
                                                    self._alona_clustering,
                                                    self)
         self.alonacelltypepred.median_exp()
+        self.alonacelltypepred.load_markers()

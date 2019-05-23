@@ -19,7 +19,6 @@
 """
 
 import os
-import inspect
 import random
 
 import ctypes
@@ -45,6 +44,7 @@ import alona.irlbpy
 
 from .log import (log_info, log_debug, log_error)
 from .constants import OUTPUT
+from .utils import get_alona_dir
 
 class AlonaClustering():
     """
@@ -154,7 +154,7 @@ class AlonaClustering():
 
         k = inp_k
 
-        libpath = os.path.dirname(inspect.getfile(AlonaClustering)) + '/ANN/annlib.so'
+        libpath = get_alona_dir() + 'ANN/annlib.so'
         lib = cdll.LoadLibrary(libpath)
 
         pca_rotated = np.rot90(self.pca_components)

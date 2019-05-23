@@ -16,7 +16,6 @@
 
 import logging
 import time
-import inspect
 import click
 
 from .utils import *
@@ -51,6 +50,12 @@ values. Cannot be a mix. Default: auto',
               is_flag=True)
 @click.option('--clustering_k', help='k in the nearest neighbour search. Default: 10',
               default=10)
+              
+@click.option('--prune_snn', help='Threshold for pruning the SNN graph, i.e. the edges \
+with lower value (Jaccard index) than this will be removed. Set to 0 to disable\
+pruning. Increasing this value will result in fewer edges in the graph. \
+Default: 0.067', default=0.067)
+              
 @click.option('-s', '--species', help='Species your data comes from. Default: mouse',
               type=click.Choice(['human', 'mouse']), default='mouse')
 
@@ -69,12 +74,12 @@ the log file. Default: regular', type=click.Choice(['regular', 'debug']), defaul
 @click.option('--version', help='Display version number.', is_flag=True,
               callback=print_version)
 def run(filename, output, dataformat, minreads, minexpgenes, mrnafull, delimiter, header,
-        nomito, clustering_k, species, dark_bg, cleanup, nodocker, logfile,
+        nomito, clustering_k, prune_snn, species, dark_bg, cleanup, nodocker, logfile,
         loglevel, nologo, version):
 
     # confirm the genome reference files can be found
     for item in GENOME:
-        path = os.path.dirname(inspect.getfile(AlonaBase)) + '/' + GENOME[item]
+        path = get_alona_dir() + GENOME[item]
 
         if not os.path.exists(path):
             print('genome directory is not complete. Cannot find file: "%s". I \
@@ -109,6 +114,7 @@ Use '--nodocker' flag to overrride.
         'mrnafull' : mrnafull,
         'cleanup' : cleanup,
         'clustering_k' : clustering_k,
+        'prune_snn' : prune_snn,
         'dark_bg' : dark_bg
     }
 

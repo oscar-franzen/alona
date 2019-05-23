@@ -1,5 +1,6 @@
 import os
 import sys
+import inspect
 
 from ._version import __version__
 from .log import log_error
@@ -21,3 +22,7 @@ def is_platform_linux():
     if sys.platform != 'linux':
         print('alona is developed on Linux and all other systems are untested.')
         sys.exit(1)
+
+def get_alona_dir():
+    """ Returns the alona base directory. """
+    return os.path.dirname(inspect.getfile(log_error)) + '/'

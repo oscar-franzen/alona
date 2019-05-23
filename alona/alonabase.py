@@ -17,13 +17,13 @@
 import re
 import os
 import uuid
-import inspect
 import subprocess
 import magic
 
 from .log import (log_info, log_debug, log_error)
 from .exceptions import *
 from .constants import (GENOME)
+from .utils import get_alona_dir
 
 class AlonaBase():
     """
@@ -69,6 +69,8 @@ class AlonaBase():
             log_error(self, '--minexpgenes must be a value within [0,100).')
         if self.params['clustering_k'] < 0:
             log_error(self, '--clustering_k cannot be negative.')
+        if self.params['prune_snn'] < 0 or self.params['prune_snn'] > 1:
+            log_error(self, '--prune_snn must have a value within [0,1]')
 
     def get_wd(self):
         """ Retrieves the name of the output directory. """
@@ -322,8 +324,7 @@ low.')
         human_to_mouse = {}
 
         # human gene symbols to ens
-        with open(os.path.dirname(inspect.getfile(AlonaBase)) + '/' + \
-                  GENOME['HUMAN_GENE_SYMBOLS_TO_ENTREZ'], 'r') as fh:
+        with open(get_alona_dir() + GENOME['HUMAN_GENE_SYMBOLS_TO_ENTREZ'], 'r') as fh:
             for line in fh:
                 if re.search(r'^\S+\t\S+\t', line) and re.search('(ENSG[0-9]+)', line):
                     hs_symbol = line.split('\t')[1]
@@ -331,8 +332,7 @@ low.')
                     hs_symb_to_hs_ens[hs_symbol] = hs_ens
 
         # ortholog mappings
-        with open(os.path.dirname(inspect.getfile(AlonaBase)) + '/' +
-                  GENOME['MOUSE_VS_HUMAN_ORTHOLOGS'], 'r') as fh:
+        with open(get_alona_dir() + GENOME['MOUSE_VS_HUMAN_ORTHOLOGS'], 'r') as fh:
             next(fh)
 
             for line in fh:
@@ -414,8 +414,7 @@ low.')
 
     def load_mouse_gene_symbols(self):
         """ Loads genome annotations. """
-        with open(os.path.dirname(inspect.getfile(AlonaBase)) + '/' +
-                  GENOME['MOUSE_GENOME_ANNOTATIONS'], 'r') as fh:
+        with open(get_alona_dir() + GENOME['MOUSE_GENOME_ANNOTATIONS'], 'r') as fh:
             for line in fh:
                 if not re.search('gene_id "ERCC_', line):
                     m = re.search(r'gene_id "(.+?)_(.+?)\.[0-9]+"', line)
@@ -424,8 +423,7 @@ low.')
                     self.mouse_symbols[symbol] = '%s_%s' % (symbol, ensembl)
                     self.mouse_ensembls[ensembl] = '%s_%s' % (symbol, ensembl)
 
-        with open(os.path.dirname(inspect.getfile(AlonaBase)) + '/' +
-                  GENOME['ENTREZ_GENE_IDS'], 'r') as fh:
+        with open(get_alona_dir() + GENOME['ENTREZ_GENE_IDS'], 'r') as fh:
             next(fh)
             for line in fh:
                 gene_id_as_number, ens = line.rstrip('\n').split(' ')
