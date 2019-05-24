@@ -153,6 +153,9 @@ class AlonaCellTypePred():
                              'p-value',
                              'adjusted p-value BH']
 
+        fn = self.wd + OUTPUT['FILENAME_CTA_RANK_F']
+        final_tbl.to_csv(fn, sep='\t')
+
         log_debug('CTA_RANK_F() finished')
 
     def load_markers(self):
