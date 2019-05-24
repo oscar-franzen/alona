@@ -287,7 +287,7 @@ set to raw read counts.')
             self._alona_clustering.find_variable_genes()
             self._alona_clustering.PCA(pca_path)
             self._alona_clustering.tSNE(tsne_path)
-            
+
         fn = self.alonabase.get_wd() + OUTPUT['FILENAME_CELL_SCATTER_PLOT']
         dark_bg = self.alonabase.params['dark_bg']
 
