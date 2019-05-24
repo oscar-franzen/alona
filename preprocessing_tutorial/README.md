@@ -292,6 +292,22 @@ time ./subread-1.6.4-source/bin/featureCounts -R BAM \
 ```
 
 ### A directory of sorted and indexed BAM files
+```bash
+# save output files in a separate directory
+mkdir counts
+
+for file in ./aln/*.sorted.bam
+do
+    echo $file
+    
+    featureCounts -R BAM \
+                  --tmpDir . \
+                  -T 2 \
+                  -F GTF \
+                  -a /path/to/PlasmoDB-25_Pfalciparum3D7.gtf \
+                  -o ./counts/${file##*/}.featureCounts ${file} 2>/dev/null
+done
+```
 
 # Sort and index again
 Another round is sorting is needed.
