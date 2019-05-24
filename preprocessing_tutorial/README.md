@@ -12,71 +12,71 @@ This guide serves to show the basics. There are several steps that can be optimi
 Only used for interacting with the NCBI SRA. Choose your system version from https://www.ncbi.nlm.nih.gov/sra/docs/toolkitsoft/. Here I will use the Linux version:
 
 ```bash
-$ wget https://ftp-trace.ncbi.nlm.nih.gov/sra/sdk/current/sratoolkit.current-ubuntu64.tar.gz
+wget https://ftp-trace.ncbi.nlm.nih.gov/sra/sdk/current/sratoolkit.current-ubuntu64.tar.gz
 
 # unpack
-$ tar -zxvf sratoolkit.current-ubuntu64.tar.gz
+tar -zxvf sratoolkit.current-ubuntu64.tar.gz
 
-$ rm -v sratoolkit.current-ubuntu64.tar.gz
+rm -v sratoolkit.current-ubuntu64.tar.gz
 ```
 
 ## Aligner (HISAT2)
 There are multiple aligners. Here we will use [HISAT2](https://ccb.jhu.edu/software/hisat2/index.shtml) - a not too memory-hungry aligner. Download the source code, unpack and compile it:
 
 ```bash
-$ mkdir ~/Temp
+mkdir ~/Temp
 
-$ cd ~/Temp
+cd ~/Temp
 
-$ wget http://ccb.jhu.edu/software/hisat2/dl/hisat2-2.1.0-source.zip
+wget http://ccb.jhu.edu/software/hisat2/dl/hisat2-2.1.0-source.zip
 
-$ unzip hisat2-2.1.0-source.zip
+unzip hisat2-2.1.0-source.zip
 
-$ cd hisat2-2.1.0
+cd hisat2-2.1.0
 
-$ make
+make
 
 # wait for a while, on my computer it took ~5 min.
 
-$ cd ..
+cd ..
 
-$ rm -v hisat2-2.1.0-source.zip
+rm -v hisat2-2.1.0-source.zip
 ```
 
 ## samtools
 Samtools is used for SAM to BAM conversion and sorting.
 ```bash
-$ wget https://github.com/samtools/samtools/releases/download/1.9/samtools-1.9.tar.bz2
+wget https://github.com/samtools/samtools/releases/download/1.9/samtools-1.9.tar.bz2
 
-$ tar -jxvf samtools-1.9.tar.bz2
+tar -jxvf samtools-1.9.tar.bz2
 
-$ cd samtools-1.9 && mkdir installed && cd installed && pwd && cd ../
+cd samtools-1.9 && mkdir installed && cd installed && pwd && cd ../
 
-$ ./configure --prefix=/full/path/to/samtools-1.9/installed
+./configure --prefix=/full/path/to/samtools-1.9/installed
 
-$ make && make install
+make && make install
 
 # run from terminal or modify your `~/.zshrc` or `~/.bashrc` and restart terminal
-$ export PATH=${PATH}:/full/path/to/samtools-1.9/installed/bin
+export PATH=${PATH}:/full/path/to/samtools-1.9/installed/bin
 ```
 
 ## subread
 We will use `featureCounts` (part of `subread`) for counting alignments. [Htseq](https://htseq.readthedocs.io/en/release_0.11.1/) is another popular counter, but featureCounts is **much** faster. Download the source code of subread: https://sourceforge.net/projects/subread/files/subread-1.6.4/
 
 ```bash
-$ tar -zxvf subread-1.6.4-source.tar.gz && cd subread-1.6.4-source/src
+tar -zxvf subread-1.6.4-source.tar.gz && cd subread-1.6.4-source/src
 
-$ make -f Makefile.Linux
+make -f Makefile.Linux
 ```
 
 ## UMI-tools
 Tools for collapsing unique molecular identifiers, see [this](http://genome.cshlp.org/content/early/2017/01/18/gr.209601.116.abstract) paper.
 ```bash
-$ pip install umi_tools
+pip install umi_tools
 
 # or (Python3)
 
-$ pip3 install umi_tools
+pip3 install umi_tools
 ```
 
 ## R
@@ -86,15 +86,15 @@ Follow instructions from [https://www.r-project.org/](https://www.r-project.org/
 Download the reference genome of your species. Here I will download and build an index of the mouse `GRCm38` genome. It is important not to use the reference genome containing complete haplotype sequences, because otherwise some genes located in these blocks will get zero expression as the aligner flag the corresponding reads as multimappers. Finally, to increase alignment sensitivity around splice junctions, you might instead want to consider using an aligner such as [STAR](https://github.com/alexdobin/STAR), which can use exisiting genome annotations when creating the index to improve alignment accuracy around splice junctions.
 
 ```bash
-$ wget ftp://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_mouse/release_M21/GRCm38.primary_assembly.genome.fa.gz
+wget ftp://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_mouse/release_M21/GRCm38.primary_assembly.genome.fa.gz
 
-$ gunzip GRCm38.primary_assembly.genome.fa.gz
+gunzip GRCm38.primary_assembly.genome.fa.gz
 
 # check number of processors
-$ cat /proc/cpuinfo | grep processor | wc -l
+cat /proc/cpuinfo | grep processor | wc -l
 
 # build the index with 2 CPUs, runtime might be an hour or more.
-$ time ~/Temp/hisat2-2.1.0/hisat2-build -p 2 \
+time ~/Temp/hisat2-2.1.0/hisat2-build -p 2 \
       GRCm38.primary_assembly.genome.fa GRCm38.primary_assembly.genome.fa.hisat2
 
 4817.61s user 28.27s system 202% cpu 39:49.91 total
@@ -104,24 +104,24 @@ $ time ~/Temp/hisat2-2.1.0/hisat2-build -p 2 \
 [`gencode_meta_genes.py`](https://github.com/oscar-franzen/alona/blob/master/preprocessing_tutorial/gencode_meta_genes.py) is available in this repository.
 
 ```bash
-$ wget ftp://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_mouse/release_M21/gencode.vM21.annotation.gtf.gz
+wget ftp://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_mouse/release_M21/gencode.vM21.annotation.gtf.gz
 
-$ gunzip gencode.vM21.annotation.gtf.gz
+gunzip gencode.vM21.annotation.gtf.gz
 
 # collapse transcripts into "meta genes"
-$ python3 gencode_meta_genes.py > gencode.vM21.annotation.meta_genes.gtf
+python3 gencode_meta_genes.py > gencode.vM21.annotation.meta_genes.gtf
 ```
 
 # Download data for this tutorial (or use your own)
 We will use the mouse lung dataset [SRS4031561](https://www.ncbi.nlm.nih.gov/sra/?term=SRR8176398), which was generated with Drop-seq [[1]](https://www.cell.com/abstract/S0092-8674(15)00549-8). The dataset consists of two sequencing runs, but for this example we will just use one of the runs:
 
 ```bash
-$ ./sratoolkit.2.9.6-ubuntu64/bin/prefetch SRR8176398
+./sratoolkit.2.9.6-ubuntu64/bin/prefetch SRR8176398
 
-$ mv -v ~/ncbi/public/sra/SRR8176398.sra .
+mv -v ~/ncbi/public/sra/SRR8176398.sra .
 
 # dump it to a fastq file
-$ ./sratoolkit.2.9.6-ubuntu64/bin/fastq-dump SRR8176398.sra
+./sratoolkit.2.9.6-ubuntu64/bin/fastq-dump SRR8176398.sra
 ```
 
 # Prepare the fastq data
@@ -141,7 +141,7 @@ CATGAGTTCGTACGTGGATCTTTTTTTTTGTTGGGGGAGGTAATGATGAGGCTAGGTAAGTGAAGGTGGATTTGGCAACT
 First count the number of available barcodes. We expect some noise so we don't need to deal with barcodes with very few sequences. This step can be performed with any scripting language, here we will use a one-liner with `awk` - a swiss-knife language for text manipulation. Set `bc_len` to the barcode length. **Note on awk's `substr(...)`, the first character of the  string has position 1.**
 
 ```bash
-$ awk -v bc_len=12 \
+awk -v bc_len=12 \
   '$0 ~ /^\@/ {
     getline;
     lines[substr($0,1,bc_len)]++;
@@ -161,7 +161,7 @@ The output will be a file with two columns (1. the barcode; 2. number of sequenc
 Let's examine the top 10 barcodes:
 
 ```bash
-$ sort -k 2,2nr SRR8176398.fastq.bc | head -n 10
+sort -k 2,2nr SRR8176398.fastq.bc | head -n 10
 AAAAAAAAAAAA 1930334
 ACCCCGTTCCAT 841302
 AGCACTCTGTTC 660082
@@ -180,7 +180,7 @@ The top ranking barcode "AAAAAAAAAAAA" seems suspicious, indicating that in the 
 We will move barcode and UMI to the FASTQ sequence header using the helper script [`organize_fastq.py`](https://github.com/oscar-franzen/alona/blob/master/preprocessing_tutorial/organize_fastq.py) (available in this repository).
 
 ```bash
-$ python3 organize_fastq.py -i SRR8176398.fastq \
+python3 organize_fastq.py -i SRR8176398.fastq \
                             -b SRR8176398.fastq.bc \
                             -c 1000 > SRR8176398.clean.fastq
 ```
@@ -189,7 +189,7 @@ $ python3 organize_fastq.py -i SRR8176398.fastq \
 Confirm the quality score encoding of your FASTQ data. This small script, [`determine_phred.pl`](https://raw.githubusercontent.com/oscar-franzen/alona/master/preprocessing_tutorial/determine_phred.pl), can be used to determine the quality score format (will require installation of the `List::MoreUtils` Perl module). For SRA data, this encoding is Phred33. The additional pipe in the script below is a filter, which keeps unique alignments. Filtering in this way prevents writing of uninformative (multimapping) sequence alignments to your disk, which may save time. **Note that quality scores in your FASTQ file are unrelated with the mapping qualities in the SAM file.**
 
 ```bash
-$ time (hisat2 --phred33 -p 2 \
+time (hisat2 --phred33 -p 2 \
       -x GRCm38.primary_assembly.genome.fa.hisat2 \
       -U SRR8176398.clean.fastq | awk '$5 >= 60' > SRR8176398.sam)
 
@@ -218,20 +218,32 @@ do
 done
 ```
 
-# Convert to BAM
-BAM is the compressed version of SAM. The format is based on gzip and we use it to save space. It has become a standard format for saving sequence alignments from NGS technologies.
+# Convert to `BAM`
+`BAM` is the compressed version of `SAM`. The format is based on gzip and we use it to save space. It has become a standard format for saving sequence alignments from "NGS" technologies.
 
 ```bash
-$ time samtools view -@ 2 \
+time samtools view -@ 2 \
                      -T GRCm38.primary_assembly.genome.fa \
                      -bS SRR8176398.sam > SRR8176398.bam
+```
+
+### A directory of `sam` files
+Iterate through all files.
+
+```bash
+for file in ./aln/*.sam
+do
+samtools view -@ 2 \
+                     -T /path/to/GRCm38.primary_assembly.genome.fa \
+                     -bS ${file} > ${file%.*}.bam
+done
 ```
 
 # Sort the BAM file
 Sorting the BAM file by alignment coordinates. This is a prerequisite in many downstream operations. `-T .` selects the present directory as the place to place temporary files. `-m 2G` restricts memory usage. `-@ 2` it will use two sorting threads.
 
 ```bash
-$ time samtools sort -T . \
+time samtools sort -T . \
                      -m 2G \
                      -@ 2 SRR8176398.bam > \
                       SRR8176398.sorted.bam
@@ -243,7 +255,7 @@ $ time samtools sort -T . \
 An index is used for faster lookups. It's needed if we want to open the BAM file in a browser such as the [IGV](https://software.broadinstitute.org/software/igv/).
 
 ```
-$ time ./samtools-1.9/installed/bin/samtools index SRR8176398.sorted.bam
+time ./samtools-1.9/installed/bin/samtools index SRR8176398.sorted.bam
 
 44.52s user 0.67s system 99% cpu 45.218 
 ```
@@ -252,7 +264,7 @@ $ time ./samtools-1.9/installed/bin/samtools index SRR8176398.sorted.bam
 This step annotates each alignment with the gene most likely to be the transcribed source of the sequence. **Note, the output is another BAM file.**
 
 ```bash
-$ time ./subread-1.6.4-source/bin/featureCounts -R BAM \
+time ./subread-1.6.4-source/bin/featureCounts -R BAM \
                                                 --tmpDir . \
                                                 -T 2 \
                                                 -F GTF \
@@ -266,14 +278,14 @@ $ time ./subread-1.6.4-source/bin/featureCounts -R BAM \
 Another round is sorting is needed.
 
 ```bash
-$ time samtools sort -T . \
+time samtools sort -T . \
                      -m 2G \
                      -@ 2 SRR8176398.sorted.bam.featureCounts.bam > \
                       SRR8176398.sorted.bam.featureCounts.sorted.bam
 
 631.08s user 31.53s system 230% cpu 4:47.10 total
 
-$ samtools index SRR8176398.sorted.bam.featureCounts.sorted.bam
+samtools index SRR8176398.sorted.bam.featureCounts.sorted.bam
 ```
 
 # umi-tools
@@ -294,19 +306,19 @@ time umi_tools dedup --no-sort-output \
 
 # Sort and index final time
 ```bash
-$ time samtools sort -T . \
+time samtools sort -T . \
                      -m 2G \
                      -@ 2 SRR8176398.sorted.bam.featureCounts.sorted.umi_dedup.bam > \
                       SRR8176398.sorted.bam.featureCounts.sorted.umi_dedup.sorted.bam
 
 631.08s user 31.53s system 230% cpu 4:47.10 total
 
-$ samtools index SRR8176398.sorted.bam.featureCounts.sorted.umi_dedup.sorted.bam
+samtools index SRR8176398.sorted.bam.featureCounts.sorted.umi_dedup.sorted.bam
 ```
 
 # Count reads
 ```bash
-$ time umi_tools count --per-gene \
+time umi_tools count --per-gene \
                        --gene-tag=XT \
                        --per-cell \
                        -I SRR8176398.sorted.bam.featureCounts.sorted.umi_dedup.sorted.bam \
@@ -315,7 +327,7 @@ $ time umi_tools count --per-gene \
 410.74s user 4.60s system 100% cpu 6:54.94 total
 
 # confirm output
-$ head SSRR8176398.sorted.bam.featureCounts.sorted.umi_dedup.sorted.bam.counts
+head SSRR8176398.sorted.bam.featureCounts.sorted.umi_dedup.sorted.bam.counts
 gene	cell	count
 0610005C13Rik_ENSMUSG00000109644	AATAGTGGTAGC	1
 0610005C13Rik_ENSMUSG00000109644	AGGTGGGGGGAT	1
@@ -332,7 +344,7 @@ gene	cell	count
 We will borrow some R code to make this table into a matrix. [`linear_to_matrix.R`](https://github.com/oscar-franzen/alona/blob/master/preprocessing_tutorial/linear_to_matrix.R) is in the repository.
 
 ```bash
-$ R --no-save \
+R --no-save \
    --no-restore \
    --slave \
    --args SSRR8176398.sorted.bam.featureCounts.sorted.umi_dedup.sorted.bam.counts \
@@ -347,10 +359,10 @@ As you can see the actual matrix eats up a lot of disk space owing to being zero
 A near similar trick is just to compress the plain text table:
 
 ```bash
-$ time gzip SSRR8176398.mat.txt
+time gzip SSRR8176398.mat.txt
 7.60s user 0.30s system 99% cpu 7.904 total
 
-$ ls -lh SSRR8176398.mat.txt.gz
+ls -lh SSRR8176398.mat.txt.gz
 -rw-rw-r-- 1 qwerty qwerty 16M Apr 29 10:46 SSRR8176398.mat.txt.gz
 
 ```
