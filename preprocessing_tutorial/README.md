@@ -66,6 +66,7 @@ We will use `featureCounts` (part of `subread`) for counting alignments. [Htseq]
 ```bash
 tar -zxvf subread-1.6.4-source.tar.gz && cd subread-1.6.4-source/src
 
+# Choose your makefile flavor, I use Linux so I use:
 make -f Makefile.Linux
 ```
 
