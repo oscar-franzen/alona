@@ -290,6 +290,8 @@ time ./subread-1.6.4-source/bin/featureCounts -R BAM \
 227.62s user 4.38s system 198% cpu 1:56.91 total
 ```
 
+### A directory of sorted and indexed BAM files
+
 # Sort and index again
 Another round is sorting is needed.
 
