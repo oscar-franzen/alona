@@ -251,6 +251,14 @@ time samtools sort -T . \
 630.24s user 28.51s system 229% cpu 4:47.47 total
 ```
 
+### A directory of BAM files
+```bash
+for file in ./aln/*.bam
+do
+    samtools sort -T . -m 2G -@ 2 ${file} > ${file%.*}.sorted.bam
+done
+```
+
 # Create an index of the BAM file
 An index is used for faster lookups. It's needed if we want to open the BAM file in a browser such as the [IGV](https://software.broadinstitute.org/software/igv/).
 
