@@ -18,6 +18,7 @@ from scipy.stats import fisher_exact
 from .constants import (OUTPUT, GENOME, MARKERS)
 from .log import (log_info, log_debug, log_error)
 from .utils import get_alona_dir
+from .stats import p_adjust_bh
 
 class AlonaCellTypePred():
     """
@@ -58,6 +59,9 @@ class AlonaCellTypePred():
         log_debug('CTA_RANK_F() starting')
         
         median_expr = self.median_expr
+        markers = self.markers
+        marker_freq = self.marker_freq
+        
         input_symbols = median_expr.index.str.extract('^(.+)_.+')[0].str.upper()
         median_expr.index = input_symbols
 
@@ -73,7 +77,6 @@ class AlonaCellTypePred():
         markers = markers[markers[markers.columns[0]].isin(mgs)]
         
         dd = defaultdict(list)
-        
         for item in markers.groupby('cell type'):
             dd[item[0]] = set(item[1][item[1].columns[0]])
 
@@ -95,13 +98,11 @@ class AlonaCellTypePred():
             genes_exp = set(x.index[x>0])
             # genes _not_ expressed in this cell cluster
             genes_not_exp = set(x.index[x==0])
-            
             res = list()
             
             for ct in dd:
                 s = dd[ct]
                 x_ss = x[x.index.isin(s)]
-                
                 if len(x_ss) == 0: continue
                 
                 gene_weights = weights[ct]
@@ -112,27 +113,23 @@ class AlonaCellTypePred():
                 
                 # how many expressed genesets are found in the geneset?
                 ct_exp = len(genes_exp&s)
-                
                 # how many _non_ expressed genes are found in the geneset?
                 ct_non_exp = len(genes_not_exp&s)
-                
                 # how many expressed genes are NOT found in the geneset?
                 ct_exp_not_found = len(genes_exp-s)
-                
                 # how many _non_ expressed genes are NOT found in the geneset?
                 not_exp_not_found_in_geneset = len(genes_not_exp-s)
-                
                 # one sided fisher
                 contigency_tbl = [[ct_exp,ct_non_exp],
                                   [ct_exp_not_found,not_exp_not_found_in_geneset]]
-                
+
                 odds_ratio, pval = fisher_exact(contigency_tbl, alternative='greater')
-                
                 markers_found = ','.join(list(genes_exp&s))
-                
                 if markers_found == '': markers_found = 'NA'
-                
-                res.append( { 'activity_score' : activity_score, 'ct' : ct, 'pvalue' : pval, 'markers' : markers_found })
+                res.append({ 'activity_score' : activity_score,
+                             'ct' : ct,
+                             'pvalue' : pval,
+                             'markers' : markers_found })
                 
             res = sorted(res, key=lambda k: k['activity_score'], reverse=True)
             return res
@@ -140,6 +137,18 @@ class AlonaCellTypePred():
         ret = median_expr.apply(func=_guess_cell_type, axis=0)
         
         # restructure
+        lin = []
+        
+        bucket = [ pd.DataFrame(k) for i,k in enumerate(ret) ]
+        final_tbl = pd.concat(bucket)
+        
+        padj = p_adjust_bh(final_tbl['pvalue'])
+        final_tbl['padj_BH'] = padj
+        final_tbl.columns = ['activity score',
+                             'cell type',
+                             'markers',
+                             'p-value',
+                             'adjusted p-value BH']
         
         log_debug('CTA_RANK_F() finished')
 
@@ -157,7 +166,6 @@ class AlonaCellTypePred():
         log_debug('Markers loaded')
 
         # marker frequency across the cell types
-        ma.columns['gene symbol']
         ma_ss = ma.iloc[:,ma.columns.isin(['official gene symbol','cell type'])]
         self.marker_freq = ma_ss[ma_ss.columns[0]].value_counts()
         self.markers = ma_ss
