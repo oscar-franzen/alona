@@ -61,7 +61,7 @@ export PATH=${PATH}:/full/path/to/samtools-1.9/installed/bin
 ```
 
 ## subread
-We will use `featureCounts` (part of `subread`) for counting alignments. [Htseq](https://htseq.readthedocs.io/en/release_0.11.1/) is another popular counter, but featureCounts is **much** faster. Download the source code of subread: https://sourceforge.net/projects/subread/files/subread-1.6.4/
+We will use `featureCounts` (part of `subread`) for counting alignments. [Htseq](https://htseq.readthedocs.io/en/release_0.11.1/) is another popular counter, but featureCounts is **much** faster. Download the source code of subread ([subread-1.6.4-source.tar.gz](https://github.com/oscar-franzen/alona/raw/master/preprocessing_tutorial/tools_src/subread-1.6.4-source.tar.gz)).
 
 ```bash
 tar -zxvf subread-1.6.4-source.tar.gz && cd subread-1.6.4-source/src
