@@ -32,6 +32,7 @@ class AlonaCellTypePred():
         self.median_expr = None
         self.markers = None
         self.marker_freq = None
+        self.res_pred = None
 
     def median_exp(self):
         """ Represent each cluster with median gene expression. """
@@ -162,6 +163,15 @@ class AlonaCellTypePred():
 
         fn = self.wd + OUTPUT['FILENAME_CTA_RANK_F']
         final_tbl.to_csv(fn, sep='\t', index=False)
+        
+        # Save the best scoring for each cluster
+        self.res_pred = final_tbl.groupby('cluster').nth(0)
+        
+        _a = self.res_pred['adjusted p-value BH']>0.10
+        self.res_pred.loc[_a,'cell type'] = 'Unknown'
+        
+        fn = self.wd + OUTPUT['FILENAME_CTA_RANK_F_BEST']
+        self.res_pred.to_csv(fn, sep='\t', index=True)
 
         log_debug('CTA_RANK_F() finished')
 

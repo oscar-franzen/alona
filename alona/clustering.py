@@ -359,7 +359,7 @@ class AlonaClustering():
         
         def get_random_color(pastel_fac=0.5):
             r = random.uniform
-            return [(x+pastel_fac)/(1.0+pastel_fac) for x in [r(0,1.0) for i in [1,2,3]]]
+            return [(x+pastel_fac)/(1.0+pastel_fac) for x in [r(0, 1.0) for i in [1, 2, 3]]]
 
         def color_distance(c1, c2):
             return sum([abs(x[0]-x[1]) for x in zip(c1, c2)])
