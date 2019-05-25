@@ -140,21 +140,28 @@ class AlonaCellTypePred():
         ret = median_expr_Z.apply(func=_guess_cell_type, axis=0)
 
         # restructure
-        lin = []
+        bucket = []
 
-        bucket = [pd.DataFrame(k) for i, k in enumerate(ret)]
+        for i, k in enumerate(ret):
+            _df = pd.DataFrame(k)
+            _df['cluster'] = [i]*len(k)
+            cols = _df.columns.tolist()
+            _df = _df[cols[-1:]+cols[:-1]]
+            bucket.append(_df)
+
         final_tbl = pd.concat(bucket)
 
         padj = p_adjust_bh(final_tbl['pvalue'])
         final_tbl['padj_BH'] = padj
-        final_tbl.columns = ['activity score',
+        final_tbl.columns = ['cluster',
+                             'activity score',
                              'cell type',
                              'markers',
                              'p-value',
                              'adjusted p-value BH']
 
         fn = self.wd + OUTPUT['FILENAME_CTA_RANK_F']
-        final_tbl.to_csv(fn, sep='\t')
+        final_tbl.to_csv(fn, sep='\t', index=False)
 
         log_debug('CTA_RANK_F() finished')
 
