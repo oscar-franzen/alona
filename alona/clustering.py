@@ -1,8 +1,8 @@
 """
  This file contains clustering methods used by alona.
- 
+
  In general, it flows like this:
- 
+
     1. identify highly variable genes (HVG), retrieve N genes
     2. perform PCA on the HVG, retrieve N components
     3. adjust PCAs by weight
@@ -61,6 +61,7 @@ class AlonaClustering():
         self.snn_graph = None
         self.leiden_cl = None
         self.params = params
+        self.cluster_colors = None
 
     @staticmethod
     def _exp_mean(mat):
@@ -138,7 +139,7 @@ class AlonaClustering():
     def tSNE(self, out_path):
         """
         Projects data to a two dimensional space using the tSNE algorithm.
-        
+
         van der Maaten, L.J.P.; Hinton, G.E. Visualizing High-Dimensional Data
         Using t-SNE. Journal of Machine Learning Research 9:2579-2605, 2008.
         """
@@ -147,7 +148,7 @@ class AlonaClustering():
         tsne = sklearn.manifold.TSNE(n_components=2,
                                      n_iter=2000,
                                      perplexity=self.params['perplexity'])
-        
+
         self.embeddings = tsne.fit_transform(pd.DataFrame(self.pca_components))
         pd.DataFrame(self.embeddings).to_csv(path_or_buf=out_path, sep=',',
                                              header=None, index=False)
@@ -262,7 +263,7 @@ class AlonaClustering():
         node2 = []
 
         pruned_count = 0
-        
+
         #print(prune_snn)
         #d = sys.stdin.readline()
 
@@ -280,8 +281,8 @@ class AlonaClustering():
                 node2.append(q2)
 
         perc_pruned = (pruned_count/len(aa[0]))*100
-        log_debug('%.2f%% (n=%s) of links pruned' % ( perc_pruned,
-                                                       '{:,}'.format(pruned_count)))
+        log_debug('%.2f%% (n=%s) of links pruned' % (perc_pruned,
+                                                     '{:,}'.format(pruned_count)))
 
         if perc_pruned > 80:
             log_warning('more than 80% of the edges were pruned')
@@ -318,30 +319,30 @@ class AlonaClustering():
             ll.append(tuple(i))
 
         g.add_edges(ll)
-        
+
         # TODO: add more flexibility to leiden
 
         cl = leidenalg.find_partition(g,
                                       leidenalg.ModularityVertexPartition,
-                                      n_iterations = 10)
+                                      n_iterations=10)
         self.leiden_cl = cl.membership
-        
+
         wd = self._alonacell.alonabase.get_wd()
         fn = wd + OUTPUT['FILENAME_CLUSTERS_LEIDEN']
-        
+
         pd.DataFrame(self.leiden_cl).to_csv(fn, header=False, index=False)
-        
+
         log_info('leiden formed %s cell clusters' % len(set(cl.membership)))
-        
+
         if self.params['loglevel'] == 'debug':
             clc = np.bincount(cl.membership)
             ind = np.nonzero(clc)[0]
-            
-            log_debug(('cluster','cells'))
-            
-            for i in zip(ind,clc):
+
+            log_debug(('cluster', 'cells'))
+
+            for i in zip(ind, clc):
                 log_debug(i)
-        
+
         log_debug('Leiden has finished.')
 
     def cluster(self):
@@ -354,20 +355,20 @@ class AlonaClustering():
 
     def cell_scatter_plot(self, filename, dark_bg_param=False):
         """ Generates a tSNE scatter plot with colored clusters. """
+        dark_bg = dark_bg_param
         
-        dark_bg=dark_bg_param
-        
-        def get_random_color(pastel_factor = 0.5):
-            return [(x+pastel_factor)/(1.0+pastel_factor) for x in [random.uniform(0,1.0) for i in [1,2,3]]]
+        def get_random_color(pastel_fac=0.5):
+            r = random.uniform
+            return [(x+pastel_fac)/(1.0+pastel_fac) for x in [r(0,1.0) for i in [1,2,3]]]
 
         def color_distance(c1, c2):
             return sum([abs(x[0]-x[1]) for x in zip(c1, c2)])
 
-        def generate_new_color(existing_colors,pastel_factor = 0.5):
+        def generate_new_color(existing_colors,pastel_fac = 0.5):
             max_distance = None
             best_color = None
             for i in range(0, 100):
-                color = get_random_color(pastel_factor = pastel_factor)
+                color = get_random_color(pastel_fac = pastel_fac)
                 if not existing_colors:
                     return color
                 best_distance = min([color_distance(color, c) for c in existing_colors])
@@ -384,20 +385,20 @@ class AlonaClustering():
             plt.style.use('dark_background')
         
         df = pd.DataFrame(self.embeddings)
-
         uniq = list(set(self.leiden_cl))
-        colors = []
-        for i in range(0, len(uniq)):
-            colors.append(generate_new_color(colors, pastel_factor = 0.5))
+        
+        if self.cluster_colors == None:
+            colors = []
+            for i in range(0, len(uniq)):
+                colors.append(generate_new_color(colors, pastel_fac = 0.5))
+            self.cluster_colors = colors
 
         for i in range(len(uniq)):
             idx = np.array(self.leiden_cl) == i
             e = self.embeddings[idx]
-            
-            plt.scatter(e[0], e[1], s=3, color=colors[i], label=uniq[i])
+            plt.scatter(e[0], e[1], s=3, color=self.cluster_colors[i], label=uniq[i])
 
         plt.ylabel('tSNE1')
         plt.xlabel('tSNE2')
-
         plt.savefig(filename, bbox_inches='tight')
         plt.close()
