@@ -67,8 +67,8 @@ class AlonaBase():
             log_error(self, '--minreads must be a positive integer.')
         if self.params['minexpgenes'] < 0 or self.params['minexpgenes'] > 99:
             log_error(self, '--minexpgenes must be a value within [0,100).')
-        if self.params['clustering_k'] < 0:
-            log_error(self, '--clustering_k cannot be negative.')
+        if self.params['nn_k'] < 0:
+            log_error(self, '--nn_k cannot be negative.')
         if self.params['prune_snn'] < 0 or self.params['prune_snn'] > 1:
             log_error(self, '--prune_snn must have a value within [0,1]')
         if self.params['perplexity'] < 0:

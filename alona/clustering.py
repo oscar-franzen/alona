@@ -307,6 +307,8 @@ class AlonaClustering():
         """
 
         log_debug('Running leiden clustering...')
+        
+        res = self.params['leiden_res']
 
         # construct the graph object
         nn = set(self.snn_graph[self.snn_graph.columns[0]])
@@ -320,12 +322,16 @@ class AlonaClustering():
             ll.append(tuple(i))
 
         g.add_edges(ll)
-
-        # TODO: add more flexibility to leiden
+        
+        if self.params == 'ModularityVertexPartition':
+            part = leidenalg.ModularityVertexPartition
+        else:
+            part = leidenalg.RBERVertexPartition
 
         cl = leidenalg.find_partition(g,
-                                      leidenalg.ModularityVertexPartition,
-                                      n_iterations=10)
+                                      part,
+                                      n_iterations=10,
+                                      resolution_parameter=res)
         self.leiden_cl = cl.membership
 
         wd = self._alonacell.alonabase.get_wd()
@@ -348,7 +354,7 @@ class AlonaClustering():
 
     def cluster(self):
         """ Cluster cells. """
-        k = self.params['clustering_k']
+        k = self.params['nn_k']
 
         self.knn(k)
         self.snn(k, self.params['prune_snn'])
@@ -358,6 +364,7 @@ class AlonaClustering():
         """ Generates a tSNE scatter plot with colored clusters. """
         log_debug('Generating scatter plot...')
         dark_bg = dark_bg_param
+        ignore_clusters = self.params['ignore_small_clusters']
         added_labels = []
 
         def is_overlapping(RectB):
@@ -391,6 +398,11 @@ class AlonaClustering():
             e = self.embeddings[idx]
             x = e[0]
             y = e[1]
+            
+            if e.shape[0] <= ignore_clusters:
+                log_warning('Ignoring singleton cluster: %s' % i)
+                continue
+            
             plt.scatter(x, y, s=3, color=self.cluster_colors[i], label=uniq[i])
             renderer = fig.canvas.get_renderer()
 
