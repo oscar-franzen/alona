@@ -5,6 +5,7 @@ OUTPUT = {
     'FILENAME_BARPLOT_RAW_READ_COUNTS' : '/plots/barplot_rrc.pdf',
     'FILENAME_BARPLOT_GENES_EXPRESSED' : '/plots/barplot_ge.pdf',
     'FILENAME_CELL_SCATTER_PLOT' : '/plots/scatter.pdf',
+    'FILENAME_CELL_SCATTER_PLOT_W_CT_LABELS' : '/plots/scatter_w_labels.pdf',
     'FILENAME_PCA' : '/csvs/pca.csv',
     'FILENAME_EMBEDDINGS' : '/csvs/embeddings.csv',
     'FILENAME_HVG' : '/csvs/highly_variable_genes.csv',

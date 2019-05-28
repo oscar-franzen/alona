@@ -19,7 +19,6 @@
 """
 
 import os
-import random
 import sys
 
 import ctypes
@@ -35,6 +34,7 @@ import matplotlib.colors as colors
 import matplotlib.cm as cmx
 
 import sklearn.manifold
+from statsmodels import robust
 
 from scipy.sparse import coo_matrix
 
@@ -45,7 +45,7 @@ import alona.irlbpy
 
 from .log import (log_info, log_debug, log_error, log_warning)
 from .constants import OUTPUT
-from .utils import get_alona_dir
+from .utils import (get_alona_dir, get_random_color, color_distance, generate_new_color)
 
 class AlonaClustering():
     """
@@ -353,38 +353,33 @@ class AlonaClustering():
         self.snn(k, self.params['prune_snn'])
         self.leiden()
 
-    def cell_scatter_plot(self, filename, dark_bg_param=False):
+    def cell_scatter_plot(self, filename, dark_bg_param=False, cell_type_obj = None):
         """ Generates a tSNE scatter plot with colored clusters. """
         dark_bg = dark_bg_param
         
-        def get_random_color(pastel_fac=0.5):
-            r = random.uniform
-            return [(x+pastel_fac)/(1.0+pastel_fac) for x in [r(0, 1.0) for i in [1, 2, 3]]]
-
-        def color_distance(c1, c2):
-            return sum([abs(x[0]-x[1]) for x in zip(c1, c2)])
-
-        def generate_new_color(existing_colors,pastel_fac = 0.5):
-            max_distance = None
-            best_color = None
-            for i in range(0, 100):
-                color = get_random_color(pastel_fac = pastel_fac)
-                if not existing_colors:
-                    return color
-                best_distance = min([color_distance(color, c) for c in existing_colors])
-                if not max_distance or best_distance > max_distance:
-                    max_distance = best_distance
-                    best_color = color
-            return best_color
+        log_debug('Generating scatter plot...')
+        
+        added_labels = []
+        
+        def is_overlapping(RectB):
+            """ Checks for overlap between cell type labels. """
+            for RectA in added_labels:
+                if (RectA['X1'] < RectB['X2'] and
+                    RectA['X2'] > RectB['X1'] and
+                    RectA['Y1'] > RectB['Y2'] and
+                    RectA['Y2'] < RectB['Y1']):
+                    return True
+                
+            return False
 
         plt.clf()
-        plt.figure(num=None, figsize=(5, 5))
+        fig = plt.figure(num=None, figsize=(5, 5))
+        ax = fig.add_subplot(111)
         
         if dark_bg:
             log_debug('using dark background (--dark_bg is set)')
             plt.style.use('dark_background')
         
-        df = pd.DataFrame(self.embeddings)
         uniq = list(set(self.leiden_cl))
         
         if self.cluster_colors == None:
@@ -396,9 +391,51 @@ class AlonaClustering():
         for i in range(len(uniq)):
             idx = np.array(self.leiden_cl) == i
             e = self.embeddings[idx]
-            plt.scatter(e[0], e[1], s=3, color=self.cluster_colors[i], label=uniq[i])
+            x = e[0]
+            y = e[1]
+            plt.scatter(x, y, s=3, color=self.cluster_colors[i], label=uniq[i])
+            renderer = fig.canvas.get_renderer()
+            
+            if cell_type_obj != None:
+                ct = cell_type_obj.res_pred.iloc[i][1]
+                # approximate plotting coordinates
+                x_text = np.median(x)
+                y_text = max(y[y<(np.median(y) + robust.mad(y)*2.7)])
+                ann = plt.annotate(ct, (x_text, y_text), size=5)
+                
+                # get the Bbox bounding the text in display units
+                bb = ann.get_window_extent(renderer=renderer)
+                
+                # from display to data coordinates
+                bbox_data = ax.transData.inverted().transform(bb)
+                
+                X1 = bbox_data[0][0] # left coord
+                X2 = bbox_data[1][0] # right coord
+                
+                Y2 = bbox_data[0][1] # bottom coord
+                Y1 = bbox_data[1][1] # top coord
+                
+                d = { 'X1' : X1, 'X2' : X2, 'Y2' : Y2, 'Y1' : Y1, 'ct' : ct }
+                
+                offset = 0
+                
+                while is_overlapping(d):
+                    Y2 += 1
+                    Y1 += 1
+                    offset += 1
+                    
+                    d = { 'X1' : X1, 'X2' : X2, 'Y2' : Y2, 'Y1' : Y1, 'ct' : ct }
+
+                    # emergency break
+                    if offset>100:
+                        break
+                        
+                ann.set_position((x_text, y_text+offset))
+                added_labels.append(d)
 
         plt.ylabel('tSNE1')
         plt.xlabel('tSNE2')
         plt.savefig(filename, bbox_inches='tight')
         plt.close()
+        
+        log_debug('Done generating scatter plot.')
