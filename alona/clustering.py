@@ -353,39 +353,38 @@ class AlonaClustering():
         self.snn(k, self.params['prune_snn'])
         self.leiden()
 
-    def cell_scatter_plot(self, filename, dark_bg_param=False, cell_type_obj = None):
+    def cell_scatter_plot(self, filename, dark_bg_param=False, cell_type_obj=None):
         """ Generates a tSNE scatter plot with colored clusters. """
         dark_bg = dark_bg_param
-        
+
         log_debug('Generating scatter plot...')
-        
+
         added_labels = []
-        
+
         def is_overlapping(RectB):
             """ Checks for overlap between cell type labels. """
             for RectA in added_labels:
                 if (RectA['X1'] < RectB['X2'] and
-                    RectA['X2'] > RectB['X1'] and
-                    RectA['Y1'] > RectB['Y2'] and
-                    RectA['Y2'] < RectB['Y1']):
+                        RectA['X2'] > RectB['X1'] and
+                        RectA['Y1'] > RectB['Y2'] and
+                        RectA['Y2'] < RectB['Y1']):
                     return True
-                
             return False
 
         plt.clf()
         fig = plt.figure(num=None, figsize=(5, 5))
         ax = fig.add_subplot(111)
-        
+
         if dark_bg:
             log_debug('using dark background (--dark_bg is set)')
             plt.style.use('dark_background')
-        
+
         uniq = list(set(self.leiden_cl))
-        
+
         if self.cluster_colors == None:
             colors = []
             for i in range(0, len(uniq)):
-                colors.append(generate_new_color(colors, pastel_fac = 0.5))
+                colors.append(generate_new_color(colors, pastel_fac=0.5))
             self.cluster_colors = colors
 
         for i in range(len(uniq)):
@@ -395,41 +394,36 @@ class AlonaClustering():
             y = e[1]
             plt.scatter(x, y, s=3, color=self.cluster_colors[i], label=uniq[i])
             renderer = fig.canvas.get_renderer()
-            
+
             if cell_type_obj != None:
                 ct = cell_type_obj.res_pred.iloc[i][1]
                 # approximate plotting coordinates
                 x_text = np.median(x)
-                y_text = max(y[y<(np.median(y) + robust.mad(y)*2.7)])
+                y_text = max(y[y < (np.median(y) + robust.mad(y)*2.7)])
                 ann = plt.annotate(ct, (x_text, y_text), size=5)
-                
+
                 # get the Bbox bounding the text in display units
                 bb = ann.get_window_extent(renderer=renderer)
-                
+
                 # from display to data coordinates
                 bbox_data = ax.transData.inverted().transform(bb)
-                
+
                 X1 = bbox_data[0][0] # left coord
                 X2 = bbox_data[1][0] # right coord
-                
                 Y2 = bbox_data[0][1] # bottom coord
                 Y1 = bbox_data[1][1] # top coord
-                
-                d = { 'X1' : X1, 'X2' : X2, 'Y2' : Y2, 'Y1' : Y1, 'ct' : ct }
-                
+
+                d = {'X1' : X1, 'X2' : X2, 'Y2' : Y2, 'Y1' : Y1, 'ct' : ct}
                 offset = 0
-                
                 while is_overlapping(d):
                     Y2 += 1
                     Y1 += 1
                     offset += 1
-                    
-                    d = { 'X1' : X1, 'X2' : X2, 'Y2' : Y2, 'Y1' : Y1, 'ct' : ct }
-
+                    d = {'X1' : X1, 'X2' : X2, 'Y2' : Y2, 'Y1' : Y1, 'ct' : ct}
                     # emergency break
-                    if offset>100:
+                    if offset > 100:
                         break
-                        
+
                 ann.set_position((x_text, y_text+offset))
                 added_labels.append(d)
 
@@ -437,5 +431,5 @@ class AlonaClustering():
         plt.xlabel('tSNE2')
         plt.savefig(filename, bbox_inches='tight')
         plt.close()
-        
+
         log_debug('Done generating scatter plot.')
