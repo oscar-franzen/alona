@@ -152,7 +152,8 @@ class AlonaClustering():
         self.embeddings = tsne.fit_transform(pd.DataFrame(self.pca_components))
         pd.DataFrame(self.embeddings).to_csv(path_or_buf=out_path, sep=',',
                                              header=None, index=False)
-
+                                             
+        self.embeddings = pd.DataFrame(self.embeddings)
         log_debug('Finished t-SNE')
 
     def knn(self, inp_k):
@@ -355,10 +356,8 @@ class AlonaClustering():
 
     def cell_scatter_plot(self, filename, dark_bg_param=False, cell_type_obj=None):
         """ Generates a tSNE scatter plot with colored clusters. """
-        dark_bg = dark_bg_param
-
         log_debug('Generating scatter plot...')
-
+        dark_bg = dark_bg_param
         added_labels = []
 
         def is_overlapping(RectB):

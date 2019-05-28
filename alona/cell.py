@@ -58,20 +58,24 @@ set to raw read counts.')
 
     def _remove_empty(self):
         """ Removes empty cells and genes """
-        # TODO: fix variable names for cells and genes (16-May-2019)
         data_zero = self.data == 0
-        cells = data_zero.sum(axis=1) # 1 = rows
-        genes = data_zero.sum(axis=0) # 0 = columns
+        
+        # Axis 0 will act on all the ROWS in each COLUMN
+        # Axis 1 will act on all the COLUMNS in each ROW
+        cells = data_zero.sum(axis=0)
+        genes = data_zero.sum(axis=1)
 
         total_genes = self.data.shape[0]
         total_cells = self.data.shape[1]
 
         if np.sum(cells == total_cells) > 0:
             log_info('%s empty cells will be removed' % (np.sum(cells == total_cells)))
-            self.data = self.data.loc[self.data.index[np.logical_not(cells == total_cells)]]
+            self.data = self.data[self.data.columns[np.logical_not(cells == total_cells)]]
         if np.sum(genes == total_genes) > 0:
             log_info('%s empty genes will be removed' % (np.sum(genes == total_genes)))
-            self.data = self.data[self.data.columns[np.logical_not(genes == total_genes)]]
+            self.data = self.data.loc[self.data.index[np.logical_not(genes == total_genes)]]
+            
+        log_info('Current dimensions: %s' % str(self.data.shape))
 
     def _remove_mito(self):
         """ Remove mitochondrial genes. """
