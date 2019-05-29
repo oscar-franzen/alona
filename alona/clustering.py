@@ -45,7 +45,7 @@ import alona.irlbpy
 
 from .log import (log_info, log_debug, log_error, log_warning)
 from .constants import OUTPUT
-from .utils import (get_alona_dir, get_random_color, color_distance, generate_new_color)
+from .utils import (get_alona_dir, get_random_color, color_distance, generate_new_color, uniqueColors)
 
 class AlonaClustering():
     """
@@ -61,7 +61,7 @@ class AlonaClustering():
         self.snn_graph = None
         self.leiden_cl = None
         self.params = params
-        self.cluster_colors = None
+        self.cluster_colors = []
 
     @staticmethod
     def _exp_mean(mat):
@@ -387,11 +387,13 @@ class AlonaClustering():
 
         uniq = list(set(self.leiden_cl))
 
-        if self.cluster_colors == None:
-            colors = []
-            for i in range(0, len(uniq)):
-                colors.append(generate_new_color(colors, pastel_fac=0.5))
-            self.cluster_colors = colors
+        if len(self.cluster_colors) == 0:
+            #colors = []
+            #for i in range(0, len(uniq)):
+            #    colors.append(generate_new_color(colors, pastel_fac=0.5))
+            #self.cluster_colors = colors
+            
+            self.cluster_colors = uniqueColors(len(uniq))
 
         for i in range(len(uniq)):
             idx = np.array(self.leiden_cl) == i
