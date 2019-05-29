@@ -14,6 +14,7 @@
  Oscar Franzen <p.oscar.franzen@gmail.com>
 """
 
+import sys
 import os
 import logging
 import pandas as pd
@@ -25,9 +26,10 @@ import matplotlib.patches as mpatches
 from matplotlib.pyplot import figure
 
 from .log import (log_info, log_debug, log_error)
-from .constants import (OUTPUT, ORANGE)
+from .constants import (OUTPUT, ORANGE, GENOME)
 from .clustering import AlonaClustering
 from .celltypes import AlonaCellTypePred
+from .utils import get_alona_dir
 
 class AlonaCell():
     """
@@ -174,13 +176,14 @@ set to raw read counts.')
         log_debug('Normalizing data to RPKM')
 
         # the file contains _combined_ lengths of all exons of the particular gene
-        exon_lengths = pd.read_csv(GENOME['MOUSE_EXON_LENGTHS'], delimiter=' ',
+        exon_lengths = pd.read_csv(get_alona_dir()+GENOME['MOUSE_EXON_LENGTHS'], delimiter=' ',
                                    header=None)
         exon_lengths.columns = ['gene', 'length']
 
         # intersects and sorts
         temp = pd.merge(self.data, exon_lengths, how='inner', left_on=self.data.index,
-                        right_on=exon_lengths['gene'])
+                        right_on=exon_lengths['gene'].str.extract('^(.+)\.[0-9]+')[0])
+
         temp.index = temp['gene']
         exon_lengths = temp['length']
         temp = temp.drop(['gene', 'length'], axis=1)
@@ -189,12 +192,7 @@ set to raw read counts.')
         # gene length in kilobases
         kb = exon_lengths/1000
 
-        index = 0
-
         def _foo(x):
-            global index
-            index = index + 1
-
             s = sum(x)/1000000
             rpm = x/s
             rpkm = rpm/kb
