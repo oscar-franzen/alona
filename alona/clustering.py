@@ -80,7 +80,7 @@ class AlonaClustering():
 
         # number of bins
         num_bin = 20
-        top_genes = 1000
+        top_genes = self.params['hvg_cutoff']
 
         gene_mean = self._exp_mean(self._alonacell.data_norm)
         # equal width (not size) of bins

@@ -51,6 +51,10 @@ type=click.Choice(['auto', 'yes', 'no']), default='auto')
 
 @click.option('-m', '--nomito', help='Exclude mitochondrial genes from analysis.',
               is_flag=True)
+              
+@click.option('--hvg', help='Number of top highly variable genes to use. Default: 1000',
+              default=1000)
+              
 @click.option('--nn_k', help='k in the nearest neighbour search. Default: 10',
               default=10)
               
@@ -91,7 +95,7 @@ the log file. Default: regular', type=click.Choice(['regular', 'debug']), defaul
 @click.option('--version', help='Display version number.', is_flag=True,
               callback=print_version)
 def run(filename, output, dataformat, minreads, minexpgenes, mrnafull, delimiter, header,
-        nomito, nn_k, prune_snn, leiden_partition, leiden_res, ignore_small_clusters,
+        nomito, hvg, nn_k, prune_snn, leiden_partition, leiden_res, ignore_small_clusters,
         perplexity, species, dark_bg, cleanup, nodocker, logfile, loglevel, nologo, version):
 
     # confirm the genome reference files can be found
@@ -136,7 +140,8 @@ Use '--nodocker' flag to overrride.
         'perplexity' : perplexity,
         'leiden_partition' : leiden_partition,
         'leiden_res' : leiden_res,
-        'ignore_small_clusters' : ignore_small_clusters
+        'ignore_small_clusters' : ignore_small_clusters,
+        'hvg_cutoff' : hvg
     }
 
     alonabase = AlonaBase(alona_opts)

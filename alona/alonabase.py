@@ -75,6 +75,10 @@ class AlonaBase():
             log_error(self, 'Perplexity cannot be less than 0.')
         if self.params['perplexity'] > 100:
             log_warning('Recommended values of --perplexity is 5-50.')
+        if self.params['hvg_cutoff'] <= 0:
+            log_error(self, '--hvg must be a positive value')
+        if self.params['hvg_cutoff'] < 50:
+            log_warning('--hvg is set too low')
 
     def get_wd(self):
         """ Retrieves the name of the output directory. """
@@ -303,7 +307,7 @@ class AlonaBase():
             if len(cols.keys()) > 1:
                 raise IrregularColumnCountError('Rows in your data matrix have different \
 number of columns (every row must have the same number of columns).')
-            log_info('%s cells detected.' % '{:,}'.format(cols.popitem()[0]))
+            log_info('%s columns detected.' % '{:,}'.format(cols.popitem()[0]-1))
 
     def sanity_check_genes(self):
         """ Sanity check on gene count. Raises an exception if gene count is too low. """
