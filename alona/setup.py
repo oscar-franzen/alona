@@ -13,6 +13,10 @@ setuptools.setup(
     long_description_content_type="text/markdown",
     url="https://github.com/oscar-franzen/alona",
     packages=setuptools.find_packages(),
+    install_requires=['click>=7.0','matplotlib>=3.0.3','numpy>=1.16.3',
+                      'pandas>=0.24.2','scipy>=1.2.1','sklearn>=0.21.0',
+                      'leidenalg>=0.7.0'],
+    include_package_data=True,
     classifiers=[
         "Programming Language :: Python :: 3",
         "License :: OSI Approved :: GPLv3",
