@@ -24,7 +24,21 @@ git clone https://github.com/oscar-franzen/alona/
 cd alona
 
 # Install the package
-python3 setup.py install --user
+pip3 install .
+```
+
+# Usage example
+```bash
+python3 -m alona \
+        --mrnafull \
+        --dark_bg \
+        --hvg 2000 \
+        --leiden_res 0.1 \
+        --output test \
+        --loglevel debug \
+        --header yes \
+        --minexpgenes 0.001 \
+        --nomito input.mat
 ```
 
 ## Contact
