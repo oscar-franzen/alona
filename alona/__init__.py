@@ -1,7 +1,7 @@
 import sys
 from .utils import is_platform_linux
 
-NAME = 'alona'
+name = 'alona'
 
 # Check Python version
 if sys.version_info < (3, 0):
