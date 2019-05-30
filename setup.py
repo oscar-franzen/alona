@@ -1,6 +1,9 @@
 # python3 setup.py sdist
 import setuptools
 
+from distutils.core import setup
+from distutils.extension import Extension
+
 with open("README.md", "r") as fh:
     long_description = fh.read()
 
@@ -19,9 +22,26 @@ setuptools.setup(
                       'leidenalg>=0.7.0'],
     include_package_data=True,
     python_requires='>=3.6',
+    zip_safe=False,
     classifiers=[
         "Programming Language :: Python :: 3",
         "License :: OSI Approved :: GPLv3",
         "Operating System :: OS Independent",
     ],
+    
+    ext_modules=[Extension('annlib', ['./alona/ANN/brute.cpp',
+                                 './alona/ANN/bd_tree.cpp',
+                                 './alona/ANN/bd_search.cpp',
+                                 './alona/ANN/bd_pr_search.cpp',
+                                 './alona/ANN/bd_fix_rad_search.cpp',
+                                 './alona/ANN/ANN.cpp',
+                                 './alona/ANN/kd_tree.cpp',
+                                 './alona/ANN/kd_split.cpp',
+                                 './alona/ANN/kd_search.cpp',
+                                 './alona/ANN/kd_pr_search.cpp',
+                                 './alona/ANN/kd_fix_rad_search.cpp',
+                                 './alona/ANN/kd_dump.cpp',
+                                 './alona/ANN/kd_util.cpp',
+                                 './alona/ANN/NN.cc'],
+                          include_dirs=['./alona/ANN/','./alona/ANN/ANN/'])]
 )
