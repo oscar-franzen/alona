@@ -1,3 +1,4 @@
+# python3 setup.py sdist
 import setuptools
 
 with open("README.md", "r") as fh:
@@ -14,9 +15,10 @@ setuptools.setup(
     url="https://github.com/oscar-franzen/alona",
     packages=setuptools.find_packages(),
     install_requires=['click>=7.0','matplotlib>=3.0.3','numpy>=1.16.3',
-                      'pandas>=0.24.2','scipy>=1.2.1','sklearn>=0.21.0',
+                      'pandas>=0.24.2','scipy>=1.2.1','scikit-learn>=0.21.0',
                       'leidenalg>=0.7.0'],
     include_package_data=True,
+    python_requires='>=3.6',
     classifiers=[
         "Programming Language :: Python :: 3",
         "License :: OSI Approved :: GPLv3",
