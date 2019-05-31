@@ -360,11 +360,12 @@ class AlonaClustering():
         self.snn(k, self.params['prune_snn'])
         self.leiden()
 
-    def cell_scatter_plot(self, filename, dark_bg_param=False, cell_type_obj=None):
+    def cell_scatter_plot(self, filename, cell_type_obj=None):
         """ Generates a tSNE scatter plot with colored clusters. """
-        
         log_debug('Generating scatter plot...')
-        dark_bg = dark_bg_param
+        dark_bg = self.params['dark_bg']
+        color_labels = self.params['color_labels']
+        
         ignore_clusters = self.params['ignore_small_clusters']
         added_labels = []
 
@@ -420,7 +421,12 @@ class AlonaClustering():
                 # approximate plotting coordinates
                 x_text = np.median(x)
                 y_text = max(y[y < (np.median(y) + robust.mad(y)*2.7)])
-                ann = plt.annotate(ct, (x_text, y_text), size=5)
+                
+                if color_labels == True:
+                    ann = plt.annotate(ct, (x_text, y_text), size=5,
+                                       color=self.cluster_colors[i])
+                else:
+                    ann = plt.annotate(ct, (x_text, y_text), size=5)
 
                 # get the Bbox bounding the text in display units
                 bb = ann.get_window_extent(renderer=renderer)

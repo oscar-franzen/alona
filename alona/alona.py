@@ -80,8 +80,11 @@ Default: 30', default=30)
 @click.option('-s', '--species', help='Species your data comes from. Default: mouse',
               type=click.Choice(['human', 'mouse']), default='mouse')
 
-@click.option('--dark_bg', help='Use dark background in the scatter plot. Default: False',
+@click.option('--dark_bg', help='Use dark background in scatter plots. Default: False',
               is_flag=True, default=False)
+              
+@click.option('--color_labels', help='Plot cell type labels with the same color as the \
+corresponding cell cluster cells. Default: True', default=True)
 
 @click.option('--cleanup', help='Perform cleanup of temporary files.',
               is_flag=True)
@@ -94,7 +97,8 @@ the log file. Default: regular', type=click.Choice(['regular', 'debug']), defaul
               callback=print_version)
 def run(filename, output, dataformat, minreads, minexpgenes, mrnafull, delimiter, header,
         nomito, hvg, nn_k, prune_snn, leiden_partition, leiden_res, ignore_small_clusters,
-        perplexity, species, dark_bg, cleanup, logfile, loglevel, nologo, version):
+        perplexity, species, dark_bg, color_labels, cleanup, logfile, loglevel, nologo,
+        version):
 
     # confirm the genome reference files can be found
     for item in GENOME:
@@ -131,7 +135,8 @@ tried this path: %s' % (GENOME[item], path))
         'leiden_partition' : leiden_partition,
         'leiden_res' : leiden_res,
         'ignore_small_clusters' : ignore_small_clusters,
-        'hvg_cutoff' : hvg
+        'hvg_cutoff' : hvg,
+        'color_labels' : color_labels
     }
 
     alonabase = AlonaBase(alona_opts)

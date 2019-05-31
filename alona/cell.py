@@ -298,10 +298,9 @@ set to log2.')
             self._alona_clustering.tSNE(tsne_path)
 
         fn = self.alonabase.get_wd() + OUTPUT['FILENAME_CELL_SCATTER_PLOT']
-        dark_bg = self.alonabase.params['dark_bg']
 
         self._alona_clustering.cluster()
-        self._alona_clustering.cell_scatter_plot(fn, dark_bg, cell_type_obj=None)
+        self._alona_clustering.cell_scatter_plot(fn, cell_type_obj=None)
 
         self.pred = AlonaCellTypePred(self.alonabase.get_wd(),
                                       self._alona_clustering,
@@ -311,6 +310,4 @@ set to log2.')
         self.pred.CTA_RANK_F()
 
         fn = self.alonabase.get_wd() + OUTPUT['FILENAME_CELL_SCATTER_PLOT_W_CT_LABELS']
-        self._alona_clustering.cell_scatter_plot(fn,
-                                                 dark_bg,
-                                                 cell_type_obj=self.pred)
+        self._alona_clustering.cell_scatter_plot(fn, cell_type_obj=self.pred)
