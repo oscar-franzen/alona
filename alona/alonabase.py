@@ -64,19 +64,19 @@ class AlonaBase():
 
         # validate some of the input parameters
         if self.params['minreads'] < 0:
-            log_error(self, '--minreads must be a positive integer.')
+            log_error(self, msg='--minreads must be a positive integer.')
         if self.params['minexpgenes'] < 0 or self.params['minexpgenes'] > 99:
-            log_error(self, '--minexpgenes must be a value within [0,100).')
+            log_error(self, msg='--minexpgenes must be a value within [0,100).')
         if self.params['nn_k'] < 0:
             log_error(self, '--nn_k cannot be negative.')
         if self.params['prune_snn'] < 0 or self.params['prune_snn'] > 1:
-            log_error(self, '--prune_snn must have a value within [0,1]')
+            log_error(self, msg='--prune_snn must have a value within [0,1]')
         if self.params['perplexity'] < 0:
-            log_error(self, 'Perplexity cannot be less than 0.')
+            log_error(self, msg='Perplexity cannot be less than 0.')
         if self.params['perplexity'] > 100:
             log_warning('Recommended values of --perplexity is 5-50.')
         if self.params['hvg_cutoff'] <= 0:
-            log_error(self, '--hvg must be a positive value')
+            log_error(self, msg='--hvg must be a positive value')
         if self.params['hvg_cutoff'] < 50:
             log_warning('--hvg is set too low')
 
@@ -598,7 +598,7 @@ Too few genes were mappable (<500).')
         try:
             self.is_file_empty()
         except FileEmptyError:
-            log_error(None, 'Input file is empty.')
+            log_error(None, msg='Input file is empty.')
 
         self.create_work_dir()
 
@@ -607,7 +607,7 @@ Too few genes were mappable (<500).')
         except (InvalidFileFormatError,
                 FileCorruptError,
                 InputNotPlainTextError) as err:
-            log_error(None, err)
+            log_error(None, msg=err)
         except Exception as err:
             logging.error(err)
             raise
@@ -618,12 +618,12 @@ Too few genes were mappable (<500).')
         try:
             self.sanity_check_columns()
         except (IrregularColumnCountError) as err:
-            log_error(None, err)
+            log_error(None, msg=err)
 
         try:
             self.sanity_check_genes()
         except (IrregularGeneCountError) as err:
-            log_error(None, err)
+            log_error(None, msg=err)
 
         if self.params['species'] == 'human':
             self.ortholog_mapper()
@@ -631,13 +631,13 @@ Too few genes were mappable (<500).')
         try:
             self.sanity_check_gene_dups()
         except (GeneDuplicatesError) as err:
-            log_error(None, err)
+            log_error(None, msg=err)
 
         self.load_mouse_gene_symbols()
 
         try:
             self.map_input_genes()
         except (TooFewGenesMappableError) as err:
-            log_error(None, err)
+            log_error(None, msg=err)
 
         self.check_gene_name_column_id_present()

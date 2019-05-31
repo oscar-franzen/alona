@@ -48,15 +48,19 @@ class AlonaCell():
 
     def _validate_counts(self):
         """ Basic data validation of gene expression values. """
-        if (np.any(self.data.dtypes != 'int64') and
-                self.alonabase.params['dataformat'] == 'raw'):
-            log_error('Non-count values detected in data matrix while data format is \
+        log_debug('Running _validate_counts()')
+        data_format = self.alonabase.params['dataformat']
+        
+        if (np.any(self.data.dtypes != 'int64') and data_format == 'raw'):
+            log_error(msg='Non-count values detected in data matrix while data format is \
 set to raw read counts.')
         elif self.alonabase.params['dataformat'] == 'log2':
             if np.any(self.data > 1000):
-                log_error('Data do not appear to be log2 transformed.')
+                log_error(msg='Data do not appear to be log2 transformed.')
         else:
             log_debug('_validate_counts() finished without a problem')
+            
+        log_debug('Finished _validate_counts()')
 
     def _remove_empty(self):
         """ Removes empty cells and genes """
@@ -149,7 +153,7 @@ set to raw read counts.')
             self.data = self.data[self.data.columns[cell_counts > min_reads]]
 
             if self.data.shape[1] < 100:
-                log_error(self.alonabase, 'After removing cells with < %s reads, \
+                log_error(self.alonabase, msg='After removing cells with < %s reads, \
                    less than 100 reads remain. Please adjust --minreads' % min_reads)
         if self.alonabase.params['minexpgenes'] > 0:
             log_debug('Filtering genes based on --minexpgenes')
