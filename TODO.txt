@@ -1,4 +1,3 @@
 * Add imputation capability
 * Add support for Jarvis-Patrick clustering
-* Remove latex support?
 * Implement this method for HVG discovery: https://www-nature-com.proxy.kib.ki.se/articles/nmeth.2645#methods (requires ERCC genes)

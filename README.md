@@ -106,6 +106,11 @@ Options:
   --help                          Show this message and exit.
 ```
 
+# Detailed help for all command line options
+```
+  -o, --output TEXT               Specify name of output directory
+```
+
 ## Contact
 * Oscar Franzen <p.oscar.franzen@gmail.com>
 
