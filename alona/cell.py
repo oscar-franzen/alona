@@ -54,6 +54,9 @@ class AlonaCell():
         if (np.any(self.data.dtypes != 'int64') and data_format == 'raw'):
             log_error(msg='Non-count values detected in data matrix while data format is \
 set to raw read counts.')
+        elif (np.any(self.data.dtypes == 'int64') and data_format == 'log2'):
+            log_error(msg='Count values detected in data matrix while data format is \
+set to log2.')
         elif self.alonabase.params['dataformat'] == 'log2':
             if np.any(self.data > 1000):
                 log_error(msg='Data do not appear to be log2 transformed.')
