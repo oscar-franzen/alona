@@ -7,12 +7,14 @@
 #    # ######  ####  #    # #    #          
 ```
 
-alona is a Python-based software pipeline for analysis of single cell RNA sequencing data. alona also exists as a parallel cloud-based service.
+# Description
+`alona` is a Python-based software pipeline for analysis of single cell RNA sequencing data. `alona` also exists as a parallel cloud-based service [0].
 
-Cloud based version of alona: http://alona.panglaodb.se/
+[0] http://alona.panglaodb.se/
 
 # Installation
 ### Requirements
+* Linux (alona should work on MacOS too, but it is untested)
 * Python >= 3.6
 
 ### From GitHub
@@ -27,7 +29,7 @@ cd alona
 pip3 install .
 ```
 
-# Usage example
+# Usage
 ```bash
 python3 -m alona \
         --mrnafull \
@@ -46,3 +48,6 @@ python3 -m alona \
 
 ## Reference
 A manuscript is in preparation.
+
+# License
+GPLv3
