@@ -117,9 +117,9 @@ Options:
 This option is important if data represent full mRNAs. Drop-seq/10X and similar protocols
 sequence the *ENDS* of an mRNA, it is therefore not necessary to normalize for gene
 *LENGTH*. However, if we sequence the complete mRNA then we must also normalize
-measurements for the length of the gene,since longer genes have more mapped reads. If this
-option is not set, then cell type prediction may give unexpected results when analyzing
-full-length mRNA data.
+measurements for the length of the gene, since longer genes have more mapped reads. If
+this option is not set, then cell type prediction may give unexpected results when
+analyzing full-length mRNA data.
 ```
 
 ## Contact

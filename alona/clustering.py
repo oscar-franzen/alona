@@ -56,7 +56,7 @@ class AlonaClustering():
         self._alonacell = alonacell
         self.top_hvg = None
         self.pca_components = None
-        self.embeddings = None
+        self.embeddings = None # pd.DataFrame
         self.nn_idx = None
         self.snn_graph = None
         self.leiden_cl = None
@@ -362,6 +362,7 @@ class AlonaClustering():
 
     def cell_scatter_plot(self, filename, dark_bg_param=False, cell_type_obj=None):
         """ Generates a tSNE scatter plot with colored clusters. """
+        
         log_debug('Generating scatter plot...')
         dark_bg = dark_bg_param
         ignore_clusters = self.params['ignore_small_clusters']
@@ -394,6 +395,12 @@ class AlonaClustering():
             #self.cluster_colors = colors
             
             self.cluster_colors = uniqueColors(len(uniq))
+            
+        cell_count = self.embeddings.shape[0]
+        if cell_count > 1000:
+            marker_size = 0.8
+        else:
+            marker_size = 3
 
         for i in range(len(uniq)):
             idx = np.array(self.leiden_cl) == i
@@ -405,7 +412,7 @@ class AlonaClustering():
                 log_warning('Ignoring singleton cluster: %s' % i)
                 continue
             
-            plt.scatter(x, y, s=3, color=self.cluster_colors[i], label=uniq[i])
+            plt.scatter(x, y, s=marker_size, color=self.cluster_colors[i], label=uniq[i])
             renderer = fig.canvas.get_renderer()
 
             if cell_type_obj != None:
