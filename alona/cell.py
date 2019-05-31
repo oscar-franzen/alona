@@ -40,6 +40,7 @@ class AlonaCell():
         self.alonabase = alonabase
         self.data = None
         self.data_norm = None
+        self.data_ERCC = None
 
         self._alona_clustering = AlonaClustering(self, alonabase.params)
 
@@ -171,16 +172,15 @@ set to log2.')
         log_info('Data dimensions after filtering: %s genes and %s cells' % \
         (self.data.shape[0], self.data.shape[1]))
 
-    def _rpkm(self):
+    def _rpkm(self, data):
         """ Normalize expression values as RPKM. """
         """ doi:10.1186/s13059-016-0881-8 """
+        log_debug('Normalizing data to RPKM')
         if self.alonabase.params['species'] == 'human':
             # TODO: Implement RPKM for human. This should be executed _before_ mapping
             # to mouse orthologs (16-May-2019).
             log_info('RPKM for "--species human" is not implemented at the moment.')
             raise NotImplementedError('RPKM for human is not implemented at the moment.')
-
-        log_debug('Normalizing data to RPKM')
 
         # the file contains _combined_ lengths of all exons of the particular gene
         exon_lengths = pd.read_csv(get_alona_dir()+GENOME['MOUSE_EXON_LENGTHS'], delimiter=' ',
@@ -188,7 +188,7 @@ set to log2.')
         exon_lengths.columns = ['gene', 'length']
 
         # intersects and sorts
-        temp = pd.merge(self.data, exon_lengths, how='inner', left_on=self.data.index,
+        temp = pd.merge(data, exon_lengths, how='inner', left_on=data.index,
                         right_on=exon_lengths['gene'].str.extract('^(.+)\.[0-9]+')[0])
 
         temp.index = temp['gene']
@@ -208,7 +208,8 @@ set to log2.')
 
         _q = temp.apply(_foo, axis=0) # 0 applying to each column
 
-        self.data_norm = np.log2(_q+1)
+        data_norm = np.log2(_q+1)
+        return data_norm
 
     @staticmethod
     def _dump(d, fn='foo.joblib'):
@@ -216,35 +217,45 @@ set to log2.')
         log_debug('Writing dump file %s' % fn)
         dump(d, fn)
 
-    def _normalization(self):
+    def _normalization(self, data, fn_out):
         """ Performs normalization of the gene expression values. """
-        norm_mat_path = self.alonabase.get_wd() + '/normdata.joblib'
+        log_debug('Inside _normalization()')
+        norm_mat_path = self.alonabase.get_wd() + fn_out
 
         if os.path.exists(norm_mat_path):
             log_debug('Loading data matrix from file')
-            self.data_norm = load(norm_mat_path)
-            return
+            return load(norm_mat_path)
 
         if not self.alonabase.params['mrnafull'] and \
            self.alonabase.params['dataformat'] == 'raw':
-            log_debug('Starting normalization...')
             # Axis 0 will act on all the ROWS in each COLUMN
             # Axis 1 will act on all the COLUMNS in each ROW
-            col_sums = self.data.apply(lambda x: sum(x), axis=0)
-            self.data_norm = (self.data / col_sums) * 10000
-            self.data_norm = np.log2(self.data_norm+1)
+            col_sums = data.apply(lambda x: sum(x), axis=0)
+            data_norm = (data / col_sums) * 10000
+            data_norm = np.log2(data_norm+1)
         elif self.alonabase.params['mrnafull'] and \
              self.alonabase.params['dataformat'] == 'raw':
-            self._rpkm()
+            data_norm = self._rpkm(data)
         elif self.alonabase.params['mrnafull'] and \
              self.alonabase.params['dataformat'] == 'rpkm':
             log_debug('_normalization() Running log2')
-            self.data_norm = np.log2(self.data+1)
+            data_norm = np.log2(data+1)
         else:
-            self.data_norm = self.data
+            data_norm = data
             log_debug('Normalization is not needed.')
 
-        self._dump(self.data_norm, norm_mat_path)
+        self._dump(data_norm, norm_mat_path)
+        
+        log_debug('Finished _normalization()')
+        
+        return data_norm
+        
+    def _lift_ERCC(self):
+        """ Moves ERCC (if present) to a separate matrix. """
+        log_debug('Inside _lift_ERCC()')
+        self.data_ERCC = self.data[self.data.index.str.contains('^ERCC-[0-9]+$')]
+        self.data = self.data[np.logical_not(self.data.index.str.contains('^ERCC-[0-9]+$'))]
+        log_debug('Finishing _lift_ERCC()')
 
     def load_data(self):
         """ Load expression matrix. """
@@ -275,10 +286,14 @@ set to log2.')
         self._read_counts_per_cell_filter()
         self._genes_expressed_per_cell_barplot()
         self._quality_filter()
+        self._lift_ERCC()
         self._print_dimensions()
 
         # normalize gene expression values
-        self._normalization()
+        #self._normalization()
+        
+        self.data_norm = self._normalization(self.data, '/normdata.joblib')
+        self.data_ERCC = self._normalization(self.data_ERCC, '/normdata_ERCC.joblib')
 
         log_debug('done loading expression matrix')
 

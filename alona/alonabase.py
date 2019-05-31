@@ -14,6 +14,7 @@
  Oscar Franzen <p.oscar.franzen@gmail.com>
 """
 
+import sys
 import re
 import os
 import uuid
@@ -457,6 +458,7 @@ low.')
         genes_found = {}
         switch = 0
         total = 0
+        ercc_count = 0
 
         # are gene symbols "Entrez"? these gene symbols consists of numbers only.
         is_entrez_gene_id = 1
@@ -474,10 +476,15 @@ low.')
 
             foo = line.split(self._delimiter)
             gene = foo[0]
+            new_gene_name = ''
 
             # some have gene symbols like this: Abc__chr1
             if gene.find('__') > 0:
                 gene = gene.split('__')[0]
+                
+            if re.search('^ERCC-[0-9]+$', gene):
+                new_gene_name = gene
+                ercc_count += 1
 
             if is_entrez_gene_id:
                 if self.mouse_entrez.get(gene, '') != '':
@@ -487,8 +494,8 @@ low.')
                         new_gene_name = self.mouse_ensembls.get(ens, '')
                         genes_found[gene] = 1
 
-                        ftemp.write('%s%s%s' % (new_gene_name, delimiter,
-                                                delimiter.join(foo[1:])))
+                        #ftemp.write('%s%s%s' % (new_gene_name, delimiter,
+                        #                        delimiter.join(foo[1:])))
 
                         switch = 1
                     else:
@@ -504,8 +511,8 @@ low.')
                     if re.search(r'^\S+_ENSMUSG[0-9]+\.[0-9]+$', gene):
                         new_gene_name = re.search(r'^(\S+_ENSMUSG[0-9]+)\.[0-9]+$',
                                                   gene).group(1)
-                        ftemp.write('%s%s%s' % (new_gene_name, self._delimiter,
-                                                self._delimiter.join(foo[1:])))
+                        #ftemp.write('%s%s%s' % (new_gene_name, self._delimiter,
+                        #                        self._delimiter.join(foo[1:])))
                     else:
                         ftemp.write(line)
 
@@ -518,9 +525,9 @@ low.')
                 if self.mouse_ensembls.get(ensembl_id, '') != '':
                     genes_found[ensembl_id] = 1
 
-                    new_gene_name = mouse_ensembls[ensembl_id]
-                    ftemp.write('%s%s%s' % (new_gene_name, self._delimiter,
-                                            self._delimiter.join(foo[1:])))
+                    new_gene_name = self.mouse_ensembls[ensembl_id]
+                    #ftemp.write('%s%s%s' % (new_gene_name, self._delimiter,
+                    #                        self._delimiter.join(foo[1:])))
 
                     switch = 1
                 else:
@@ -536,16 +543,24 @@ low.')
                         genes_found[item] = 1
                         new_gene_name = self.mouse_symbols[item]
 
-                        ftemp.write('%s%s%s' % (new_gene_name, self._delimiter,
-                                                self._delimiter.join(foo[1:])))
+                        #ftemp.write('%s%s%s' % (new_gene_name, self._delimiter,
+                        #                        self._delimiter.join(foo[1:])))
                         switch = 1
                         found = 1
                         break
 
                 if not found:
                     self.unmappable.append(gene)
+                    
+            if new_gene_name != '':
+                ftemp.write('%s%s%s' % (new_gene_name, self._delimiter,
+                            self._delimiter.join(foo[1:])))
 
         ftemp.close()
+        
+        if ercc_count > 0:
+            fn = self.get_wd() + '/ERCC.mat'
+            log_info('%s ERCC genes were detected' % ercc_count)
 
         if self.params['species'] == 'human':
             del self.unmappable[:]
