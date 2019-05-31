@@ -8,9 +8,9 @@
 ```
 
 # Description
-`alona` is a Python-based software pipeline for analysis of single cell RNA sequencing data. `alona` performs normalization, quality control, clustering and cell type annotation of single cell RNA-seq data [2].
+`alona` is a Python-based software pipeline for analysis of single cell RNA sequencing data. `alona` performs normalization, quality control, clustering and cell type annotation of single cell RNA-seq data [1][1].
 
-`alona` also exists as a parallel cloud-based service [1].
+`alona` also exists as a parallel cloud-based service [2][2].
 
 # Installation
 ### Requirements
@@ -116,6 +116,5 @@ A manuscript is in preparation.
 GPLv3
 
 # References
-[1] http://alona.panglaodb.se/
-
-[2] https://en.wikipedia.org/wiki/Single-cell_transcriptomics
+[1]: https://en.wikipedia.org/wiki/Single-cell_transcriptomics
+[2]: http://alona.panglaodb.se/
