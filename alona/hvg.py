@@ -33,7 +33,7 @@ class AlonaHighlyVariableGenes():
         self.hvg_method = hvg_method
         self.hvg_n = hvg_n
         self.data_norm = data_norm
-        
+
     def find(self):
         """ Finds HVG. Returns an array of HVG. """
         if self.hvg_method == 'seurat':
@@ -41,7 +41,7 @@ class AlonaHighlyVariableGenes():
         elif self.hvg_method == 'brennecke':
             hvg = self.hvg_brennecke()
         return hvg
-        
+
     @staticmethod
     def _exp_mean(mat):
         # Axis 0 will act on all the ROWS in each COLUMN
@@ -51,7 +51,7 @@ class AlonaHighlyVariableGenes():
     def hvg_brennecke(self, norm_ERCC=None, fdr=0.1, minBiolDisp=0.5):
         """
         Implements the method of Brennecke et al. (2013) to identify highly variable genes.
-        Largely follows the function Brennecke_getVariableGenes from the R package M3Drop.
+        Largely follows the function BrenneckeGetVariableGenes from the R package M3Drop.
 
         The below code fits data using GLM with Fisher Scoring. GLM code copied from
         (credits to @madrury for this code): https://github.com/madrury/py-glm
@@ -59,7 +59,7 @@ class AlonaHighlyVariableGenes():
         Brennecke et al. (2013) Accounting for technical noise in single-cell RNA-seq
         experiments. Nature Methods 10.1038/nmeth.2645
         """
-        
+
         data_norm = self.data_norm
 
         if norm_ERCC == None:
@@ -78,7 +78,6 @@ class AlonaHighlyVariableGenes():
         # biological genes
         meansGenes = data_norm.mean(axis=1)
         varsGenes = data_norm.var(axis=1)
-        cv2Genes = varsGenes/meansGenes**2
 
         minMeanForFit = np.quantile(meansSp[cv2Sp > 0.3], 0.8)
         useForFit = meansSp >= minMeanForFit
@@ -121,9 +120,9 @@ class AlonaHighlyVariableGenes():
         dispersion for each bin as variance to mean ratio. Within each bin, Z-scores are
         calculated and returned. Z-scores are ranked and the top 1000 are selected.
         """
-        
+
         data_norm = self.data_norm
-        
+
         log_debug('Entering hvg_seurat()')
 
         # number of bins
@@ -145,7 +144,7 @@ class AlonaHighlyVariableGenes():
         ret = pd.concat(ret)
         ret = ret.sort_values(ascending=False)
         self.top_hvg = ret.head(self.hvg_n)
-        
+
         ret = np.array(self.top_hvg.index)
         log_debug('Finishing hvg_seurat()')
         return ret
