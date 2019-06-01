@@ -14,7 +14,12 @@
  Oscar Franzen <p.oscar.franzen@gmail.com>
 """
 
+import pandas as pd
 import numpy as np
+import scipy.stats
+
+from glm.glm import GLM
+from glm.families import Gamma
 
 def p_adjust_bh(p):
     """Benjamini-Hochberg p-value correction for multiple hypothesis testing."""
@@ -80,10 +85,10 @@ def hvg_brennecke(norm_data, norm_ERCC=None, fdr=0.1, minBiolDisp=0.5):
     cv2th = a0+minBiolDisp+a0*minBiolDisp
 
     testDenom = (meansGenes*psia1theta+(meansGenes**2)*cv2th)/(1+cv2th/m)
-    
-    qwe = varsGenes * (m - 1)
     q = varsGenes * (m - 1)/testDenom
     
     p = 1-scipy.stats.chi2.cdf(q,m-1)
+    padj = p_adjust_bh(p)
+    res = pd.DataFrame( {'gene': meansGenes.index, 'pvalue' : p, 'padj' : padj} )
     
-    #p <- 1 - pchisq(varsGenes * (m - 1)/testDenom, m - 1)
+    return res[res['padj']<fdr]['gene']
