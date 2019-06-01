@@ -68,7 +68,9 @@ Options:
                                   is to autodetect if a header is present or
                                   not. Default: auto
   -m, --nomito                    Exclude mitochondrial genes from analysis.
-  --hvg INTEGER                   Number of top highly variable genes to use.
+  --hvg [seurat|brennecke]        Method to use for identifying highly
+                                  variable genes.Default: seurat
+  --hvg_n INTEGER                 Number of top highly variable genes to use.
                                   Default: 1000
   --nn_k INTEGER                  k in the nearest neighbour search. Default:
                                   10
@@ -91,8 +93,11 @@ Options:
   --perplexity INTEGER            The perplexity parameter in the t-SNE
                                   algorithm. Default: 30
   -s, --species [human|mouse]     Species your data comes from. Default: mouse
-  --dark_bg                       Use dark background in the scatter plot.
+  --dark_bg                       Use dark background in scatter plots.
                                   Default: False
+  --color_labels TEXT             Plot cell type labels with the same color as
+                                  the corresponding cell cluster cells.
+                                  Default: True
   --cleanup                       Perform cleanup of temporary files.
   -lf, --logfile TEXT             Name of log file. Set to /dev/null if you
                                   want to disable logging to a file. Default:
@@ -108,9 +113,11 @@ Options:
 # Detailed help for all command line options
 ```
   -o, --output TEXT               Specify name of output directory
-
+```
+```
   -df, --dataformat [raw|rpkm|log2]
-
+```
+```
   --mrnafull                      Data come from a full-length protocol, such
                                   as SMART-seq2.
                                   
@@ -120,6 +127,12 @@ sequence the *ENDS* of an mRNA, it is therefore not necessary to normalize for g
 measurements for the length of the gene, since longer genes have more mapped reads. If
 this option is not set, then cell type prediction may give unexpected results when
 analyzing full-length mRNA data.
+```
+```
+  --hvg [seurat|brennecke]        Method to use for identifying highly
+                                  variable genes.Default: seurat
+
+This option specifies the method to be used for identifying variable genes.
 ```
 
 ## Contact
