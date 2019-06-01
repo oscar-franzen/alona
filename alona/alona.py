@@ -52,7 +52,10 @@ type=click.Choice(['auto', 'yes', 'no']), default='auto')
 @click.option('-m', '--nomito', help='Exclude mitochondrial genes from analysis.',
               is_flag=True)
               
-@click.option('--hvg', help='Number of top highly variable genes to use. Default: 1000',
+@click.option('--hvg', help='Method to use for identifying highly variable genes.\
+Default: seurat', type=click.Choice(['seurat', 'brennecke']), default='seurat')
+              
+@click.option('--hvg_n', help='Number of top highly variable genes to use. Default: 1000',
               default=1000)
               
 @click.option('--nn_k', help='k in the nearest neighbour search. Default: 10',
@@ -96,9 +99,9 @@ the log file. Default: regular', type=click.Choice(['regular', 'debug']), defaul
 @click.option('--version', help='Display version number.', is_flag=True,
               callback=print_version)
 def run(filename, output, dataformat, minreads, minexpgenes, mrnafull, delimiter, header,
-        nomito, hvg, nn_k, prune_snn, leiden_partition, leiden_res, ignore_small_clusters,
-        perplexity, species, dark_bg, color_labels, cleanup, logfile, loglevel, nologo,
-        version):
+        nomito, hvg, hvg_n, nn_k, prune_snn, leiden_partition, leiden_res,
+        ignore_small_clusters, perplexity, species, dark_bg, color_labels, cleanup,
+        logfile, loglevel, nologo, version):
 
     # confirm the genome reference files can be found
     for item in GENOME:
@@ -135,7 +138,8 @@ tried this path: %s' % (GENOME[item], path))
         'leiden_partition' : leiden_partition,
         'leiden_res' : leiden_res,
         'ignore_small_clusters' : ignore_small_clusters,
-        'hvg_cutoff' : hvg,
+        'hvg_method' : hvg,
+        'hvg_cutoff' : hvg_n,
         'color_labels' : color_labels
     }
 

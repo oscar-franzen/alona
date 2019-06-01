@@ -46,6 +46,7 @@ import alona.irlbpy
 from .log import (log_info, log_debug, log_error, log_warning)
 from .constants import OUTPUT
 from .utils import (get_alona_dir, get_random_color, color_distance, generate_new_color, uniqueColors)
+from .hvg import AlonaHighlyVariableGenes
 
 class AlonaClustering():
     """
@@ -54,7 +55,7 @@ class AlonaClustering():
 
     def __init__(self, alonacell, params):
         self._alonacell = alonacell
-        self.top_hvg = None
+        self.hvg = None
         self.pca_components = None
         self.embeddings = None # pd.DataFrame
         self.nn_idx = None
@@ -63,44 +64,14 @@ class AlonaClustering():
         self.params = params
         self.cluster_colors = []
 
-    @staticmethod
-    def _exp_mean(mat):
-        # Axis 0 will act on all the ROWS in each COLUMN
-        # Axis 1 will act on all the COLUMNS in each ROW
-        return mat.mean(axis=1)
-
     def find_variable_genes(self):
-        """
-        Retrieves a list of highly variable genes. Mimics Seurat's `FindVariableGenes`.
-        The function bins the genes according to average expression, then calculates
-        dispersion for each bin as variance to mean ratio. Within each bin, Z-scores are
-        calculated and returned. Z-scores are ranked and the top 1000 are selected.
-        """
-        log_debug('Finding variable genes')
-
-        # number of bins
-        num_bin = 20
-        top_genes = self.params['hvg_cutoff']
-
-        gene_mean = self._exp_mean(self._alonacell.data_norm)
-        # equal width (not size) of bins
-        bins = pd.cut(gene_mean, num_bin)
-
-        ret = []
-
-        for _, sliced in self._alonacell.data_norm.groupby(bins):
-            # Axis 0 will act on all the ROWS in each COLUMN
-            # Axis 1 will act on all the COLUMNS in each ROW
-            dispersion = sliced.var(axis=1)/sliced.mean(axis=1)
-            zscores = (dispersion-dispersion.mean())/dispersion.std()
-            ret.append(zscores)
-
-        ret = pd.concat(ret)
-        ret = ret.sort_values(ascending=False)
-        self.top_hvg = ret.head(top_genes)
-
+        hvg_finder = AlonaHighlyVariableGenes(hvg_method=self.params['hvg_method'],
+                                              hvg_n=self.params['hvg_cutoff'],
+                                              data_norm=self._alonacell.data_norm)
+        self.hvg = hvg_finder.find()
+        
         wd = self._alonacell.alonabase.get_wd()
-        self.top_hvg.to_csv(wd + OUTPUT['FILENAME_HVG'], header=False)
+        pd.DataFrame(self.hvg).to_csv(wd + OUTPUT['FILENAME_HVG'], header=False, index=False)
 
     def PCA(self, out_path):
         """
@@ -124,7 +95,7 @@ class AlonaClustering():
 
         log_debug('Running PCA...')
 
-        index_v = self._alonacell.data_norm.index.isin(self.top_hvg.index)
+        index_v = self._alonacell.data_norm.index.isin(self.hvg)
         sliced = self._alonacell.data_norm[index_v]
         lanc = alona.irlbpy.lanczos(sliced, nval=75, maxit=1000)
 
