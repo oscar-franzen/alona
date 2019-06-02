@@ -113,10 +113,14 @@ Options:
 # Detailed help for all command line options
 option | detailed description
 --- | ---
-`-out, --output [TEXT]` | Specify name of output directory
-`-df, --dataformat [raw\|rpkm\|log2]` | test
-`--mrnafull` | Data come from a full-length protocol, such as SMART-seq2. This option is important if data represent full mRNAs. Drop-seq/10X and similar protocols sequence the *ENDS* of an mRNA, it is therefore not necessary to normalize for gene *LENGTH*. However, if we sequence the complete mRNA then we must also normalize measurements for the length of the gene, since longer genes have more mapped reads. If this option is not set, then cell type prediction may give unexpected results when analyzing full-length mRNA data.
-`--hvg [seurat\|brennecke]` | Method to use for identifying highly variable genes. This option specifies the method to be used for identifying variable genes. Default: seurat.
+`-out, --output [TEXT]` | Specify name of output directory. If this is not given then a directory with the format: alona_out_N will be created, where N is a 8 letter random string, in the current working directory.
+`-df, --dataformat [raw\|rpkm\|log2]` | Specifies how the input data has been normalized. There are currently three options: `raw` means input data are raw read counts (alona will take care of normalization steps); `rpkm` means input data are normalized as RPKM but not logarithmized and alona will not perform any more normalization except for loging; `log2` means that input data have been normalized and logarithmized and alona will not perform these steps. Default: raw
+`--mrnafull` | Data come from a full-length protocol, such as SMART-seq2. This option is important if data represent full mRNAs. Drop-seq/10X and similar protocols sequence the *ENDS* of an mRNA, it is therefore not necessary to normalize for gene *LENGTH*. However, if we sequence the complete mRNA then we must also normalize measurements for the length of the gene, since longer genes have more mapped reads. If this option is not set, then cell type prediction may give unexpected results when analyzing full-length mRNA data. Default: False
+`--hvg [seurat\|brennecke]` | Method to use for identifying highly variable genes. This option specifies the method to be used for identifying variable genes. `seurat` means the method implemented in the Seurat R package. `brennecke` refers to the method proposed by Brennecke et al ([3][3]). Default: seurat
+
+# Finding highly variable genes
+### `seurat`
+### `brennecke`
 
 ## Contact
 * Oscar Franzen <p.oscar.franzen@gmail.com>
@@ -129,3 +133,4 @@ GPLv3
 
 [1]: https://en.wikipedia.org/wiki/Single-cell_transcriptomics
 [2]: http://alona.panglaodb.se/
+[3]: https://doi.org/10.1038/nmeth.2645
