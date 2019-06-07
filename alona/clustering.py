@@ -67,7 +67,8 @@ class AlonaClustering():
     def find_variable_genes(self):
         hvg_finder = AlonaHighlyVariableGenes(hvg_method=self.params['hvg_method'],
                                               hvg_n=self.params['hvg_cutoff'],
-                                              data_norm=self._alonacell.data_norm)
+                                              data_norm=self._alonacell.data_norm,
+                                              data_ERCC=self._alonacell.data_ERCC)
         self.hvg = hvg_finder.find()
         
         wd = self._alonacell.alonabase.get_wd()

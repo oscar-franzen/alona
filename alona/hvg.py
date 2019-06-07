@@ -18,6 +18,9 @@ import pandas as pd
 import numpy as np
 import scipy.stats
 
+from sklearn.preprocessing import PolynomialFeatures
+from sklearn.linear_model import LinearRegression
+
 from .glm.glm import GLM
 from .glm.families import Gamma
 
@@ -29,10 +32,11 @@ class AlonaHighlyVariableGenes():
     HVG class.
     """
 
-    def __init__(self, hvg_method, hvg_n, data_norm):
+    def __init__(self, hvg_method, hvg_n, data_norm, data_ERCC):
         self.hvg_method = hvg_method
         self.hvg_n = hvg_n
         self.data_norm = data_norm
+        self.data_ERCC = data_ERCC
 
     def find(self):
         """ Finds HVG. Returns an array of HVG. """
@@ -40,6 +44,10 @@ class AlonaHighlyVariableGenes():
             hvg = self.hvg_seurat()
         elif self.hvg_method == 'brennecke':
             hvg = self.hvg_brennecke()
+        elif self.hvg_method == 'scran':
+            hvg = self.hvg_scran()
+        else:
+            log_error('Unknown hvg method specified.')
         return hvg
 
     @staticmethod
@@ -148,3 +156,59 @@ class AlonaHighlyVariableGenes():
         ret = np.array(self.top_hvg.index)
         log_debug('Finishing hvg_seurat()')
         return ret
+
+    def hvg_scran(self):
+        """
+        This function implements the approach from scran to identify highly variable genes.
+        
+        Expression counts should be normalized and on a log scale.
+        
+        Outline of the steps:
+        
+        1. fits a polynomial regression model to mean and variance of the technical genes
+        2. decomposes the total variance of the biological genes by subtracting the
+           technical variance predicted by the fit
+        3. sort based on biological variance
+        
+        Reference
+        Lun ATL, McCarthy DJ, Marioni JC (2016). “A step-by-step workflow for low-level
+        analysis of single-cell RNA-seq data with Bioconductor.” F1000Research,
+        doi.org/10.12688/f1000research.9501.2
+        """
+
+        if self.data_ERCC == None:
+            log_error(None, 'Running "--hvg scran" requires ERCC spikes in the dataset. \
+these should begin with ERCC- followed by numbers.')
+        
+        norm_data = self.data_norm        
+        norm_ERCC = self.data_ERCC
+        norm_ERCC = norm_ERCC.dropna(axis=1, how='all')
+
+        means_tech = norm_ERCC.mean(axis=1)
+        vars_tech = norm_ERCC.var(axis=1)
+        
+        to_fit = np.log(vars_tech)
+        arr = [ list(item) for item in zip(*sorted(zip(means_tech , to_fit))) ]
+        
+        x=arr[0]
+        y=arr[1]
+        
+        poly_reg = PolynomialFeatures(degree=4)
+        x_poly = poly_reg.fit_transform(np.array(x).reshape(-1,1))
+        pol_reg = LinearRegression()
+        pol_reg.fit(x_poly, y)
+        
+        #plt.scatter(x, y, color='red')
+        #plt.plot(x, pol_reg.predict(poly_reg.fit_transform(np.array(x).reshape(-1,1))), color='blue')
+        #plt.xlabel('mean')
+        #plt.ylabel('var')
+        #plt.show()
+        
+        # predict and remove technical variance
+        vars_pred = means_bio = norm_data.mean(axis=1)
+        vars_bio_total = norm_data.var(axis=1)
+        
+        # biological variance component
+        vars_bio_bio = vars_bio_total - vars_pred
+        vars_bio_bio = vars_bio_bio.sort_values(ascending=False)
+        return vars_bio_bio.head(self.hvg_n).index.values

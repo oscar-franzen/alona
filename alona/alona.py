@@ -52,8 +52,8 @@ type=click.Choice(['auto', 'yes', 'no']), default='auto')
 @click.option('-m', '--nomito', help='Exclude mitochondrial genes from analysis.',
               is_flag=True)
               
-@click.option('--hvg', help='Method to use for identifying highly variable genes.\
-Default: seurat', type=click.Choice(['seurat', 'brennecke']), default='seurat')
+@click.option('--hvg', help='Method to use for identifying highly variable genes. \
+Default: seurat', type=click.Choice(['seurat', 'brennecke', 'scran']), default='seurat')
               
 @click.option('--hvg_n', help='Number of top highly variable genes to use. Default: 1000',
               default=1000)
