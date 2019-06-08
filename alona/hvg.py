@@ -176,11 +176,11 @@ class AlonaHighlyVariableGenes():
         doi.org/10.12688/f1000research.9501.2
         """
 
-        if self.data_ERCC == None:
+        if self.data_ERCC.empty:
             log_error(None, 'Running "--hvg scran" requires ERCC spikes in the dataset. \
 these should begin with ERCC- followed by numbers.')
         
-        norm_data = self.data_norm        
+        norm_data = self.data_norm
         norm_ERCC = self.data_ERCC
         norm_ERCC = norm_ERCC.dropna(axis=1, how='all')
 
@@ -205,7 +205,8 @@ these should begin with ERCC- followed by numbers.')
         #plt.show()
         
         # predict and remove technical variance
-        vars_pred = means_bio = norm_data.mean(axis=1)
+        bio_means = norm_data.mean(axis=1)
+        vars_pred = pol_reg.predict(poly_reg.fit_transform(np.array(bio_means).reshape(-1,1)))
         vars_bio_total = norm_data.var(axis=1)
         
         # biological variance component
