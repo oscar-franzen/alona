@@ -51,7 +51,7 @@ class AlonaHighlyVariableGenes():
         elif self.hvg_method == 'scran':
             hvg = self.hvg_scran()
         elif self.hvg_method == 'Chen2016':
-            hvg = self.hvg_Chen2016()
+            hvg = self.hvg_chen2016()
         else:
             log_error('Unknown hvg method specified.')
         return hvg
@@ -166,17 +166,17 @@ class AlonaHighlyVariableGenes():
     def hvg_scran(self):
         """
         This function implements the approach from scran to identify highly variable genes.
-        
+
         Expression counts should be normalized and on a log scale.
-        
+
         Outline of the steps:
-        
+
         1. fits a polynomial regression model to mean and variance of the technical genes
         2. decomposes the total variance of the biological genes by subtracting the
            technical variance predicted by the fit
         3. sort based on biological variance
-        
-        Reference
+
+        Reference:
         Lun ATL, McCarthy DJ, Marioni JC (2016). “A step-by-step workflow for low-level
         analysis of single-cell RNA-seq data with Bioconductor.” F1000Research,
         doi.org/10.12688/f1000research.9501.2
@@ -185,55 +185,56 @@ class AlonaHighlyVariableGenes():
         if self.data_ERCC.empty:
             log_error(None, 'Running "--hvg scran" requires ERCC spikes in the dataset. \
 these should begin with ERCC- followed by numbers.')
-        
+
         norm_data = self.data_norm
         norm_ERCC = self.data_ERCC
         norm_ERCC = norm_ERCC.dropna(axis=1, how='all')
 
         means_tech = norm_ERCC.mean(axis=1)
         vars_tech = norm_ERCC.var(axis=1)
-        
+
         to_fit = np.log(vars_tech)
-        arr = [ list(item) for item in zip(*sorted(zip(means_tech , to_fit))) ]
-        
-        x=arr[0]
-        y=arr[1]
-        
+        arr = [list(item) for item in zip(*sorted(zip(means_tech, to_fit)))]
+
+        x = arr[0]
+        y = arr[1]
+
         poly_reg = PolynomialFeatures(degree=4)
-        x_poly = poly_reg.fit_transform(np.array(x).reshape(-1,1))
+        x_poly = poly_reg.fit_transform(np.array(x).reshape(-1, 1))
         pol_reg = LinearRegression()
         pol_reg.fit(x_poly, y)
-        
+
         #plt.scatter(x, y, color='red')
         #plt.plot(x, pol_reg.predict(poly_reg.fit_transform(np.array(x).reshape(-1,1))), color='blue')
         #plt.xlabel('mean')
         #plt.ylabel('var')
         #plt.show()
-        
+
         # predict and remove technical variance
         bio_means = norm_data.mean(axis=1)
-        vars_pred = pol_reg.predict(poly_reg.fit_transform(np.array(bio_means).reshape(-1,1)))
+        vars_pred = pol_reg.predict(poly_reg.fit_transform(np.array(bio_means).reshape(-1, 1)))
         vars_bio_total = norm_data.var(axis=1)
-        
+
         # biological variance component
         vars_bio_bio = vars_bio_total - vars_pred
         vars_bio_bio = vars_bio_bio.sort_values(ascending=False)
         return vars_bio_bio.head(self.hvg_n).index.values
 
-    def hvg_Chen2016(norm_data):
+    def hvg_chen2016(norm_data):
         """
-        This function implements the approach from Chen (2016) to identify highly variable genes.
+        This function implements the approach from Chen (2016) to identify highly variable
+        genes.
         https://bmcgenomics.biomedcentral.com/articles/10.1186/s12864-016-2897-6
-        
+
         The code is essentially a direct translation of the R code from:
         https://github.com/hillas/scVEGs/blob/master/scVEGs.r
-        
+
         Expression counts should be normalized and not on a log scale.
         """
-        
+
         norm_data = 2**norm_data-1
         avg = norm_data.mean(axis=1)
-        norm_data = norm_data[avg>0]
+        norm_data = norm_data[avg > 0]
 
         rows = norm_data.shape[0]
         avg = norm_data.mean(axis=1)
@@ -245,8 +246,8 @@ these should begin with ERCC- followed by numbers.')
 
         A = np.vstack([np.log10(xdata), np.ones(len(xdata))]).T
         res = np.linalg.lstsq(A, ydata, rcond=None)[0]
-        
-        def predict(k,m,x):
+
+        def predict(k, m, x):
             y = k*x+m
             return y
 
@@ -256,49 +257,49 @@ these should begin with ERCC- followed by numbers.')
         #plt.show()
 
         xSeq = np.arange(min(np.log10(xdata)), max(np.log10(xdata)), 0.005)
-        
+
         def h(i):
             a = np.log10(xdata) >= (xSeq[i] - 0.05)
             b = np.log10(xdata) < (xSeq[i] + 0.05)
             return np.sum((a & b))
 
-        gapNum = [ h(i) for i in range(0,len(xSeq)) ]
+        gapNum = [h(i) for i in range(0, len(xSeq))]
         cdx = np.nonzero(np.array(gapNum) > rows*0.005)[0]
         xSeq = 10 ** xSeq
 
         ySeq = predict(*res, np.log10(xSeq))
-        yDiff = np.diff(ySeq,1)
+        yDiff = np.diff(ySeq, 1)
         ix = np.nonzero((yDiff > 0) & (np.log10(xSeq[0:-1]) > 0))[0]
 
         if len(ix) == 0:
             ix = len(ySeq) - 1
         else:
             ix = ix[0]
-            
+
         xSeq_all = 10**np.arange(min(np.log10(xdata)), max(np.log10(xdata)), 0.001)
 
         xSeq = xSeq[cdx[0]:ix]
         ySeq = ySeq[cdx[0]:ix]
 
-        reg = LinearRegression().fit(np.log10(xSeq).reshape(-1,1), ySeq)
-        
+        reg = LinearRegression().fit(np.log10(xSeq).reshape(-1, 1), ySeq)
+
         #plt.clf()
         #plt.scatter(np.log10(xSeq), ySeq, color='red')
         #plt.scatter(xSeq, reg.predict(np.array(xSeq).reshape(-1,1)), color='blue')
         #plt.show()
-        
-        ydataFit = reg.predict(np.log10(xSeq_all).reshape(-1,1))
-        
+
+        ydataFit = reg.predict(np.log10(xSeq_all).reshape(-1, 1))
+
         logX = np.log10(xdata)
         logXseq = np.log10(xSeq_all)
-        
+
         cvDist = []
 
-        for i in range(0,len(logX)):
+        for i in range(0, len(logX)):
             cx = np.nonzero((logXseq >= (logX[i] - 0.2)) & (logXseq < (logX[i] + 0.2)))[0]
             tmp = np.sqrt((logXseq[cx] - logX[i])**2 + (ydataFit[cx] - ydata[i])**2)
             tx = np.argmin(tmp)
-            
+
             if logXseq[cx[tx]] > logX[i]:
                 if ydataFit[cx[tx]] > ydata[i]:
                     cvDist.append(-1*tmp[tx])
@@ -315,22 +316,22 @@ these should begin with ERCC- followed by numbers.')
         dor_y = dor(cvDist)
         distMid = cvDist[np.argmax(dor_y)]
         dist2 = cvDist - distMid
-        
+
         a = dist2[dist2 <= 0]
         b = abs(dist2[dist2 < 0])
         c = distMid
-        tmpDist = np.concatenate((a,b))
-        tmpDist = np.append(tmpDist,c)
-        
+        tmpDist = np.concatenate((a, b))
+        tmpDist = np.append(tmpDist, c)
+
         # estimate mean and sd using maximum likelihood
         distFit = norm.fit(tmpDist)
-        
+
         pRaw = 1-norm.cdf(cvDist, loc=distFit[0], scale=distFit[1])
         pAdj = p_adjust_bh(pRaw)
 
         res = pd.DataFrame({'gene': norm_data.index, 'pvalue' : pRaw, 'padj' : pAdj})
         res = res.sort_values(by='pvalue')
-        
+
         filt = res[res['padj'] < 0.10]['gene']
 
         return np.array(filt.head(self.hvg_n))
