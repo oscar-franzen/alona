@@ -43,7 +43,7 @@ python3 -m alona \
 ```
 
 # All command line options
-```bash
+```
 $[~/bio]> python3 -m alona --help
 Usage: alona.py [OPTIONS] FILENAME
 
