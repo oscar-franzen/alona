@@ -2,7 +2,7 @@
  alona
 
  Description:
- Methods for identifying highly variable genes.
+ Methods to identify highly variable genes.
 
  How to use:
  https://github.com/oscar-franzen/alona/
@@ -17,6 +17,10 @@
 import pandas as pd
 import numpy as np
 import scipy.stats
+
+from scipy.optimize import least_squares
+from scipy.stats import gaussian_kde
+from scipy.stats import norm
 
 from sklearn.preprocessing import PolynomialFeatures
 from sklearn.linear_model import LinearRegression
@@ -42,10 +46,12 @@ class AlonaHighlyVariableGenes():
         """ Finds HVG. Returns an array of HVG. """
         if self.hvg_method == 'seurat':
             hvg = self.hvg_seurat()
-        elif self.hvg_method == 'brennecke':
+        elif self.hvg_method == 'Brennecke2013':
             hvg = self.hvg_brennecke()
         elif self.hvg_method == 'scran':
             hvg = self.hvg_scran()
+        elif self.hvg_method == 'Chen2016':
+            hvg = self.hvg_Chen2016()
         else:
             log_error('Unknown hvg method specified.')
         return hvg
@@ -213,3 +219,118 @@ these should begin with ERCC- followed by numbers.')
         vars_bio_bio = vars_bio_total - vars_pred
         vars_bio_bio = vars_bio_bio.sort_values(ascending=False)
         return vars_bio_bio.head(self.hvg_n).index.values
+
+    def hvg_Chen2016(norm_data):
+        """
+        This function implements the approach from Chen (2016) to identify highly variable genes.
+        https://bmcgenomics.biomedcentral.com/articles/10.1186/s12864-016-2897-6
+        
+        The code is essentially a direct translation of the R code from:
+        https://github.com/hillas/scVEGs/blob/master/scVEGs.r
+        
+        Expression counts should be normalized and not on a log scale.
+        """
+        
+        norm_data = 2**norm_data-1
+        avg = norm_data.mean(axis=1)
+        norm_data = norm_data[avg>0]
+
+        rows = norm_data.shape[0]
+        avg = norm_data.mean(axis=1)
+        std = norm_data.std(axis=1)
+        cv = std / avg
+
+        xdata = avg
+        ydata = np.log10(cv)
+
+        A = np.vstack([np.log10(xdata), np.ones(len(xdata))]).T
+        res = np.linalg.lstsq(A, ydata, rcond=None)[0]
+        
+        def predict(k,m,x):
+            y = k*x+m
+            return y
+
+        #plt.clf()
+        #plt.scatter(np.log10(xdata), ydata, color='red')
+        #plt.scatter(np.log10(xdata), predict(*res, np.log10(xdata)), color='blue')
+        #plt.show()
+
+        xSeq = np.arange(min(np.log10(xdata)), max(np.log10(xdata)), 0.005)
+        
+        def h(i):
+            a = np.log10(xdata) >= (xSeq[i] - 0.05)
+            b = np.log10(xdata) < (xSeq[i] + 0.05)
+            return np.sum((a & b))
+
+        gapNum = [ h(i) for i in range(0,len(xSeq)) ]
+        cdx = np.nonzero(np.array(gapNum) > rows*0.005)[0]
+        xSeq = 10 ** xSeq
+
+        ySeq = predict(*res, np.log10(xSeq))
+        yDiff = np.diff(ySeq,1)
+        ix = np.nonzero((yDiff > 0) & (np.log10(xSeq[0:-1]) > 0))[0]
+
+        if len(ix) == 0:
+            ix = len(ySeq) - 1
+        else:
+            ix = ix[0]
+            
+        xSeq_all = 10**np.arange(min(np.log10(xdata)), max(np.log10(xdata)), 0.001)
+
+        xSeq = xSeq[cdx[0]:ix]
+        ySeq = ySeq[cdx[0]:ix]
+
+        reg = LinearRegression().fit(np.log10(xSeq).reshape(-1,1), ySeq)
+        
+        #plt.clf()
+        #plt.scatter(np.log10(xSeq), ySeq, color='red')
+        #plt.scatter(xSeq, reg.predict(np.array(xSeq).reshape(-1,1)), color='blue')
+        #plt.show()
+        
+        ydataFit = reg.predict(np.log10(xSeq_all).reshape(-1,1))
+        
+        logX = np.log10(xdata)
+        logXseq = np.log10(xSeq_all)
+        
+        cvDist = []
+
+        for i in range(0,len(logX)):
+            cx = np.nonzero((logXseq >= (logX[i] - 0.2)) & (logXseq < (logX[i] + 0.2)))[0]
+            tmp = np.sqrt((logXseq[cx] - logX[i])**2 + (ydataFit[cx] - ydata[i])**2)
+            tx = np.argmin(tmp)
+            
+            if logXseq[cx[tx]] > logX[i]:
+                if ydataFit[cx[tx]] > ydata[i]:
+                    cvDist.append(-1*tmp[tx])
+                else:
+                    cvDist.append(tmp[tx])
+            elif logXseq[cx[tx]] <= logX[i]:
+                if ydataFit[cx[tx]] < ydata[i]:
+                    cvDist.append(tmp[tx])
+                else:
+                    cvDist.append(-1*tmp[tx])
+
+        cvDist = np.log2(10**np.array(cvDist))
+        dor = gaussian_kde(cvDist)
+        dor_y = dor(cvDist)
+        distMid = cvDist[np.argmax(dor_y)]
+        dist2 = cvDist - distMid
+        
+        a = dist2[dist2 <= 0]
+        b = abs(dist2[dist2 < 0])
+        c = distMid
+        tmpDist = np.concatenate((a,b))
+        tmpDist = np.append(tmpDist,c)
+        
+        # estimate mean and sd using maximum likelihood
+        distFit = norm.fit(tmpDist)
+        
+        pRaw = 1-norm.cdf(cvDist, loc=distFit[0], scale=distFit[1])
+        pAdj = p_adjust_bh(pRaw)
+
+        res = pd.DataFrame({'gene': norm_data.index, 'pvalue' : pRaw, 'padj' : pAdj})
+        res = res.sort_values(by='pvalue')
+        
+        filt = res[res['padj'] < 0.10]['gene']
+
+        return np.array(filt.head(self.hvg_n))
