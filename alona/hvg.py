@@ -21,6 +21,7 @@ import scipy.stats
 from scipy.optimize import least_squares
 from scipy.stats import gaussian_kde
 from scipy.stats import norm
+from scipy.optimize import minimize
 
 from sklearn.preprocessing import PolynomialFeatures
 from sklearn.linear_model import LinearRegression
@@ -52,6 +53,8 @@ class AlonaHighlyVariableGenes():
             hvg = self.hvg_scran()
         elif self.hvg_method == 'Chen2016':
             hvg = self.hvg_chen2016()
+        elif self.hvg_method == 'M3Drop_smartseq2':
+            hvg = self.hvg_M3Drop_smartseq2()
         else:
             log_error('Unknown hvg method specified.')
         return hvg
@@ -332,6 +335,83 @@ these should begin with ERCC- followed by numbers.')
         res = pd.DataFrame({'gene': norm_data.index, 'pvalue' : pRaw, 'padj' : pAdj})
         res = res.sort_values(by='pvalue')
 
+        filt = res[res['padj'] < 0.10]['gene']
+
+        return np.array(filt.head(self.hvg_n))
+
+    def hvg_M3Drop_smartseq2(self, norm_data):
+        """
+        This function implements the approach from M3Drop to identify highly variable genes
+        and takes an alterntive approach to identify highly variable genes by using
+        the dropout rate instead of the variance. Briefly, this method calculate the dropout
+        rates and mean expression for every gene. Then it finds the parameters for the
+        Michaelis-Menten equation using maximum likelihood optimization.
+
+        Use this method with SMART-seq2 data.
+
+        The method is briefly described here: https://doi.org/10.1093/bioinformatics/bty1044
+        R code: https://github.com/tallulandrews/M3Drop
+
+        Expression counts should be normalized and not on a log scale.
+        """
+
+        norm_data = 2**norm_data-1
+        ncells = norm_data.shape[1]
+
+        gene_info_p = 1-np.sum(norm_data > 0, axis=1)/ncells
+        gene_info_p_stderr = np.sqrt(gene_info_p*(1-gene_info_p)/ncells)
+
+        gene_info_s = norm_data.mean(axis=1)
+        gene_info_s_stderr = np.sqrt((np.mean(norm_data**2, axis=1) - gene_info_s**2)/ncells)
+
+        xes = np.log(gene_info_s)/np.log(10)
+
+        # maximum likelihood estimate of model parameters
+        s = gene_info_s
+        p = gene_info_p
+
+        def neg_loglike(theta):
+            krt = theta[0]
+            sigma = theta[1]
+            R = p-(1-(s/(krt+s)))
+            R = norm.logpdf(R, 0, sigma)
+            return -1*np.sum(R)
+
+        theta_start = np.array([3, 0.25])
+        res = minimize(neg_loglike, theta_start, method='Nelder-Mead', options={'disp': True})
+        est = res.x
+
+        krt = est[0]
+        res_err = est[1]
+
+        # testing step
+        p_obs = gene_info_p
+        always_detected = p_obs == 0
+        p_obs[p_obs == 0] = min(p_obs[p_obs > 0])/2
+        p_err = gene_info_p_stderr
+        K_obs = krt
+        S_mean = gene_info_s
+        K_equiv = p_obs*S_mean/(1-p_obs)
+        S_err = gene_info_s_stderr
+        K_equiv_err = abs(K_equiv)*np.sqrt((S_err/S_mean)**2 + (p_err/p_obs)**2)
+        K_equiv_log = np.log(K_equiv)
+        thing = K_equiv-K_equiv_err
+        thing[thing <= 0] = 10**-100
+        K_equiv_err_log = abs(np.log(thing)-K_equiv_log)
+        K_equiv_err_log[K_equiv-K_equiv_err <= 0] = 10**10
+        K_obs_log = np.log(krt)
+        K_err_log = np.std(K_equiv_log-K_obs_log)/np.sqrt(len(K_equiv_log))
+        Z = (K_equiv_log - K_obs_log)/np.sqrt(K_equiv_err_log**2+K_err_log**2)
+
+        pval = 1 - norm.cdf(Z)
+        pval[always_detected] = 1
+        padj = p_adjust_bh(pval)
+        #pval[is.na(pval)] <- 1; # deal with never detected
+        #effect_size <- K_equiv/fit$K;
+        #effect_size[is.na(effect_size)] <- 1; # deal with never detected
+
+        res = pd.DataFrame({'gene': norm_data.index, 'pvalue' : pval, 'padj' : padj})
+        res = res.sort_values(by='pvalue')
         filt = res[res['padj'] < 0.10]['gene']
 
         return np.array(filt.head(self.hvg_n))

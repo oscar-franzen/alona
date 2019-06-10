@@ -53,8 +53,8 @@ type=click.Choice(['auto', 'yes', 'no']), default='auto')
               is_flag=True)
               
 @click.option('--hvg', help='Method to use for identifying highly variable genes. \
-Default: seurat', type=click.Choice(['seurat', 'Brennecke2013', 'scran', 'Chen2016']),
-default='seurat')
+Default: seurat', type=click.Choice(['seurat', 'Brennecke2013', 'scran', 'Chen2016',
+'M3Drop_smartseq2']), default='seurat')
               
 @click.option('--hvg_n', help='Number of top highly variable genes to use. Default: 1000',
               default=1000)
