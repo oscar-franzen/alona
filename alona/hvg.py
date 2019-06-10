@@ -342,10 +342,12 @@ these should begin with ERCC- followed by numbers.')
     def hvg_M3Drop_smartseq2(self, norm_data):
         """
         This function implements the approach from M3Drop to identify highly variable genes
-        and takes an alterntive approach to identify highly variable genes by using
-        the dropout rate instead of the variance. Briefly, this method calculate the dropout
-        rates and mean expression for every gene. Then it finds the parameters for the
-        Michaelis-Menten equation using maximum likelihood optimization.
+        and takes an alternative approach by using genes' dropout rates instead of 
+        variance. Im short his method calculates dropout rates and mean expression for
+        every gene, then models these with the Michaelis-Menten equation (parameters
+        are estimated with maximum likelihood optimization). The basis for using MM
+        is because most dropouts are caused by failure of the enzyme reverse transcriptase,
+        thus the dropout rate can be modelled with theory developed for enzyme reactions.
 
         Use this method with SMART-seq2 data.
 
