@@ -55,6 +55,8 @@ class AlonaHighlyVariableGenes():
             hvg = self.hvg_chen2016()
         elif self.hvg_method == 'M3Drop_smartseq2':
             hvg = self.hvg_M3Drop_smartseq2()
+        elif self.hvg_method == 'M3Drop_UMI':
+            hvg = self.hvg_M3Drop_UMI()
         else:
             log_error('Unknown hvg method specified.')
         return hvg
@@ -413,6 +415,96 @@ these should begin with ERCC- followed by numbers.')
         #effect_size[is.na(effect_size)] <- 1; # deal with never detected
 
         res = pd.DataFrame({'gene': norm_data.index, 'pvalue' : pval, 'padj' : padj})
+        res = res.sort_values(by='pvalue')
+        filt = res[res['padj'] < 0.10]['gene']
+
+        return np.array(filt.head(self.hvg_n))
+
+    def hvg_M3Drop_UMI(self, data):
+        """
+        This function implements the approach from M3Drop to identify highly variable genes
+        and takes an alterntive approach to identify highly variable genes by using
+        the dropout rate instead of the variance. Briefly, this method calculate the dropout
+        rates and mean expression for every gene. Then it finds the parameters for the
+        Michaelis-Menten equation using maximum likelihood optimization.
+
+        Use this method with UMI data.
+
+        The method is briefly described here: https://doi.org/10.1093/bioinformatics/bty1044
+        R code: https://github.com/tallulandrews/M3Drop
+
+        Expression counts should be raw read counts.
+        """
+
+        tjs = data.sum(axis=1) # no. mol/gene
+        tis = data.sum(axis=0) # no. mol/cell
+        
+        djs = data.shape[1]-np.sum(data>0,axis=1) # dropouts no. per gene
+        dis = data.shape[0]-np.sum(data>0,axis=0) # dropouts no. per cell
+
+        nc = data.shape[1]
+        ng = data.shape[0]
+        
+        # total sampled molecules
+        total = sum(tis)
+        
+        min_size = 10**-10
+        my_rowvar = []
+        
+        for i, row in data.iterrows():
+            mu_is = tjs[i]*tis/total
+            my_rowvar.append(np.var(row-mu_is))
+
+        my_rowvar = np.array(my_rowvar)
+        size = tjs**2*(sum(tis**2)/total**2)/((nc-1)*my_rowvar-tjs)
+
+        max_size = 10*max(size)
+        size[size < 0] = max_size
+        size[size < min_size] = min_size
+        
+        size_g = size
+        forfit = (size < max(size_g)) & (tjs > 0) & (size_g > 0)
+        higher = (np.log(tjs/nc)/np.log(2)) > 4
+        
+        if sum(higher==True) > 2000:
+            forfit = higher & forfit
+        
+        rg = LinearRegression()
+        X = np.array(np.log((tjs/nc)[forfit])).reshape(-1,1)
+        y = np.array(np.log(size_g[forfit]))
+        rg.fit(X=X, y=y)
+        coef_1 = rg.intercept_
+        coef_2 = rg.coef_[0]
+        
+        exp_size = np.exp(coef_1 + coef_2 * np.log(tjs/nc))
+        
+        droprate_exp = []
+        droprate_exp_err = []
+        
+        for i in range(0,ng):
+            mu_is = tjs[i]*tis/total
+            p_is = (1+mu_is/exp_size[i])**(-exp_size[i])
+            p_var_is = p_is*(1-p_is)
+            droprate_exp.append(sum(p_is)/nc)
+            droprate_exp_err.append(np.sqrt(sum(p_var_is)/(nc**2)))
+            
+        droprate_exp = np.array(droprate_exp)
+        droprate_exp[droprate_exp < (1/nc)] = 1/nc
+        droprate_obs = djs/nc
+        droprate_obs_err = np.sqrt(droprate_obs*(1-droprate_obs)/nc)
+
+        diff = droprate_obs-droprate_exp
+        
+        droprate_exp_err = np.array(droprate_exp_err)
+        combined_err = np.sqrt(droprate_exp_err**2+droprate_obs_err**2)
+
+        Zed = diff/combined_err
+        pvalues = 1-norm.cdf(Zed)
+        pvalues = pd.Series(pvalues, index=data.index)
+        
+        padj = p_adjust_bh(pvalues)
+
+        res = pd.DataFrame({'gene': data.index, 'pvalue' : pvalues, 'padj' : padj})
         res = res.sort_values(by='pvalue')
         filt = res[res['padj'] < 0.10]['gene']
 
