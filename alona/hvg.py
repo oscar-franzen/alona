@@ -423,10 +423,8 @@ these should begin with ERCC- followed by numbers.')
     def hvg_M3Drop_UMI(self, data):
         """
         This function implements the approach from M3Drop to identify highly variable genes
-        and takes an alterntive approach to identify highly variable genes by using
-        the dropout rate instead of the variance. Briefly, this method calculate the dropout
-        rates and mean expression for every gene. Then it finds the parameters for the
-        Michaelis-Menten equation using maximum likelihood optimization.
+        and takes an alternative approach to identify highly variable genes by using
+        the dropout rate instead of the variance.
 
         Use this method with UMI data.
 
