@@ -266,7 +266,7 @@ set to log2.')
         with open(get_alona_dir() + GENOME['MOUSE_GENOME_ANNOTATIONS'], 'r') as fh:
             for line in fh:
                 if re.search('"rRNA"',line):
-                    gene = re.search('^gene_id "(.*?)";',line.split('\t')[8]).group(1)
+                    gene = re.search('^gene_id "(.*?)\..*";',line.split('\t')[8]).group(1)
                     rRNA_genes[gene] = 1
         self.rRNA_genes = rRNA_genes
         log_debug('Finished _load_rRNA_genes()')
