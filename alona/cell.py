@@ -16,6 +16,7 @@
 
 import sys
 import os
+import re
 import logging
 import pandas as pd
 import numpy as np
@@ -256,6 +257,23 @@ set to log2.')
         self.data_ERCC = self.data[self.data.index.str.contains('^ERCC-[0-9]+$')]
         self.data = self.data[np.logical_not(self.data.index.str.contains('^ERCC-[0-9]+$'))]
         log_debug('Finishing _lift_ERCC()')
+        
+    def _load_rRNA_genes(self):
+        """ Detect rRNA genes. """
+        log_debug('Inside _load_rRNA_genes()')
+        # TODO: Add support for human rRNA genes (12 Jun 2019).
+        rRNA_genes = {}
+        with open(get_alona_dir() + GENOME['MOUSE_GENOME_ANNOTATIONS'], 'r') as fh:
+            for line in fh:
+                if re.search('"rRNA"',line):
+                    gene = re.search('^gene_id "(.*?)";',line.split('\t')[8]).group(1)
+                    foo = gene.split('_')
+                    gene_symbol = foo[0]
+                    gene_id = foo[1].split('.')[0]
+                    rRNA_genes[gene_symbol] = 1
+                    rRNA_genes[gene_id] = 1
+        self.rRNA_genes = rRNA_genes
+        log_debug('Finished _load_rRNA_genes()')
 
     def load_data(self):
         """ Load expression matrix. """
@@ -287,6 +305,7 @@ set to log2.')
         self._genes_expressed_per_cell_barplot()
         self._quality_filter()
         self._lift_ERCC()
+        self._load_rRNA_genes()
         self._print_dimensions()
 
         # normalize gene expression values
