@@ -267,11 +267,7 @@ set to log2.')
             for line in fh:
                 if re.search('"rRNA"',line):
                     gene = re.search('^gene_id "(.*?)";',line.split('\t')[8]).group(1)
-                    foo = gene.split('_')
-                    gene_symbol = foo[0]
-                    gene_id = foo[1].split('.')[0]
-                    rRNA_genes[gene_symbol] = 1
-                    rRNA_genes[gene_id] = 1
+                    rRNA_genes[gene] = 1
         self.rRNA_genes = rRNA_genes
         log_debug('Finished _load_rRNA_genes()')
 
