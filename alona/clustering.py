@@ -351,6 +351,17 @@ class AlonaClustering():
                     return True
             return False
 
+        if dark_bg:
+            # Don't remove this block.
+            # For some reason this block is needed for the --dark_bg to work.
+            plt.clf()
+            fig = plt.figure(num=None, figsize=(5, 5))
+            ax = fig.add_subplot(111)
+            plt.style.use('dark_background')
+            plt.scatter(1, 1, s=1)
+            plt.savefig('/tmp/_.pdf', bbox_inches='tight')
+            plt.close()
+
         plt.clf()
         fig = plt.figure(num=None, figsize=(5, 5))
         ax = fig.add_subplot(111)
@@ -362,11 +373,6 @@ class AlonaClustering():
         uniq = list(set(self.leiden_cl))
 
         if len(self.cluster_colors) == 0:
-            #colors = []
-            #for i in range(0, len(uniq)):
-            #    colors.append(generate_new_color(colors, pastel_fac=0.5))
-            #self.cluster_colors = colors
-            
             self.cluster_colors = uniqueColors(len(uniq))
             
         cell_count = self.embeddings.shape[0]
