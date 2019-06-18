@@ -44,6 +44,8 @@ class AlonaCell():
         self.data_norm = None
         self.data_ERCC = None
         self.low_quality_cells = None
+        self.rRNA_genes = None
+        self.pred = None
 
         self._alona_clustering = AlonaClustering(self, alonabase.params)
 
@@ -54,7 +56,7 @@ class AlonaCell():
         """ Basic data validation of gene expression values. """
         log_debug('Running validate_counts()')
         data_format = self.alonabase.params['dataformat']
-        
+
         if (np.any(self.data.dtypes != 'int64') and data_format == 'raw'):
             log_error(msg='Non-count values detected in data matrix while data format is \
 set to raw read counts.')
@@ -66,13 +68,13 @@ set to log2.')
                 log_error(msg='Data do not appear to be log2 transformed.')
         else:
             log_debug('validate_counts() finished without a problem')
-            
+
         log_debug('Finished validate_counts()')
 
     def remove_empty(self):
         """ Removes empty cells and genes """
         data_zero = self.data == 0
-        
+
         # Axis 0 will act on all the ROWS in each COLUMN
         # Axis 1 will act on all the COLUMNS in each ROW
         cells = data_zero.sum(axis=0)
@@ -87,7 +89,7 @@ set to log2.')
         if np.sum(genes == total_genes) > 0:
             log_info('%s empty genes will be removed' % (np.sum(genes == total_genes)))
             self.data = self.data.loc[self.data.index[np.logical_not(genes == total_genes)]]
-            
+
         log_info('Current dimensions: %s' % str(self.data.shape))
 
     def remove_mito(self):
@@ -228,7 +230,7 @@ set to log2.')
         if os.path.exists(norm_mat_path):
             log_debug('Loading data matrix from file')
             return load(norm_mat_path)
-        
+
         data_cp = data
         data_cp = data_cp.drop(self.low_quality_cells, axis=1)
 
@@ -241,7 +243,7 @@ set to log2.')
             data_norm = np.log2(data_norm+1)
         elif self.alonabase.params['mrnafull'] and \
              self.alonabase.params['dataformat'] == 'raw':
-            data_norm = self._rpkm(data_cp)
+            data_norm = self.rpkm(data_cp)
         elif self.alonabase.params['mrnafull'] and \
              self.alonabase.params['dataformat'] == 'rpkm':
             log_debug('normalization() Running log2')
@@ -251,18 +253,18 @@ set to log2.')
             log_debug('Normalization is not needed.')
 
         self._dump(data_norm, norm_mat_path)
-        
+
         log_debug('Finished normalization()')
-        
+
         return data_norm
-        
+
     def lift_ERCC(self):
         """ Moves ERCC (if present) to a separate matrix. """
         log_debug('Inside lift_ERCC()')
         self.data_ERCC = self.data[self.data.index.str.contains('^ERCC-[0-9]+$')]
         self.data = self.data[np.logical_not(self.data.index.str.contains('^ERCC-[0-9]+$'))]
         log_debug('Finishing lift_ERCC()')
-        
+
     def load_rRNA_genes(self):
         """ Detect rRNA genes. """
         log_debug('Inside load_rRNA_genes()')
@@ -270,48 +272,48 @@ set to log2.')
         rRNA_genes = {}
         with open(get_alona_dir() + GENOME['MOUSE_GENOME_ANNOTATIONS'], 'r') as fh:
             for line in fh:
-                if re.search('"rRNA"',line):
-                    gene = re.search('^gene_id "(.*?)\..*";',line.split('\t')[8]).group(1)
+                if re.search('"rRNA"', line):
+                    gene = re.search('^gene_id "(.*?)\..*";', line.split('\t')[8]).group(1)
                     rRNA_genes[gene] = 1
         self.rRNA_genes = rRNA_genes
         log_debug('Finished load_rRNA_genes()')
-        
+
     def find_low_quality_cells(self):
         """
         Finds low quality cells using five metrics:
-        
+
             1. log-transformed number of molecules detected
             2. the number of genes detected
             3. the percentage of reads mapping to ribosomal
             4. mitochondrial genes
             5. ERCC recovery (if available)
-            
+
         In detail, this function computes Mahalanobis distances from the quality metrics.
         A robust estimate of covariance is used in the Mahalanobis function.
         Cells with Mahalanobis distances of three standard deviations from the mean are
         considered outliers.
-        
+
         Input should be raw read counts.
         """
-        
+
         if self.alonabase.params['qc_auto'] == 'no':
             return
-            
+
         log_debug('Inside filter_cells_auto()')
-        
+
         data = self.data
         rRNA_genes = self.rRNA_genes
         data_ERCC = self.data_ERCC
 
         reads_per_cell = data.sum(axis=0) # no. reads/cell
-        no_genes_det = np.sum(data>0,axis=0)
+        no_genes_det = np.sum(data > 0, axis=0)
         data_rRNA = data.loc[data.index.intersection(rRNA_genes)]
         data_mt = data[data.index.str.contains('^mt-', regex=True, case=False)]
-        
+
         perc_rRNA = data_rRNA.sum(axis=0)/reads_per_cell*100
         perc_mt = data_mt.sum(axis=0)/reads_per_cell*100
         perc_ERCC = data_ERCC.sum(axis=0)/reads_per_cell*100
-        
+
         qc_mat = pd.DataFrame({'reads_per_cell' : np.log(reads_per_cell),
                                'no_genes_det' : no_genes_det,
                                'perc_rRNA' : perc_rRNA,
@@ -320,20 +322,19 @@ set to log2.')
 
         robust_cov = MinCovDet().fit(qc_mat)
         mahal_dists = robust_cov.mahalanobis(qc_mat)
-        
+
         MD_mean = np.mean(mahal_dists)
         MD_sd = np.std(mahal_dists)
-        
+
         thres_lower = MD_mean - MD_sd * 3
         thres_upper = MD_mean + MD_sd * 3
 
-        res=(mahal_dists<thres_lower) | (mahal_dists>thres_upper)
-        
-        log_debug('Finished filter_cells_auto()')
+        res = (mahal_dists < thres_lower) | (mahal_dists > thres_upper)
 
         self.low_quality_cells = data.columns[res].values
-        
+
         log_info('%s low quality cells were removed' % len(self.low_quality_cells))
+        log_debug('Finished filter_cells_auto()')
 
     def load_data(self):
         """ Load expression matrix. """
@@ -371,7 +372,7 @@ set to log2.')
         # normalize gene expression values
         self.data_norm = self.normalization(self.data, '/normdata.joblib')
         self.data_ERCC = self.normalization(self.data_ERCC, '/normdata_ERCC.joblib')
-        
+
         self.print_dimensions()
 
         log_debug('Done loading expression matrix')
