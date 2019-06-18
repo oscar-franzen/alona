@@ -25,6 +25,7 @@ from joblib import dump, load
 import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
 from matplotlib.pyplot import figure
+from sklearn.covariance import MinCovDet
 
 from .log import (log_info, log_debug, log_error)
 from .constants import (OUTPUT, ORANGE, GENOME)
@@ -42,15 +43,16 @@ class AlonaCell():
         self.data = None
         self.data_norm = None
         self.data_ERCC = None
+        self.low_quality_cells = None
 
         self._alona_clustering = AlonaClustering(self, alonabase.params)
 
         # make matplotlib more quiet
         logging.getLogger('matplotlib').setLevel(logging.WARNING)
 
-    def _validate_counts(self):
+    def validate_counts(self):
         """ Basic data validation of gene expression values. """
-        log_debug('Running _validate_counts()')
+        log_debug('Running validate_counts()')
         data_format = self.alonabase.params['dataformat']
         
         if (np.any(self.data.dtypes != 'int64') and data_format == 'raw'):
@@ -63,11 +65,11 @@ set to log2.')
             if np.any(self.data > 1000):
                 log_error(msg='Data do not appear to be log2 transformed.')
         else:
-            log_debug('_validate_counts() finished without a problem')
+            log_debug('validate_counts() finished without a problem')
             
-        log_debug('Finished _validate_counts()')
+        log_debug('Finished validate_counts()')
 
-    def _remove_empty(self):
+    def remove_empty(self):
         """ Removes empty cells and genes """
         data_zero = self.data == 0
         
@@ -88,10 +90,10 @@ set to log2.')
             
         log_info('Current dimensions: %s' % str(self.data.shape))
 
-    def _remove_mito(self):
+    def remove_mito(self):
         """ Remove mitochondrial genes. """
         if self.alonabase.params['nomito']:
-            log_debug('removing mitochondrial genes')
+            log_debug('Removing mitochondrial genes')
 
             mt_count = self.data.index.str.contains('^mt-', regex=True, case=False)
 
@@ -99,7 +101,7 @@ set to log2.')
                 log_info('detected and removed %s mitochondrial gene(s)' % np.sum(mt_count))
                 self.data = self.data.loc[self.data.index[np.logical_not(mt_count)]]
 
-    def _read_counts_per_cell_filter(self):
+    def read_counts_per_cell_filter(self):
         """ Generates a bar plot of read counts per cell. """
         if self.alonabase.params['dataformat'] == 'raw':
             min_reads = self.alonabase.params['minreads']
@@ -128,7 +130,7 @@ set to log2.')
                 OUTPUT['FILENAME_BARPLOT_RAW_READ_COUNTS'], bbox_inches='tight')
             plt.close()
 
-    def _genes_expressed_per_cell_barplot(self):
+    def genes_expressed_per_cell_barplot(self):
         """ Generates a bar plot of number of expressed genes per cell. """
         genes_expressed = self.data.apply(lambda x: sum(x > 0), axis=0)
 
@@ -144,7 +146,7 @@ set to log2.')
             OUTPUT['FILENAME_BARPLOT_GENES_EXPRESSED'], bbox_inches='tight')
         plt.close()
 
-    def _quality_filter(self):
+    def simple_filters(self):
         """
         Removes cells with too few reads (set by `--minreads`).
         Removes "underexpressed" genes (set by `--minexpgenes`).
@@ -168,12 +170,12 @@ set to log2.')
                 self.alonabase.params['minexpgenes'])))
             self.data = self.data[genes_expressed > self.alonabase.params['minexpgenes']]
 
-    def _print_dimensions(self):
+    def print_dimensions(self):
         """ Prints the new dimensions after quality filtering. """
         log_info('Data dimensions after filtering: %s genes and %s cells' % \
-        (self.data.shape[0], self.data.shape[1]))
+        (self.data_norm.shape[0], self.data_norm.shape[1]))
 
-    def _rpkm(self, data):
+    def rpkm(self, data):
         """ Normalize expression values as RPKM. """
         """ doi:10.1186/s13059-016-0881-8 """
         log_debug('Normalizing data to RPKM')
@@ -218,49 +220,52 @@ set to log2.')
         log_debug('Writing dump file %s' % fn)
         dump(d, fn)
 
-    def _normalization(self, data, fn_out):
+    def normalization(self, data, fn_out):
         """ Performs normalization of the gene expression values. """
-        log_debug('Inside _normalization()')
+        log_debug('Inside normalization()')
         norm_mat_path = self.alonabase.get_wd() + fn_out
 
         if os.path.exists(norm_mat_path):
             log_debug('Loading data matrix from file')
             return load(norm_mat_path)
+        
+        data_cp = data
+        data_cp = data_cp.drop(self.low_quality_cells, axis=1)
 
         if not self.alonabase.params['mrnafull'] and \
            self.alonabase.params['dataformat'] == 'raw':
             # Axis 0 will act on all the ROWS in each COLUMN
             # Axis 1 will act on all the COLUMNS in each ROW
-            col_sums = data.apply(lambda x: sum(x), axis=0)
-            data_norm = (data / col_sums) * 10000
+            col_sums = data_cp.apply(lambda x: sum(x), axis=0)
+            data_norm = (data_cp / col_sums) * 10000
             data_norm = np.log2(data_norm+1)
         elif self.alonabase.params['mrnafull'] and \
              self.alonabase.params['dataformat'] == 'raw':
-            data_norm = self._rpkm(data)
+            data_norm = self._rpkm(data_cp)
         elif self.alonabase.params['mrnafull'] and \
              self.alonabase.params['dataformat'] == 'rpkm':
-            log_debug('_normalization() Running log2')
-            data_norm = np.log2(data+1)
+            log_debug('normalization() Running log2')
+            data_norm = np.log2(data_cp+1)
         else:
-            data_norm = data
+            data_norm = data_cp
             log_debug('Normalization is not needed.')
 
         self._dump(data_norm, norm_mat_path)
         
-        log_debug('Finished _normalization()')
+        log_debug('Finished normalization()')
         
         return data_norm
         
-    def _lift_ERCC(self):
+    def lift_ERCC(self):
         """ Moves ERCC (if present) to a separate matrix. """
-        log_debug('Inside _lift_ERCC()')
+        log_debug('Inside lift_ERCC()')
         self.data_ERCC = self.data[self.data.index.str.contains('^ERCC-[0-9]+$')]
         self.data = self.data[np.logical_not(self.data.index.str.contains('^ERCC-[0-9]+$'))]
-        log_debug('Finishing _lift_ERCC()')
+        log_debug('Finishing lift_ERCC()')
         
-    def _load_rRNA_genes(self):
+    def load_rRNA_genes(self):
         """ Detect rRNA genes. """
-        log_debug('Inside _load_rRNA_genes()')
+        log_debug('Inside load_rRNA_genes()')
         # TODO: Add support for human rRNA genes (12 Jun 2019).
         rRNA_genes = {}
         with open(get_alona_dir() + GENOME['MOUSE_GENOME_ANNOTATIONS'], 'r') as fh:
@@ -269,7 +274,66 @@ set to log2.')
                     gene = re.search('^gene_id "(.*?)\..*";',line.split('\t')[8]).group(1)
                     rRNA_genes[gene] = 1
         self.rRNA_genes = rRNA_genes
-        log_debug('Finished _load_rRNA_genes()')
+        log_debug('Finished load_rRNA_genes()')
+        
+    def find_low_quality_cells(self):
+        """
+        Finds low quality cells using five metrics:
+        
+            1. log-transformed number of molecules detected
+            2. the number of genes detected
+            3. the percentage of reads mapping to ribosomal
+            4. mitochondrial genes
+            5. ERCC recovery (if available)
+            
+        In detail, this function computes Mahalanobis distances from the quality metrics.
+        A robust estimate of covariance is used in the Mahalanobis function.
+        Cells with Mahalanobis distances of three standard deviations from the mean are
+        considered outliers.
+        
+        Input should be raw read counts.
+        """
+        
+        if self.alonabase.params['qc_auto'] == 'no':
+            return
+            
+        log_debug('Inside filter_cells_auto()')
+        
+        data = self.data
+        rRNA_genes = self.rRNA_genes
+        data_ERCC = self.data_ERCC
+
+        reads_per_cell = data.sum(axis=0) # no. reads/cell
+        no_genes_det = np.sum(data>0,axis=0)
+        data_rRNA = data.loc[data.index.intersection(rRNA_genes)]
+        data_mt = data[data.index.str.contains('^mt-', regex=True, case=False)]
+        
+        perc_rRNA = data_rRNA.sum(axis=0)/reads_per_cell*100
+        perc_mt = data_mt.sum(axis=0)/reads_per_cell*100
+        perc_ERCC = data_ERCC.sum(axis=0)/reads_per_cell*100
+        
+        qc_mat = pd.DataFrame({'reads_per_cell' : np.log(reads_per_cell),
+                               'no_genes_det' : no_genes_det,
+                               'perc_rRNA' : perc_rRNA,
+                               'perc_mt' : perc_mt,
+                               'perc_ERCC' : perc_ERCC})
+
+        robust_cov = MinCovDet().fit(qc_mat)
+        mahal_dists = robust_cov.mahalanobis(qc_mat)
+        
+        MD_mean = np.mean(mahal_dists)
+        MD_sd = np.std(mahal_dists)
+        
+        thres_lower = MD_mean - MD_sd * 3
+        thres_upper = MD_mean + MD_sd * 3
+
+        res=(mahal_dists<thres_lower) | (mahal_dists>thres_upper)
+        
+        log_debug('Finished filter_cells_auto()')
+
+        self.low_quality_cells = data.columns[res].values
+        
+        log_info('%s low quality cells were removed' % len(self.low_quality_cells))
 
     def load_data(self):
         """ Load expression matrix. """
@@ -294,23 +358,23 @@ set to log2.')
             self.data = self.data.iloc[np.logical_not(self.data.index.duplicated(False))]
 
         # initialize data
-        self._validate_counts()
-        self._remove_empty()
-        self._remove_mito()
-        self._read_counts_per_cell_filter()
-        self._genes_expressed_per_cell_barplot()
-        self._quality_filter()
-        self._lift_ERCC()
-        self._load_rRNA_genes()
-        self._print_dimensions()
+        self.validate_counts()
+        self.remove_empty()
+        self.remove_mito()
+        self.read_counts_per_cell_filter()
+        self.genes_expressed_per_cell_barplot()
+        self.simple_filters()
+        self.lift_ERCC()
+        self.load_rRNA_genes()
+        self.find_low_quality_cells()
 
         # normalize gene expression values
-        #self._normalization()
+        self.data_norm = self.normalization(self.data, '/normdata.joblib')
+        self.data_ERCC = self.normalization(self.data_ERCC, '/normdata_ERCC.joblib')
         
-        self.data_norm = self._normalization(self.data, '/normdata.joblib')
-        self.data_ERCC = self._normalization(self.data_ERCC, '/normdata_ERCC.joblib')
+        self.print_dimensions()
 
-        log_debug('done loading expression matrix')
+        log_debug('Done loading expression matrix')
 
     def analysis(self):
         """ Runs the analysis pipeline. """

@@ -38,6 +38,9 @@ cell. Default: 1000', default=1000)
 percent of all cells, i.e. genes expressed in fewer cells than this are removed. \
 Default: 0.01', default=0.01)
 
+@click.option('--qc_auto', help='Automatic filtering of low quality cells. Default: yes',
+              type=click.Choice(['yes', 'no']), default='yes')
+
 @click.option('--mrnafull', help='Data come from a full-length protocol, such as \
 SMART-seq2.', is_flag=True)
 
@@ -99,8 +102,8 @@ the log file. Default: regular', type=click.Choice(['regular', 'debug']), defaul
 @click.option('-n', '--nologo', help='Hide the logo.', is_flag=True)
 @click.option('--version', help='Display version number.', is_flag=True,
               callback=print_version)
-def run(filename, output, dataformat, minreads, minexpgenes, mrnafull, delimiter, header,
-        nomito, hvg, hvg_n, nn_k, prune_snn, leiden_partition, leiden_res,
+def run(filename, output, dataformat, minreads, minexpgenes, qc_auto, mrnafull, delimiter,
+        header, nomito, hvg, hvg_n, nn_k, prune_snn, leiden_partition, leiden_res,
         ignore_small_clusters, perplexity, species, dark_bg, color_labels, cleanup,
         logfile, loglevel, nologo, version):
 
@@ -141,7 +144,8 @@ tried this path: %s' % (GENOME[item], path))
         'ignore_small_clusters' : ignore_small_clusters,
         'hvg_method' : hvg,
         'hvg_cutoff' : hvg_n,
-        'color_labels' : color_labels
+        'color_labels' : color_labels,
+        'qc_auto' : qc_auto
     }
 
     alonabase = AlonaBase(alona_opts)
