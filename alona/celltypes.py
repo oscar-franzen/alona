@@ -87,12 +87,9 @@ class AlonaCellTypePred():
         # Down-weighting overlapping genes improves gene set analysis
         # Tarca AL, Draghici S, Bhatti G, Romero R
         # BMC Bioinformatics 2012 13:136
-        weights = dict()
-        for ct in dd:
-            s = dd[ct]
-            s_freqs = marker_freq[marker_freq.index.isin(s)]
-            weight = 1+np.sqrt(((max(marker_freq)-s_freqs)/(max(marker_freq)-min(marker_freq))))
-            weights[ct] = weight
+        s = markers_mouse['official gene symbol'].unique()
+        s_freqs = marker_freq[marker_freq.index.isin(s)]
+        weights = 1+np.sqrt(((max(marker_freq)-s_freqs)/(max(marker_freq)-min(marker_freq))))
 
         # Axis 0 will act on all the ROWS in each COLUMN
         # Axis 1 will act on all the COLUMNS in each ROW
@@ -109,8 +106,7 @@ class AlonaCellTypePred():
                 x_ss = x[x.index.isin(s)]
                 if len(x_ss) == 0: continue
 
-                gene_weights = weights[ct]
-                gene_weights = gene_weights[gene_weights.index.isin(x_ss.index)]
+                gene_weights = weights[weights.index.isin(x_ss.index)]
                 gene_weights = pd.Series(gene_weights, x_ss.index)
 
                 activity_score = sum(x_ss * gene_weights)/len(x_ss)**0.3
