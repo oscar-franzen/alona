@@ -8,6 +8,7 @@
  Contact: Oscar Franzen <p.oscar.franzen@gmail.com>
 """
 
+import sys
 from collections import defaultdict
 
 import pandas as pd
@@ -87,7 +88,7 @@ class AlonaCellTypePred():
         # Down-weighting overlapping genes improves gene set analysis
         # Tarca AL, Draghici S, Bhatti G, Romero R
         # BMC Bioinformatics 2012 13:136
-        s = markers_mouse['official gene symbol'].unique()
+        s = mgs.unique()
         s_freqs = marker_freq[marker_freq.index.isin(s)]
         weights = 1+np.sqrt(((max(marker_freq)-s_freqs)/(max(marker_freq)-min(marker_freq))))
 
