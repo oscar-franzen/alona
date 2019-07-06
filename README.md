@@ -62,6 +62,7 @@ Options:
                                   of all cells, i.e. genes expressed in fewer
                                   cells than this are removed. Default: 0.01
   --qc_auto [yes|no]              Automatic filtering of low quality cells.
+                                  Default: yes
   --mrnafull                      Data come from a full-length protocol, such
                                   as SMART-seq2.
   -d, --delimiter [auto|tab|space]
@@ -73,7 +74,7 @@ Options:
                                   not. Default: auto
   -m, --nomito                    Exclude mitochondrial genes from analysis.
   --hvg [seurat|Brennecke2013|scran|Chen2016|M3Drop_smartseq2|M3Drop_UMI]
-                                  Method to use for identifying highly     
+                                  Method to use for identifying highly
                                   variable genes. Default: seurat
   --hvg_n INTEGER                 Number of top highly variable genes to use.
                                   Default: 1000
@@ -94,23 +95,25 @@ Options:
                                   algorithm (0-1). Default: 0.8
   --ignore_small_clusters INTEGER
                                   Ignore clusters with fewer or equal to N
-                                  cells. Default: 1
+                                  cells. Default: 10
   --perplexity INTEGER            The perplexity parameter in the t-SNE
                                   algorithm. Default: 30
   -s, --species [human|mouse]     Species your data comes from. Default: mouse
   --dark_bg                       Use dark background in scatter plots.
                                   Default: False
-  --color_labels TEXT             Plot cell type labels with the same color as
+  --color_labels                  Plot cell type labels with the same color as
                                   the corresponding cell cluster cells.
                                   Default: True
-  --cleanup                       Perform cleanup of temporary files.
+  --legend                        Use a legend in plots instead of floating
+                                  labels inscatter plots for cell types.
+                                  Default: False
   -lf, --logfile TEXT             Name of log file. Set to /dev/null if you
                                   want to disable logging to a file. Default:
                                   alona.log
   -ll, --loglevel [regular|debug]
                                   Set how much runtime information is written
                                   to the log file. Default: regular
-  -n, --nologo                    Hide the logo.
+  -n, --nologo                    Hide the logo. Default: False
   --version                       Display version number.
   --help                          Show this message and exit.
 ```
