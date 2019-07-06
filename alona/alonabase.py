@@ -23,7 +23,7 @@ import magic
 
 from .log import (log_info, log_debug, log_error, log_warning)
 from .exceptions import *
-from .constants import (GENOME)
+from .constants import (GENOME, OUTPUT)
 from .utils import get_alona_dir
 
 class AlonaBase():
@@ -606,6 +606,10 @@ Too few genes were mappable (<500).')
                 log_info('A column ID for the gene symbols was identified.')
 
     def prepare(self):
+        with open(self.get_wd() + OUTPUT['FILENAME_SETTINGS'], 'w') as f:
+            for p in self.params:
+                f.write('%s\t%s\n' % (p, self.params[p]))
+            
         if os.path.exists(self.get_wd() + '/normdata.joblib'):
             log_debug('prepare(): normdata.joblib detected, skipping some steps')
             return
