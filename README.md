@@ -12,6 +12,9 @@
 
 `alona` also exists as a parallel cloud-based service ([2][2]).
 
+# What it does
+![Screenshit](https://panglaodb.se/img/github_screenshot.png)
+
 # Installation
 ### Requirements
 * Linux (alona should work on MacOS too, but it is untested)
