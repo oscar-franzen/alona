@@ -29,6 +29,7 @@ import numpy.ctypeslib as npct
 
 import pandas as pd
 
+import matplotlib.patches as mpatches
 import matplotlib.pyplot as plt
 import matplotlib.colors as colors
 import matplotlib.cm as cmx
@@ -337,6 +338,7 @@ class AlonaClustering():
         log_debug('Generating scatter plot...')
         dark_bg = self.params['dark_bg']
         color_labels = self.params['color_labels']
+        legend = self.params['legend']
         
         ignore_clusters = self.params['ignore_small_clusters']
         added_labels = []
@@ -380,6 +382,8 @@ class AlonaClustering():
             marker_size = 0.8
         else:
             marker_size = 3
+        
+        legend_items = []
 
         for i in range(len(uniq)):
             idx = np.array(self.leiden_cl) == i
@@ -388,10 +392,12 @@ class AlonaClustering():
             y = e[1]
             
             if e.shape[0] <= ignore_clusters:
-                log_warning('Ignoring singleton cluster: %s' % i)
+                log_warning('Ignoring cluster: %s b/c only %s cell(s)' % (i, len(x)))
                 continue
+                
+            col = self.cluster_colors[i]
             
-            plt.scatter(x, y, s=marker_size, color=self.cluster_colors[i], label=uniq[i])
+            plt.scatter(x, y, s=marker_size, color=col, label=uniq[i])
             renderer = fig.canvas.get_renderer()
 
             if cell_type_obj != None:
@@ -400,36 +406,45 @@ class AlonaClustering():
                 x_text = np.median(x)
                 y_text = max(y[y < (np.median(y) + robust.mad(y)*2.7)])
                 
-                if color_labels == True:
-                    ann = plt.annotate(ct, (x_text, y_text), size=5,
-                                       color=self.cluster_colors[i])
-                else:
-                    ann = plt.annotate(ct, (x_text, y_text), size=5)
+                if not legend:
+                    if color_labels == True:
+                        ann = plt.annotate(ct, (x_text, y_text), size=5,
+                                           color=col)
+                    else:
+                        ann = plt.annotate(ct, (x_text, y_text), size=5)
 
-                # get the Bbox bounding the text in display units
-                bb = ann.get_window_extent(renderer=renderer)
+                    # get the Bbox bounding the text in display units
+                    bb = ann.get_window_extent(renderer=renderer)
 
-                # from display to data coordinates
-                bbox_data = ax.transData.inverted().transform(bb)
+                    # from display to data coordinates
+                    bbox_data = ax.transData.inverted().transform(bb)
 
-                X1 = bbox_data[0][0] # left coord
-                X2 = bbox_data[1][0] # right coord
-                Y2 = bbox_data[0][1] # bottom coord
-                Y1 = bbox_data[1][1] # top coord
+                    X1 = bbox_data[0][0] # left coord
+                    X2 = bbox_data[1][0] # right coord
+                    Y2 = bbox_data[0][1] # bottom coord
+                    Y1 = bbox_data[1][1] # top coord
 
-                d = {'X1' : X1, 'X2' : X2, 'Y2' : Y2, 'Y1' : Y1, 'ct' : ct}
-                offset = 0
-                while is_overlapping(d):
-                    Y2 += 1
-                    Y1 += 1
-                    offset += 1
                     d = {'X1' : X1, 'X2' : X2, 'Y2' : Y2, 'Y1' : Y1, 'ct' : ct}
-                    # emergency break
-                    if offset > 100:
-                        break
+                    offset = 0
+                    while is_overlapping(d):
+                        Y2 += 1
+                        Y1 += 1
+                        offset += 1
+                        d = {'X1' : X1, 'X2' : X2, 'Y2' : Y2, 'Y1' : Y1, 'ct' : ct}
+                        # emergency break
+                        if offset > 100:
+                            break
 
-                ann.set_position((x_text, y_text+offset))
-                added_labels.append(d)
+                    ann.set_position((x_text, y_text+offset))
+                    added_labels.append(d)
+                else:
+                    legend_items.append(mpatches.Patch(color=col, label='%s (n=%s)' % (ct, len(x))))
+                    
+        if legend and cell_type_obj:
+            plt.legend(handles=legend_items,
+                       borderaxespad=0.,
+                       loc='upper left',
+                       bbox_to_anchor=(1.05, 1))
 
         plt.ylabel('tSNE1')
         plt.xlabel('tSNE2')

@@ -214,19 +214,19 @@ class AlonaBase():
             raise InputNotPlainTextError('Input file is not plain text (found type=%s).' %
                                          f_type)
 
-    def cleanup(self):
-        """ Removes temporary files. """
-        if self.params['cleanup']:
-            # remove temporary files
-            log_debug('Cleaning up (`--cleanup` is set)')
-            
-            for item in ('input.mat',)+tuple(OUTPUT.values()):
-                log_debug('removing %s' % garbage)
-
-                try:
-                    os.remove('%s/%s' % (self.get_wd(), garbage))
-                except FileNotFoundError:
-                    log_debug('Not found: %s' % garbage)
+    #def cleanup(self):
+    #    """ Removes temporary files. """
+    #    if self.params['cleanup']:
+    #        # remove temporary files
+    #        log_debug('Cleaning up (`--cleanup` is set)')
+    #        
+    #        for item in ('input.mat',)+tuple(OUTPUT.values()):
+    #            log_debug('removing %s' % garbage)
+    #
+    #            try:
+    #                os.remove('%s/%s' % (self.get_wd(), garbage))
+    #            except FileNotFoundError:
+    #                log_debug('Not found: %s' % garbage)
 
     def __guess_delimiter(self):
         dcount = {' ' : 0, '\t' : 0, ',' : 0}

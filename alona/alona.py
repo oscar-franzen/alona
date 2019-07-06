@@ -79,7 +79,7 @@ RBERVertexPartition or ModularityVertexPartition. Default: RBERVertexPartition',
  (0-1). Default: 0.8', default=0.8)
  
 @click.option('--ignore_small_clusters', help='Ignore clusters with fewer or equal to N \
-cells. Default: 1', default=1)
+cells. Default: 10', default=10)
 
 @click.option('--perplexity', help='The perplexity parameter in the t-SNE algorithm. \
 Default: 30', default=30)
@@ -91,20 +91,22 @@ Default: 30', default=30)
               is_flag=True, default=False)
               
 @click.option('--color_labels', help='Plot cell type labels with the same color as the \
-corresponding cell cluster cells. Default: True', default=True)
+corresponding cell cluster cells. Default: True', is_flag=True, default=True)
 
-@click.option('--cleanup', help='Perform cleanup of temporary files.',
-              is_flag=True)
+@click.option('--legend', help='Use a legend in plots instead of floating labels in\
+scatter plots for cell types. Default: False', is_flag=True, default=False)
+
 @click.option('-lf', '--logfile', help='Name of log file. Set to /dev/null if you want to \
 disable logging to a file. Default: alona.log', default='alona.log')
 @click.option('-ll', '--loglevel', help='Set how much runtime information is written to \
 the log file. Default: regular', type=click.Choice(['regular', 'debug']), default='regular')
-@click.option('-n', '--nologo', help='Hide the logo.', is_flag=True)
+@click.option('-n', '--nologo', help='Hide the logo. Default: False', is_flag=True,
+default=False)
 @click.option('--version', help='Display version number.', is_flag=True,
-              callback=print_version)
+callback=print_version)
 def run(filename, output, dataformat, minreads, minexpgenes, qc_auto, mrnafull, delimiter,
         header, nomito, hvg, hvg_n, nn_k, prune_snn, leiden_partition, leiden_res,
-        ignore_small_clusters, perplexity, species, dark_bg, color_labels, cleanup,
+        ignore_small_clusters, perplexity, species, dark_bg, color_labels, legend,
         logfile, loglevel, nologo, version):
 
     # confirm the genome reference files can be found
@@ -134,7 +136,6 @@ tried this path: %s' % (GENOME[item], path))
         'minreads' : minreads,
         'minexpgenes' : minexpgenes,
         'mrnafull' : mrnafull,
-        'cleanup' : cleanup,
         'nn_k' : nn_k,
         'prune_snn' : prune_snn,
         'dark_bg' : dark_bg,
@@ -145,7 +146,8 @@ tried this path: %s' % (GENOME[item], path))
         'hvg_method' : hvg,
         'hvg_cutoff' : hvg_n,
         'color_labels' : color_labels,
-        'qc_auto' : qc_auto
+        'qc_auto' : qc_auto,
+        'legend' : legend
     }
 
     alonabase = AlonaBase(alona_opts)
@@ -155,7 +157,6 @@ tried this path: %s' % (GENOME[item], path))
     alonacell.load_data()
     alonacell.analysis()
 
-    alonabase.cleanup()
     time_end = time.time()
 
     log_debug('alona finished in %.2f minutes' % ((time_end - time_start)/60))
