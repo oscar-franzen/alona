@@ -134,6 +134,9 @@ option | detailed description
 `--hvg_n [int]` | Number of highly variable genes to use. If method is `brennecke` then `--hvg_n` determines how many genes will be used from the genes that are significant. Default: 1000
 `--qc_auto [yes\|no]` | Automatically filters low quality cells using five quality metrics and Mahalanobis distances. Three standard deviations from the mean is considered an outlier and will be removed. Default: yes
 
+# Input files
+The input file is a single gene expression matrix in plain text format. The file can be compressed with zip, gzip or bzip2. In addition, data can also be in [Matrix Market](https://math.nist.gov/MatrixMarket/) format, consisting of three files (one file for the actual data values, a second file for barcodes and a third file for gene symbols), which must be bundled together in a tar file (can be compressed or not).
+
 # Output files
 
 # Contact

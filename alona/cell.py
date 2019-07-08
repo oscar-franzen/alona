@@ -397,11 +397,7 @@ set to log2.')
             self._alona_clustering.PCA(pca_path)
             self._alona_clustering.embedding(embedding_path)
 
-        fn = self.alonabase.get_wd() + OUTPUT['FILENAME_CELL_SCATTER_PLOT']
-
         self._alona_clustering.cluster()
-        self._alona_clustering.cell_scatter_plot(fn, cell_type_obj=None)
-
         self.pred = AlonaCellTypePred(self.alonabase.get_wd(),
                                       self._alona_clustering,
                                       self)
