@@ -28,6 +28,7 @@ import numpy as np
 import numpy.ctypeslib as npct
 import pandas as pd
 
+import matplotlib
 import matplotlib.patches as mpatches
 import matplotlib.pyplot as plt
 import matplotlib.colors as colors
@@ -45,7 +46,8 @@ import alona.irlbpy
 
 from .log import (log_info, log_debug, log_error, log_warning)
 from .constants import OUTPUT
-from .utils import (get_alona_dir, get_random_color, color_distance, generate_new_color, uniqueColors)
+from .utils import (get_alona_dir, get_random_color, color_distance, generate_new_color,
+                    uniqueColors)
 from .hvg import AlonaHighlyVariableGenes
 
 class AlonaClustering():
@@ -63,6 +65,9 @@ class AlonaClustering():
         self.leiden_cl = None
         self.params = params
         self.cluster_colors = []
+        
+        matplotlib.rcParams['font.sans-serif'] = 'Arial'
+        matplotlib.rcParams['font.family'] = 'sans-serif'
 
     def find_variable_genes(self):
         hvg_finder = AlonaHighlyVariableGenes(hvg_method=self.params['hvg_method'],
@@ -72,7 +77,8 @@ class AlonaClustering():
         self.hvg = hvg_finder.find()
         
         wd = self._alonacell.alonabase.get_wd()
-        pd.DataFrame(self.hvg).to_csv(wd + OUTPUT['FILENAME_HVG'], header=False, index=False)
+        pd.DataFrame(self.hvg).to_csv(wd + OUTPUT['FILENAME_HVG'], header=False,
+                                      index=False)
 
     def PCA(self, out_path):
         """
@@ -437,7 +443,6 @@ class AlonaClustering():
                 pred = cell_type_obj.res_pred.iloc[i]
                 ct = pred[1]
                 pval = pred[3]
-                print(pval)
                 # approximate plotting coordinates
                 x_text = np.median(x)
                 y_text = max(y[y < (np.median(y) + robust.mad(y)*2.7)])
@@ -477,7 +482,8 @@ class AlonaClustering():
                     if ct == 'Unknown':
                         lab = '[%s] %s (n=%s)' % (i, ct, len(x))
                     else:
-                        lab = '[%s] %s (n=%s), p=%s' % (i, ct, len(x), '{:.1e}'.format(pval))
+                        lab = '[%s] %s (n=%s), p=%s' % (i, ct, len(x),
+                                                        '{:.1e}'.format(pval))
                         
                     legend_items.append(mpatches.Patch(color=col, label=lab))
                     
