@@ -32,6 +32,9 @@ cd alona
 pip3 install .
 ```
 
+# Input files
+The input file is a single gene expression matrix in plain text format. The header of the matrix are barcodes and the first column are gene symbols. Fields should be separated by tabs, commas or spaces (but not a mix). The file can be compressed with zip, gzip or bzip2. In addition, data can also be in [Matrix Market](https://math.nist.gov/MatrixMarket/) format (a format popular in [NCBI GEO](https://www.ncbi.nlm.nih.gov/geo/)), consisting of three files (one file for the actual data values, a second file for barcodes and a third file for gene symbols), which must be bundled together in a `tar` file (can be compressed with gzip or not).
+
 # Usage example
 Here is one example of calling the pipeline using the data set [GSM3689776](https://www.ncbi.nlm.nih.gov/geo/download/?acc=GSM3689776&format=file&file=GSM3689776%5Fmouse%5F10X%5Fmatrix%2Etxt%2Egz).
 ```bash
@@ -48,6 +51,8 @@ python3 -m alona \
         --nomito \             # ignore mitochondrial genes in the analysis
         GSM3689776_mouse_10X_matrix.txt.gz
 ```
+
+# Output files
 
 # All command line options
 ```
@@ -133,11 +138,6 @@ option | detailed description
 `--hvg [method]` | Method to use for identifying highly variable genes, must be one of: seurat, Brennecke2013, scran, Chen2016, M3Drop_smartseq2, or M3Drop_UMI. This option specifies the method to be used for identifying variable genes. `seurat` is the method implemented in the Seurat R package ([3][3]). It bins genes according to average expression, then calculates dispersion for each bin as variance to mean ratio. Within each bin, Z-scores are calculated and returned. Z-scores are ranked and the top N are selected. `Brennecke2013` refers to the method proposed by Brennecke et al ([4][4]). `Brennecke2013` estimates and fits technical noise using RNA spikes (technical genes) by fitting a generalized linear model with a gamma function and identity link and the parameterization w=a_1+u+a0. It then uses a chi2 distribution to test the null hypothesis that the squared coefficient of variation does not exceed a certain minimum. FDR<0.10 is considered significant. Currently, `Brennecke2013` uses all the genes to estimate noise. `scran` fits a polynomial regression model to technical noise by modeling the variance versus mean gene expression relationship of ERCC spikes (the original method used local regression) ([5][5]). It then decomposes the variance of the biological gene by subtracting the technical variance component and returning the biological variance component. `Chen2016` ([6][6]) uses linear regression, subsampling, polynomial fitting and gaussian maximum likelihood estimates to derive a set of HVG. `M3Drop_smartseq2` models the dropout rate and mean expression using the Michaelis-Menten equation to identify HVG ([7][7]). `M3Drop_smartseq2` works well with SMART-seq2 data but not UMI data, the former often being sequenced to saturation so zeros are more likely to be dropouts rather than unsaturated sequencing. `M3Drop_UMI` is the corresponding M3Drop method for UMI data. Default: `seurat`
 `--hvg_n [int]` | Number of highly variable genes to use. If method is `brennecke` then `--hvg_n` determines how many genes will be used from the genes that are significant. Default: 1000
 `--qc_auto [yes\|no]` | Automatically filters low quality cells using five quality metrics and Mahalanobis distances. Three standard deviations from the mean is considered an outlier and will be removed. Default: yes
-
-# Input files
-The input file is a single gene expression matrix in plain text format. The header of the matrix are barcodes and the first column are gene symbols. Fields should be separated by tabs, commas or spaces (but not a mix). The file can be compressed with zip, gzip or bzip2. In addition, data can also be in [Matrix Market](https://math.nist.gov/MatrixMarket/) format (a format popular in [NCBI GEO](https://www.ncbi.nlm.nih.gov/geo/)), consisting of three files (one file for the actual data values, a second file for barcodes and a third file for gene symbols), which must be bundled together in a `tar` file (can be compressed with gzip or not).
-
-# Output files
 
 # Contact
 * Oscar Franzen <p.oscar.franzen@gmail.com>
