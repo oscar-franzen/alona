@@ -332,6 +332,9 @@ set to log2.')
         res = (mahal_dists < thres_lower) | (mahal_dists > thres_upper)
 
         self.low_quality_cells = data.columns[res].values
+        
+        fn = self.alonabase.get_wd() + OUTPUT['FILENAME_QC_SCORE']
+        pd.DataFrame(mahal_dists, index=data.columns).to_csv(fn, header=None)
 
         log_info('%s low quality cells were removed' % len(self.low_quality_cells))
         log_debug('Finished filter_cells_auto()')

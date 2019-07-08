@@ -14,7 +14,8 @@ OUTPUT = {
     'FILENAME_MEDIAN_EXP' : '/csvs/median_exp.csv',
     'FILENAME_CTA_RANK_F' : '/csvs/CTA_RANK_F/cell_type_pred_full_table.txt',
     'FILENAME_CTA_RANK_F_BEST' : '/csvs/CTA_RANK_F/cell_type_pred_best.txt',
-    'FILENAME_SETTINGS' : '/settings.txt'
+    'FILENAME_SETTINGS' : '/settings.txt',
+    'FILENAME_QC_SCORE' : '/csvs/Mahalanobis.csv'
 }
 
 # Reference data
