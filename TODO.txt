@@ -2,3 +2,4 @@
 * Add support for Jarvis-Patrick clustering
 * Implement this method for HVG discovery: https://www-nature-com.proxy.kib.ki.se/articles/nmeth.2645#methods (requires ERCC genes)
 * Add support for the LargeVis embedding method: https://github.com/lferry007/LargeVis
+* Implement scrublet support: https://www.biorxiv.org/content/biorxiv/early/2018/07/09/357368.full.pdf and https://github.com/AllonKleinLab/scrublet and https://bioconductor.org/packages/release/workflows/vignettes/simpleSingleCell/inst/doc/doublets.html
