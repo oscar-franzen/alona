@@ -96,6 +96,8 @@ Options:
   --ignore_small_clusters INTEGER
                                   Ignore clusters with fewer or equal to N
                                   cells. Default: 10
+  --embedding [tSNE|UMAP]         Method used for data projection. Can be
+                                  either tSNE orUMAP.
   --perplexity INTEGER            The perplexity parameter in the t-SNE
                                   algorithm. Default: 30
   -s, --species [human|mouse]     Species your data comes from. Default: mouse
