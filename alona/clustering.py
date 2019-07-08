@@ -364,12 +364,13 @@ class AlonaClustering():
         self.snn(k, self.params['prune_snn'])
         self.leiden()
 
-    def cell_scatter_plot(self, filename, cell_type_obj=None):
+    def cell_scatter_plot(self, filename, cell_type_obj=None, title=''):
         """ Generates a tSNE scatter plot with colored clusters. """
         log_debug('Generating scatter plot...')
         dark_bg = self.params['dark_bg']
         color_labels = self.params['color_labels']
         legend = self.params['legend']
+        method = self.params['embedding']
         
         ignore_clusters = self.params['ignore_small_clusters']
         added_labels = []
@@ -478,8 +479,9 @@ class AlonaClustering():
                        loc='upper left',
                        bbox_to_anchor=(1.05, 1))
 
-        plt.ylabel('tSNE1')
-        plt.xlabel('tSNE2')
+        plt.ylabel('%s1' % method)
+        plt.xlabel('%s2' % method)
+        plt.title(title)
         plt.savefig(filename, bbox_inches='tight')
         plt.close()
 
