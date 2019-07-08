@@ -386,8 +386,9 @@ class AlonaClustering():
         for i in range(len(uniq)):
             idx = np.array(self.leiden_cl) == i
             e = self.embeddings[idx]
-            x = e[0]
-            y = e[1]
+            
+            x = e[1].values
+            y = e[2].values
             
             if e.shape[0] <= ignore_clusters:
                 log_warning('Ignoring cluster: %s b/c only %s cell(s)' % (i, len(x)))
