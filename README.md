@@ -32,7 +32,7 @@ cd alona
 pip3 install .
 ```
 
-# Usage
+# Usage example
 Here is one example of calling the pipeline using the data set [GSM3689776](https://www.ncbi.nlm.nih.gov/geo/download/?acc=GSM3689776&format=file&file=GSM3689776%5Fmouse%5F10X%5Fmatrix%2Etxt%2Egz).
 ```bash
 python3 -m alona \
