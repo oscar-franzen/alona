@@ -99,13 +99,13 @@ class AlonaClustering():
 
         index_v = self._alonacell.data_norm.index.isin(self.hvg)
         sliced = self._alonacell.data_norm[index_v]
+        
         lanc = alona.irlbpy.lanczos(sliced, nval=75, maxit=1000)
 
         # weighing by var (Seurat-style)
         self.pca_components = np.dot(lanc.V, np.diag(lanc.s))
-
-        pd.DataFrame(self.pca_components).to_csv(path_or_buf=out_path, sep=',',
-                                                 header=None, index=False)
+        self.pca_components = pd.DataFrame(self.pca_components, index=sliced.columns)
+        self.pca_components.to_csv(path_or_buf=out_path, sep=',', header=None)
 
         log_debug('Finished PCA')
 
@@ -122,11 +122,9 @@ class AlonaClustering():
                                      n_iter=2000,
                                      perplexity=self.params['perplexity'])
 
-        self.embeddings = tsne.fit_transform(pd.DataFrame(self.pca_components))
-        pd.DataFrame(self.embeddings).to_csv(path_or_buf=out_path, sep=',',
-                                             header=None, index=False)
-                                             
-        self.embeddings = pd.DataFrame(self.embeddings)
+        self.embeddings = tsne.fit_transform(self.pca_components)
+        self.embeddings = pd.DataFrame(self.embeddings, index=self.pca_components.index)
+        self.embeddings.to_csv(path_or_buf=out_path, sep=',', header=None)
         log_debug('Finished t-SNE')
 
     def knn(self, inp_k):

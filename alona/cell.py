@@ -385,8 +385,10 @@ set to log2.')
 
         if os.path.exists(tsne_path) and os.path.exists(pca_path):
             log_debug('Loading embeddings from file')
-            self._alona_clustering.embeddings = pd.read_csv(tsne_path, header=None)
-            self._alona_clustering.pca_components = pd.read_csv(pca_path, header=None)
+            self._alona_clustering.pca_components = pd.read_csv(pca_path, header=None,
+                                                                index_col=0)
+            self._alona_clustering.embeddings = pd.read_csv(tsne_path, header=None,
+                                                                index_col=0)
         else:
             self._alona_clustering.find_variable_genes()
             self._alona_clustering.PCA(pca_path)
