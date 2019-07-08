@@ -129,7 +129,7 @@ Options:
   --help                          Show this message and exit.
 ```
 
-# Detailed help for all command line options
+# Detailed help for command line options
 option | detailed description
 --- | ---
 `-out, --output [TEXT]` | Specify name of output directory. If this is not given then a directory with the format: alona_out_N will be created, where N is a 8 letter random string, in the current working directory.
