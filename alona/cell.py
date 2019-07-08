@@ -390,7 +390,7 @@ set to log2.')
             log_debug('Loading embeddings from file')
             self._alona_clustering.pca_components = pd.read_csv(pca_path, header=None,
                                                                 index_col=0)
-            self._alona_clustering.embeddings = pd.read_csv(tsne_path, header=None,
+            self._alona_clustering.embeddings = pd.read_csv(embedding_path, header=None,
                                                                 index_col=0)
         else:
             self._alona_clustering.find_variable_genes()
