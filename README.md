@@ -136,10 +136,10 @@ option | detailed description
 
 # Output files
 
-## Contact
+# Contact
 * Oscar Franzen <p.oscar.franzen@gmail.com>
 
-## Cite
+# Cite
 A manuscript is in preparation.
 
 # License
