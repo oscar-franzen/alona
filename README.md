@@ -40,7 +40,7 @@ python3 -m alona \
         --embedding tSNE       # tSNE is defualt if not specified
         --dark_bg \            # use black background in scatter plots
         --legend \             # plot a legend in scatter plots
-        --hvg 1000 \           # use 1000 top highly variable genes
+        --hvg_n 1000 \         # use 1000 top highly variable genes
         --leiden_res 0.1 \     # clustering parameter
         --output GSM3689776 \  # output directory name
         --header yes \
