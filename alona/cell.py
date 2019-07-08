@@ -383,10 +383,10 @@ set to log2.')
     def analysis(self):
         """ Runs the analysis pipeline. """
         log_debug('Running analysis...')
-        tsne_path = self.alonabase.get_wd() + OUTPUT['FILENAME_EMBEDDINGS']
+        embedding_path = self.alonabase.get_wd() + OUTPUT['FILENAME_EMBEDDINGS']
         pca_path = self.alonabase.get_wd() + OUTPUT['FILENAME_PCA']
 
-        if os.path.exists(tsne_path) and os.path.exists(pca_path):
+        if os.path.exists(embedding_path) and os.path.exists(pca_path):
             log_debug('Loading embeddings from file')
             self._alona_clustering.pca_components = pd.read_csv(pca_path, header=None,
                                                                 index_col=0)
@@ -395,7 +395,7 @@ set to log2.')
         else:
             self._alona_clustering.find_variable_genes()
             self._alona_clustering.PCA(pca_path)
-            self._alona_clustering.tSNE(tsne_path)
+            self._alona_clustering.embedding(embedding_path)
 
         fn = self.alonabase.get_wd() + OUTPUT['FILENAME_CELL_SCATTER_PLOT']
 

@@ -9,7 +9,7 @@
     4. compute KNN
     5. compute SNN from KNN, prune SNN graph
     6. identify communities with leiden algo
-    7. run t-SNE on the PCAs
+    7. run t-SNE or UMAP on the PCAs
 
  How to use alona:
  https://github.com/oscar-franzen/alona/
@@ -26,7 +26,6 @@ from ctypes import cdll
 
 import numpy as np
 import numpy.ctypeslib as npct
-
 import pandas as pd
 
 import matplotlib.patches as mpatches
@@ -36,8 +35,8 @@ import matplotlib.cm as cmx
 
 import sklearn.manifold
 from statsmodels import robust
-
 from scipy.sparse import coo_matrix
+import umap
 
 import leidenalg
 import igraph as ig
@@ -109,6 +108,38 @@ class AlonaClustering():
 
         log_debug('Finished PCA')
 
+    def embedding(self, out_path):
+        """ Cals tSNE or UMAP """
+        method = self.params['embedding']
+        
+        if method == 'tSNE':
+            self.tSNE(out_path)
+        elif method == 'UMAP':
+            self.UMAP(out_path)
+        else:
+            log_error('Method not implemented.')
+            
+    def UMAP(self, out_path):
+        """
+        Projects data to a two dimensional space using the UMAP algorithm.
+        
+        References:
+        McInnes L, Healy J, Melville J, arxiv, 2018
+        
+        https://arxiv.org/abs/1802.03426
+        https://github.com/lmcinnes/umap
+        https://umap-learn.readthedocs.io/en/latest/ 
+        """
+        log_debug('Entering UMAP()')
+        reducer = umap.UMAP()
+        self.embeddings = reducer.fit_transform(self.pca_components)
+        self.embeddings = pd.DataFrame(self.embeddings,
+                                       index=self.pca_components.index,
+                                       columns=[1,2])
+        self.embeddings.to_csv(path_or_buf=out_path, sep=',', header=None)
+        
+        log_debug('Exiting UMAP()')
+        
     def tSNE(self, out_path):
         """
         Projects data to a two dimensional space using the tSNE algorithm.
