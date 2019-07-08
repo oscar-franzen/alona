@@ -8,7 +8,7 @@
 ```
 
 # Description
-`alona` is a Python3-based software pipeline for analysis of single cell RNA sequencing (scRNA-seq) data. `alona` performs normalization, quality control, clustering and cell type annotation of single cell RNA-seq data ([1][1]). In comparison with many established scRNA-seq pipelines, `alona` is not an importable library, but more of a command-line tool integrating current state-of-the-art approaches to scRNA-seq analysis. Running `alona` to analyze scRNA-seq data is simple and fast.
+`alona` is a Python3-based software pipeline for analysis of single cell RNA sequencing (scRNA-seq) data. `alona` performs normalization, quality control, clustering and cell type annotation of single cell RNA-seq data ([1][1]). In comparison with many established scRNA-seq pipelines, `alona` is not an importable library, but more of a command-line tool integrating current state-of-the-art approaches to scRNA-seq analysis. Running `alona` to analyze scRNA-seq data is simple and fast. The clustering method used is similar to Seurat; i.e., computing a shared nearest neighbor network. `alona` uses the [Leiden algorithm](https://github.com/vtraag/leidenalg) to identify tightly connected communities from the graph.
 
 `alona` also exists as a parallel cloud-based service ([2][2]).
 
