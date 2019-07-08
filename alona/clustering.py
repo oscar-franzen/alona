@@ -434,7 +434,10 @@ class AlonaClustering():
             renderer = fig.canvas.get_renderer()
 
             if cell_type_obj != None:
-                ct = cell_type_obj.res_pred.iloc[i][1]
+                pred = cell_type_obj.res_pred.iloc[i]
+                ct = pred[1]
+                pval = pred[3]
+                print(pval)
                 # approximate plotting coordinates
                 x_text = np.median(x)
                 y_text = max(y[y < (np.median(y) + robust.mad(y)*2.7)])
@@ -471,7 +474,12 @@ class AlonaClustering():
                     ann.set_position((x_text, y_text+offset))
                     added_labels.append(d)
                 else:
-                    legend_items.append(mpatches.Patch(color=col, label='%s (n=%s)' % (ct, len(x))))
+                    if ct == 'Unknown':
+                        lab = '[%s] %s (n=%s)' % (i, ct, len(x))
+                    else:
+                        lab = '[%s] %s (n=%s), p=%s' % (i, ct, len(x), '{:.1e}'.format(pval))
+                        
+                    legend_items.append(mpatches.Patch(color=col, label=lab))
                     
         if legend and cell_type_obj:
             plt.legend(handles=legend_items,
