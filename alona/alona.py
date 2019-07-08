@@ -81,7 +81,7 @@ RBERVertexPartition or ModularityVertexPartition. Default: RBERVertexPartition',
 @click.option('--ignore_small_clusters', help='Ignore clusters with fewer or equal to N \
 cells. Default: 10', default=10)
 
-@click.option('--embedding', help='Method used for data projection. Can be either tSNE or\
+@click.option('--embedding', help='Method used for data projection. Can be either tSNE or \
 UMAP.', default='tSNE', type=click.Choice(['tSNE', 'UMAP']))
 
 @click.option('--perplexity', help='The perplexity parameter in the t-SNE algorithm. \
