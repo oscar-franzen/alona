@@ -215,3 +215,5 @@ class AlonaCellTypePred():
             
             if md5_ref != md5_found:
                 log_error('md5 mismatch. Try deleting %s and run alona again.' % model_path)
+        else:
+            log_debug('Model file detected: %s' % model_path)
