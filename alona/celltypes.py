@@ -17,6 +17,7 @@ from joblib import load as joblib_load
 import pandas as pd
 import numpy as np
 from sklearn.preprocessing import scale
+from sklearn.preprocessing import MinMaxScaler
 from scipy.stats import fisher_exact
 
 from .constants import (OUTPUT, GENOME, MARKERS)
@@ -222,7 +223,7 @@ class AlonaCellTypePred():
                 os.system(cmd)
                 log_error('md5 mismatch. Try running alona again.' % dl_path)
         else:
-            log_debug('Model file detected: %s' % model_path)
+            log_debug('Model file detected: %s' % dl_path)
 
     def run_model_pred(self):
         """ Runs prediction using the model. """
@@ -234,3 +235,57 @@ class AlonaCellTypePred():
         
         log_info('Loading model...')
         model = joblib_load(model_path)
+
+        # load features used for training
+        features_file = get_alona_dir() + '/features.production.txt'
+        features = pd.read_csv(features_file, sep='\t', header=None)
+        features = features[features.columns[0]]
+
+        features = pd.Series(features).str.extract('(.+_ENSMUS.+)\..+')
+        features.index = features[0]
+        
+        # features present in "data" but not in the training set
+        data_specific = median_expr.index.difference(features.index)
+        
+        # remove non-training features from data
+        data = median_expr.loc[median_expr.index.difference(data_specific)]
+        
+        # missing features in "data" compared with training
+        missing = features.index[np.logical_not(features.isin(data.index))[0]]
+        
+        # add missing features and set expression to zero
+        empty = pd.DataFrame(index=missing, columns=data.columns)
+        empty = empty.fillna(0)
+        
+        # concatenate data frames
+        qwe = pd.concat([ data, empty ])
+        qwe = qwe.reindex(index=features[0])
+        #qwe = qwe.reset_index()
+        
+        #qwe.index = qwe[0]
+        #qwe = qwe.iloc[:,1:]
+        
+        # scale data so it lies between 1 to 100
+        min_max_scaler = MinMaxScaler(feature_range=(0,100))
+        scaled = min_max_scaler.fit_transform(qwe)
+        
+        pred = model.predict(scaled.transpose())
+        pr = model.predict_proba(scaled.transpose())
+        
+        class_file = get_alona_dir() + '/cell_types.codes.production.txt'
+        classes = pd.read_csv(class_file, sep=',', header=0)
+        classes = classes.drop_duplicates()
+        classes.columns = ['cell_type', 'id']
+        
+        pr2 = pd.DataFrame(pr)
+        pr2.columns = model.classes_
+        
+        classes.index = classes['id']
+        classes = classes.reindex(index=pr2.columns)
+        classes = classes.reset_index()
+        
+        pr2.columns = classes['cell_type']
+        pr2 = pr2.transpose()
+        
+        out = self.wd + '/csvs/SVM/SVM_cell_type_pred_full_table.txt'
+        pr2.to_csv(out)
