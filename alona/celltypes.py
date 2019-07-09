@@ -8,7 +8,9 @@
  Contact: Oscar Franzen <p.oscar.franzen@gmail.com>
 """
 
+import os
 import sys
+import subprocess
 from collections import defaultdict
 
 import pandas as pd
@@ -189,3 +191,27 @@ class AlonaCellTypePred():
         ma_ss = ma.iloc[:, ma.columns.isin(['official gene symbol', 'cell type'])]
         self.marker_freq = ma_ss[ma_ss.columns[0]].value_counts()
         self.markers = ma_ss
+
+    def download_model(self):
+        """ Downloads the SVM model. """
+        
+        # Determine current model
+        cmd = 'curl https://raw.githubusercontent.com/oscar-franzen/PanglaoDB/master/alona_classifier_id.txt'
+        out = subprocess.check_output(cmd, shell=True)
+        out = out.decode('ascii').split(' ')
+        file_id, md5_ref = out
+        
+        model_path = get_alona_dir() + '/sklearn_svm_model.production.joblib'
+        
+        if not os.path.exists(model_path):
+            log_info('Downloading model file...')
+            cmd = r"""(wget --load-cookies /tmp/google_cookie.txt "https://docs.google.com/uc?export=download&confirm=$(wget --quiet --save-cookies /tmp/google_cookie.txt --keep-session-cookies --no-check-certificate 'https://docs.google.com/uc?export=download&id=%s' -O- | sed -rn 's/.*confirm=([0-9A-Za-z_]+).*/\1\n/p')&id=%s" -O %s) 2>/dev/null && rm /tmp/google_cookie.txt""" % (file_id, file_id, model_path)
+            os.system(cmd)
+            
+            cmd = 'md5sum %s' % model_path
+            out = subprocess.check_output(cmd, shell=True, stderr=subprocess.STDOUT)
+            out = out.decode('ascii')
+            md5_found = out.split(' ')[0]
+            
+            if md5_ref != md5_found:
+                log_error('md5 mismatch. Try deleting %s and run alona again.' % model_path)
