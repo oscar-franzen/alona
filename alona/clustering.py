@@ -31,8 +31,6 @@ import pandas as pd
 import matplotlib
 import matplotlib.patches as mpatches
 import matplotlib.pyplot as plt
-import matplotlib.colors as colors
-import matplotlib.cm as cmx
 
 import sklearn.manifold
 from statsmodels import robust
@@ -46,8 +44,7 @@ import alona.irlbpy
 
 from .log import (log_info, log_debug, log_error, log_warning)
 from .constants import OUTPUT
-from .utils import (get_alona_dir, get_random_color, color_distance, generate_new_color,
-                    uniqueColors)
+from .utils import (get_alona_dir, uniqueColors)
 from .hvg import AlonaHighlyVariableGenes
 
 class AlonaClustering():
@@ -65,7 +62,7 @@ class AlonaClustering():
         self.leiden_cl = None
         self.params = params
         self.cluster_colors = []
-        
+
         matplotlib.rcParams['font.sans-serif'] = 'Arial'
         matplotlib.rcParams['font.family'] = 'sans-serif'
 
@@ -75,7 +72,7 @@ class AlonaClustering():
                                               data_norm=self._alonacell.data_norm,
                                               data_ERCC=self._alonacell.data_ERCC)
         self.hvg = hvg_finder.find()
-        
+
         wd = self._alonacell.alonabase.get_wd()
         pd.DataFrame(self.hvg).to_csv(wd + OUTPUT['FILENAME_HVG'], header=False,
                                       index=False)
@@ -104,7 +101,7 @@ class AlonaClustering():
 
         index_v = self._alonacell.data_norm.index.isin(self.hvg)
         sliced = self._alonacell.data_norm[index_v]
-        
+
         lanc = alona.irlbpy.lanczos(sliced, nval=75, maxit=1000)
 
         # weighing by var (Seurat-style)
@@ -117,35 +114,35 @@ class AlonaClustering():
     def embedding(self, out_path):
         """ Cals tSNE or UMAP """
         method = self.params['embedding']
-        
+
         if method == 'tSNE':
             self.tSNE(out_path)
         elif method == 'UMAP':
             self.UMAP(out_path)
         else:
             log_error('Method not implemented.')
-            
+
     def UMAP(self, out_path):
         """
         Projects data to a two dimensional space using the UMAP algorithm.
-        
+
         References:
         McInnes L, Healy J, Melville J, arxiv, 2018
-        
+
         https://arxiv.org/abs/1802.03426
         https://github.com/lmcinnes/umap
-        https://umap-learn.readthedocs.io/en/latest/ 
+        https://umap-learn.readthedocs.io/en/latest/
         """
         log_debug('Entering UMAP()')
         reducer = umap.UMAP()
         self.embeddings = reducer.fit_transform(self.pca_components)
         self.embeddings = pd.DataFrame(self.embeddings,
                                        index=self.pca_components.index,
-                                       columns=[1,2])
+                                       columns=[1, 2])
         self.embeddings.to_csv(path_or_buf=out_path, sep=',', header=None)
-        
+
         log_debug('Exiting UMAP()')
-        
+
     def tSNE(self, out_path):
         """
         Projects data to a two dimensional space using the tSNE algorithm.
@@ -162,7 +159,7 @@ class AlonaClustering():
         self.embeddings = tsne.fit_transform(self.pca_components)
         self.embeddings = pd.DataFrame(self.embeddings,
                                        index=self.pca_components.index,
-                                       columns=[1,2])
+                                       columns=[1, 2])
         self.embeddings.to_csv(path_or_buf=out_path, sep=',', header=None)
         log_debug('Finished t-SNE')
 
@@ -317,7 +314,7 @@ class AlonaClustering():
         """
 
         log_debug('Running leiden clustering...')
-        
+
         res = self.params['leiden_res']
 
         # construct the graph object
@@ -332,7 +329,7 @@ class AlonaClustering():
             ll.append(tuple(i))
 
         g.add_edges(ll)
-        
+
         if self.params == 'ModularityVertexPartition':
             part = leidenalg.ModularityVertexPartition
         else:
@@ -377,7 +374,7 @@ class AlonaClustering():
         color_labels = self.params['color_labels']
         legend = self.params['legend']
         method = self.params['embedding']
-        
+
         ignore_clusters = self.params['ignore_small_clusters']
         added_labels = []
 
@@ -414,28 +411,28 @@ class AlonaClustering():
 
         if len(self.cluster_colors) == 0:
             self.cluster_colors = uniqueColors(len(uniq))
-            
+
         cell_count = self.embeddings.shape[0]
         if cell_count > 1000:
             marker_size = 0.8
         else:
             marker_size = 3
-        
+
         legend_items = []
 
         for i in range(len(uniq)):
             idx = np.array(self.leiden_cl) == i
             e = self.embeddings[idx]
-            
+
             x = e[1].values
             y = e[2].values
-            
+
             if e.shape[0] <= ignore_clusters:
                 log_warning('Ignoring cluster: %s b/c only %s cell(s)' % (i, len(x)))
                 continue
-                
+
             col = self.cluster_colors[i]
-            
+
             plt.scatter(x, y, s=marker_size, color=col, label=uniq[i])
             renderer = fig.canvas.get_renderer()
 
@@ -446,7 +443,7 @@ class AlonaClustering():
                 # approximate plotting coordinates
                 x_text = np.median(x)
                 y_text = max(y[y < (np.median(y) + robust.mad(y)*2.7)])
-                
+
                 if not legend:
                     if color_labels == True:
                         ann = plt.annotate(ct, (x_text, y_text), size=5,
@@ -484,9 +481,9 @@ class AlonaClustering():
                     else:
                         lab = '[%s] %s (n=%s), p=%s' % (i, ct, len(x),
                                                         '{:.1e}'.format(pval))
-                        
+
                     legend_items.append(mpatches.Patch(color=col, label=lab))
-                    
+
         if legend and cell_type_obj:
             plt.legend(handles=legend_items,
                        borderaxespad=0.,

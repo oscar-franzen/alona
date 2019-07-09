@@ -106,7 +106,7 @@ class AlonaBase():
             os.mkdir(self.get_wd() + '/csvs/CTA_RANK_F')
         except FileExistsError:
             log_info('Output directory already exists (%s), resuming.' %
-                      self.get_wd())
+                     self.get_wd())
 
     def is_file_empty(self):
         if os.stat(self.params['input_filename']).st_size == 0:
@@ -125,40 +125,40 @@ class AlonaBase():
                 if b'\0' in block:
                     return True
         return False
-        
+
     def matrix_market(self):
         """ Unpacks data in matrix market format (used by NCBI GEO) """
         log_debug('entering matrix_market()')
         input_file = self.params['input_filename']
         out_dir = self.get_wd()
         mat_out = self.get_matrix_file()
-        
+
         if re.search('.tar.gz$', input_file):
             out = subprocess.check_output("tar -ztf %s" % (input_file), shell=True)
         else:
             out = subprocess.check_output("tar -tf %s" % (input_file), shell=True)
-            
+
         files_found = 0
-        
+
         for fn in out.decode('ascii').split('\n'):
             if fn != '' and (fn == 'barcodes.tsv' or 'genes.tsv' or 'matrix.mtx'):
                 files_found += 1
-        
+
         if files_found == 3:
             # unpack
             if re.search('.tar.gz$', input_file):
                 cmd = 'tar -C %s -zxf %s' % (out_dir, input_file)
             else:
                 cmd = 'tar -C %s -xf %s' % (out_dir, input_file)
-            
+
             subprocess.check_output(cmd, shell=True)
-            
+
             m = scipy.io.mmread('%s/matrix.mtx' % out_dir)
             m = pd.DataFrame(m.todense())
-            
+
             bc = pd.read_csv('%s/barcodes.tsv' % out_dir, header=None)
             g = pd.read_csv('%s/genes.tsv' % out_dir, header=None, sep='\t')
-            
+
             if g.shape[1] > 1:
                 g = g[1] + '_' + g[0]
 
@@ -173,14 +173,14 @@ class AlonaBase():
         input_file = self.params['input_filename']
         abs_path = os.path.abspath(input_file)
         mat_out = self.get_matrix_file()
-        
+
         # Is the file binary?
         self._is_binary = self.is_binary(input_file)
-        
+
         if os.path.exists(mat_out):
             log_info('Data unpacking has already been done.')
             return
-            
+
         # .tar file?
         if re.search('\.tar', input_file):
             self.matrix_market()
@@ -444,7 +444,7 @@ low.')
         ftemp2.close()
 
         log_info('mapped %s genes to mouse orthologs' % ('{:,}'.format(orthologs_found)))
-        
+
         self.mat_data_file = 'input.mat.mapped2mouse.mat'
 
         return self.get_matrix_file() + '.mapped2mouse.mat'
@@ -498,7 +498,7 @@ low.')
         """ Maps gene symbols to internal gene symbols. """
         data = []
         log_debug('Mapping genes to reference.')
-        
+
         mat_file = self.get_matrix_file()
 
         ftemp = open(mat_file + '.C', 'w')
@@ -536,7 +536,7 @@ low.')
             # some have gene symbols like this: Abc__chr1
             if gene.find('__') > 0:
                 gene = gene.split('__')[0]
-                
+
             if re.search('^ERCC-[0-9]+$', gene):
                 new_gene_name = gene
                 ercc_count += 1
@@ -606,19 +606,16 @@ low.')
 
                 if not found:
                     self.unmappable.append(gene)
-                    
+
             if new_gene_name != '':
                 ftemp.write('%s%s%s' % (new_gene_name, self._delimiter,
-                            self._delimiter.join(foo[1:])))
+                                        self._delimiter.join(foo[1:])))
 
         ftemp.close()
-        
+
         if ercc_count > 0:
             fn = self.get_wd() + '/ERCC.mat'
             log_info('%s ERCC genes were detected' % ercc_count)
-            
-        #print('!!!!!!')
-        #q = sys.stdin.readline()
 
         if self.params['species'] == 'human':
             del self.unmappable[:]
@@ -666,11 +663,11 @@ Too few genes were mappable (<500).')
 
     def prepare(self):
         self.create_work_dir()
-        
+
         with open(self.get_wd() + OUTPUT['FILENAME_SETTINGS'], 'w') as f:
             for p in self.params:
                 f.write('%s\t%s\n' % (p, self.params[p]))
-            
+
         if os.path.exists(self.get_wd() + '/normdata.joblib'):
             log_debug('prepare(): normdata.joblib detected, skipping some steps')
             return

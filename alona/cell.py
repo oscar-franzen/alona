@@ -332,7 +332,7 @@ set to log2.')
         res = (mahal_dists < thres_lower) | (mahal_dists > thres_upper)
 
         self.low_quality_cells = data.columns[res].values
-        
+
         fn = self.alonabase.get_wd() + OUTPUT['FILENAME_QC_SCORE']
         pd.DataFrame(mahal_dists, index=data.columns).to_csv(fn, header=None)
 
@@ -391,7 +391,7 @@ set to log2.')
             self._alona_clustering.pca_components = pd.read_csv(pca_path, header=None,
                                                                 index_col=0)
             self._alona_clustering.embeddings = pd.read_csv(embedding_path, header=None,
-                                                                index_col=0)
+                                                            index_col=0)
         else:
             self._alona_clustering.find_variable_genes()
             self._alona_clustering.PCA(pca_path)
