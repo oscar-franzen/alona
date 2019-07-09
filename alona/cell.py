@@ -410,3 +410,4 @@ set to log2.')
                                                  title='Colored by cluster')
 
         self.pred.download_model()
+        self.pred.run_model_pred()

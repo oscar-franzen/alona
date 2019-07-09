@@ -54,8 +54,4 @@ def log_warning(msg):
 
 def log_error(abobj=None, msg='error'):
     logging.error('%s%s%s', RED, msg, END)
-
-    if abobj is not None:
-        abobj.cleanup()
-
     sys.exit(1)

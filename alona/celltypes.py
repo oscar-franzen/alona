@@ -12,6 +12,7 @@ import os
 import sys
 import subprocess
 from collections import defaultdict
+from joblib import load as joblib_load
 
 import pandas as pd
 import numpy as np
@@ -194,26 +195,42 @@ class AlonaCellTypePred():
 
     def download_model(self):
         """ Downloads the SVM model. """
-        
         # Determine current model
-        cmd = 'curl https://raw.githubusercontent.com/oscar-franzen/PanglaoDB/master/alona_classifier_id.txt'
+        cmd = 'curl https://raw.githubusercontent.com/oscar-franzen/PanglaoDB/master/alona_classifier_id.txt 2>/dev/null'
         out = subprocess.check_output(cmd, shell=True)
         out = out.decode('ascii').split(' ')
         file_id, md5_ref = out
-        
-        model_path = get_alona_dir() + '/sklearn_svm_model.production.joblib'
-        
-        if not os.path.exists(model_path):
+
+        dl_path = get_alona_dir() + '/model.tar.gz'
+
+        if not os.path.exists(dl_path):
             log_info('Downloading model file...')
-            cmd = r"""(wget --load-cookies /tmp/google_cookie.txt "https://docs.google.com/uc?export=download&confirm=$(wget --quiet --save-cookies /tmp/google_cookie.txt --keep-session-cookies --no-check-certificate 'https://docs.google.com/uc?export=download&id=%s' -O- | sed -rn 's/.*confirm=([0-9A-Za-z_]+).*/\1\n/p')&id=%s" -O %s) 2>/dev/null && rm /tmp/google_cookie.txt""" % (file_id, file_id, model_path)
+            cmd = r"""(wget --load-cookies /tmp/google_cookie.txt "https://docs.google.com/uc?export=download&confirm=$(wget --quiet --save-cookies /tmp/google_cookie.txt --keep-session-cookies --no-check-certificate 'https://docs.google.com/uc?export=download&id=%s' -O- | sed -rn 's/.*confirm=([0-9A-Za-z_]+).*/\1\n/p')&id=%s" -O %s) 2>/dev/null && rm /tmp/google_cookie.txt""" % (file_id, file_id, dl_path)
             os.system(cmd)
             
-            cmd = 'md5sum %s' % model_path
+            # unpack
+            cmd = 'tar -C %s -zxf %s' % (get_alona_dir(), dl_path)
+            os.system(cmd)
+
+            cmd = 'md5sum %s' % dl_path
             out = subprocess.check_output(cmd, shell=True, stderr=subprocess.STDOUT)
             out = out.decode('ascii')
             md5_found = out.split(' ')[0]
-            
+
             if md5_ref != md5_found:
-                log_error('md5 mismatch. Try deleting %s and run alona again.' % model_path)
+                cmd = 'rm %s' % dl_path
+                os.system(cmd)
+                log_error('md5 mismatch. Try running alona again.' % dl_path)
         else:
             log_debug('Model file detected: %s' % model_path)
+
+    def run_model_pred(self):
+        """ Runs prediction using the model. """
+        median_expr = self.median_expr
+        model_path = get_alona_dir() + '/sklearn_svm_model.production.joblib'
+        
+        if not os.path.exists(model_path):
+            log_error('Fatal: model file was not found')
+        
+        log_info('Loading model...')
+        model = joblib_load(model_path)
