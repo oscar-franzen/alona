@@ -488,7 +488,10 @@ class AlonaClustering():
             plt.legend(handles=legend_items,
                        borderaxespad=0.,
                        loc='upper left',
-                       bbox_to_anchor=(1.05, 1))
+                       bbox_to_anchor=(1.05, 1),
+                       title='CTA_RANK_F (marker based)')
+                       
+            plt.gca().add_artist(l)
 
         plt.ylabel('%s1' % method)
         plt.xlabel('%s2' % method)
