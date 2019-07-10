@@ -29,6 +29,8 @@ import numpy.ctypeslib as npct
 import pandas as pd
 
 import matplotlib
+from matplotlib.patches import Circle
+from matplotlib.collections import PatchCollection
 import matplotlib.patches as mpatches
 import matplotlib.pyplot as plt
 
@@ -371,8 +373,6 @@ class AlonaClustering():
         """ Generates a tSNE scatter plot with colored clusters. """
         log_debug('Generating scatter plot...')
         dark_bg = self.params['dark_bg']
-        color_labels = self.params['color_labels']
-        legend = self.params['legend']
         method = self.params['embedding']
 
         ignore_clusters = self.params['ignore_small_clusters']
@@ -390,7 +390,7 @@ class AlonaClustering():
 
         if dark_bg:
             # Don't remove this block.
-            # For some reason this block is needed for the --dark_bg to work.
+            # For some reason this block is needed for --dark_bg to function.
             plt.clf()
             fig = plt.figure(num=None, figsize=(5, 5))
             ax = fig.add_subplot(111)
@@ -400,8 +400,14 @@ class AlonaClustering():
             plt.close()
 
         plt.clf()
-        fig = plt.figure(num=None, figsize=(5, 5))
-        ax = fig.add_subplot(111)
+        fig = plt.figure() # num=None, figsize=(5, 5)
+        grid = plt.GridSpec(nrows=1, ncols=5, hspace=0.2, wspace=0.2)
+        
+        main_ax = plt.subplot(grid[0,0:4]) # python note, A:B (A=0 indexed, B=1 indexed)
+        leg1 = plt.subplot(grid[0,-1]) # 3 is 0 indexed
+        leg1.set_xlim(0,1)
+        leg1.set_ylim(0,1)
+        leg1.axis('off')
 
         if dark_bg:
             log_debug('using dark background (--dark_bg is set)')
@@ -433,69 +439,33 @@ class AlonaClustering():
 
             col = self.cluster_colors[i]
 
-            plt.scatter(x, y, s=marker_size, color=col, label=uniq[i])
-            renderer = fig.canvas.get_renderer()
+            main_ax.scatter(x, y, s=marker_size, color=col, label=uniq[i])
 
-            if cell_type_obj != None:
-                pred = cell_type_obj.res_pred.iloc[i]
-                ct = pred[1]
-                pval = pred[3]
-                # approximate plotting coordinates
-                x_text = np.median(x)
-                y_text = max(y[y < (np.median(y) + robust.mad(y)*2.7)])
+            pred = cell_type_obj.res_pred.iloc[i]
+            ct = pred[1]
+            pval = pred[3]
+            
+            if ct == 'Unknown':
+                lab = '[%s] %s (n=%s)' % (i, ct, len(x))
+            else:
+                lab = '[%s] %s (n=%s), p=%s' % (i, ct, len(x),
+                                                '{:.1e}'.format(pval))
+            
+            leg1.scatter(0.1, 1-0.05*i - 0.05, c=col)
+            leg1.annotate(lab, xy=(0.3, 1-0.05*i - 0.06))
 
-                if not legend:
-                    if color_labels == True:
-                        ann = plt.annotate(ct, (x_text, y_text), size=5,
-                                           color=col)
-                    else:
-                        ann = plt.annotate(ct, (x_text, y_text), size=5)
+        # NOTE: I would like to position two legends side by side, I can't figure out how.
+        
+        #if legend and cell_type_obj:
+            #leg0 = main_ax.legend(handles=legend_items,
+            #               borderaxespad=0.,
+            #               #loc='upper left',
+            #               bbox_to_anchor=(1.04, 1),
+            #               title='CTA_RANK_F (marker based)')
 
-                    # get the Bbox bounding the text in display units
-                    bb = ann.get_window_extent(renderer=renderer)
-
-                    # from display to data coordinates
-                    bbox_data = ax.transData.inverted().transform(bb)
-
-                    X1 = bbox_data[0][0] # left coord
-                    X2 = bbox_data[1][0] # right coord
-                    Y2 = bbox_data[0][1] # bottom coord
-                    Y1 = bbox_data[1][1] # top coord
-
-                    d = {'X1' : X1, 'X2' : X2, 'Y2' : Y2, 'Y1' : Y1, 'ct' : ct}
-                    offset = 0
-                    while is_overlapping(d):
-                        Y2 += 1
-                        Y1 += 1
-                        offset += 1
-                        d = {'X1' : X1, 'X2' : X2, 'Y2' : Y2, 'Y1' : Y1, 'ct' : ct}
-                        # emergency break
-                        if offset > 100:
-                            break
-
-                    ann.set_position((x_text, y_text+offset))
-                    added_labels.append(d)
-                else:
-                    if ct == 'Unknown':
-                        lab = '[%s] %s (n=%s)' % (i, ct, len(x))
-                    else:
-                        lab = '[%s] %s (n=%s), p=%s' % (i, ct, len(x),
-                                                        '{:.1e}'.format(pval))
-
-                    legend_items.append(mpatches.Patch(color=col, label=lab))
-
-        if legend and cell_type_obj:
-            plt.legend(handles=legend_items,
-                       borderaxespad=0.,
-                       loc='upper left',
-                       bbox_to_anchor=(1.05, 1),
-                       title='CTA_RANK_F (marker based)')
-                       
-            plt.gca().add_artist(l)
-
-        plt.ylabel('%s1' % method)
-        plt.xlabel('%s2' % method)
-        plt.title(title)
+        main_ax.set_ylabel('%s1' % method)
+        main_ax.set_xlabel('%s2' % method)
+        main_ax.set_title(title)
         plt.savefig(filename, bbox_inches='tight')
         plt.close()
 

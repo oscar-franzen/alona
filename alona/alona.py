@@ -19,7 +19,7 @@ import time
 import click
 
 from .utils import *
-from .log import (init_logging, log_debug, log_error)
+from .log import (init_logging, log_debug, log_error, log_info)
 from .logo import show_logo
 from .exceptions import *
 from .alonabase import AlonaBase
@@ -93,12 +93,6 @@ Default: 30', default=30)
 @click.option('--dark_bg', help='Use dark background in scatter plots. Default: False',
               is_flag=True, default=False)
 
-@click.option('--color_labels', help='Plot cell type labels with the same color as the \
-corresponding cell cluster cells. Default: True', is_flag=True, default=True)
-
-@click.option('--legend', help='Use a legend in plots instead of floating labels in\
-scatter plots for cell types. Default: False', is_flag=True, default=False)
-
 @click.option('-lf', '--logfile', help='Name of log file. Set to /dev/null if you want to \
 disable logging to a file. Default: alona.log', default='alona.log')
 @click.option('-ll', '--loglevel', help='Set how much runtime information is written to \
@@ -109,7 +103,7 @@ the log file. Default: regular', type=click.Choice(['regular', 'debug']), defaul
               callback=print_version)
 def run(filename, output, dataformat, minreads, minexpgenes, qc_auto, mrnafull, delimiter,
         header, nomito, hvg, hvg_n, nn_k, prune_snn, leiden_partition, leiden_res,
-        ignore_small_clusters, embedding, perplexity, species, dark_bg, color_labels, legend,
+        ignore_small_clusters, embedding, perplexity, species, dark_bg,
         logfile, loglevel, nologo, version):
 
     # confirm the genome reference files can be found
@@ -148,9 +142,7 @@ tried this path: %s' % (GENOME[item], path))
         'ignore_small_clusters' : ignore_small_clusters,
         'hvg_method' : hvg,
         'hvg_cutoff' : hvg_n,
-        'color_labels' : color_labels,
         'qc_auto' : qc_auto,
-        'legend' : legend,
         'embedding' : embedding
     }
 
@@ -163,4 +155,4 @@ tried this path: %s' % (GENOME[item], path))
 
     time_end = time.time()
 
-    log_debug('alona finished in %.2f minutes' % ((time_end - time_start)/60))
+    log_info('alona finished in %.2f minutes' % ((time_end - time_start)/60))
