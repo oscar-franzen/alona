@@ -64,7 +64,7 @@ class AlonaCellTypePred():
 
         log_debug('CTA_RANK_F() starting')
 
-        median_expr = self.median_expr
+        median_expr = self.median_expr.copy()
         markers = self.markers
         marker_freq = self.marker_freq
 
@@ -226,8 +226,8 @@ class AlonaCellTypePred():
             log_debug('Model file detected: %s' % dl_path)
 
     def run_model_pred(self):
-        """ Runs prediction using the model. """
-        median_expr = self.median_expr
+        """ Runs prediction using the SVM model. """
+        median_expr = self.median_expr.copy()
         model_path = get_alona_dir() + '/sklearn_svm_model.production.joblib'
         
         if not os.path.exists(model_path):
@@ -259,14 +259,10 @@ class AlonaCellTypePred():
         
         # concatenate data frames
         qwe = pd.concat([ data, empty ])
-        qwe = qwe.reindex(index=features[0])
-        #qwe = qwe.reset_index()
-        
-        #qwe.index = qwe[0]
-        #qwe = qwe.iloc[:,1:]
+        qwe = qwe.reindex(index=features.index)
         
         # scale data so it lies between 1 to 100
-        min_max_scaler = MinMaxScaler(feature_range=(0,100))
+        min_max_scaler = MinMaxScaler(feature_range=(0, 100))
         scaled = min_max_scaler.fit_transform(qwe)
         
         pred = model.predict(scaled.transpose())
@@ -289,3 +285,6 @@ class AlonaCellTypePred():
         
         out = self.wd + '/csvs/SVM/SVM_cell_type_pred_full_table.txt'
         pr2.to_csv(out)
+        
+        out = self.wd + '/csvs/SVM/SVM_cell_type_pred_best.txt'
+        pr2.idxmax().to_csv(out)
