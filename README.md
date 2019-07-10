@@ -42,7 +42,6 @@ python3 -m alona \
         --species mouse        # specifies our input data is from mouse
         --embedding tSNE       # tSNE is defualt if not specified
         --dark_bg \            # use black background in scatter plots
-        --legend \             # plot a legend in scatter plots
         --hvg_n 1000 \         # use 1000 top highly variable genes
         --leiden_res 0.1 \     # clustering parameter
         --output GSM3689776 \  # output directory name
@@ -111,12 +110,6 @@ Options:
                                   algorithm. Default: 30
   -s, --species [human|mouse]     Species your data comes from. Default: mouse
   --dark_bg                       Use dark background in scatter plots.
-                                  Default: False
-  --color_labels                  Plot cell type labels with the same color as
-                                  the corresponding cell cluster cells.
-                                  Default: True
-  --legend                        Use a legend in plots instead of floating
-                                  labels inscatter plots for cell types.
                                   Default: False
   -lf, --logfile TEXT             Name of log file. Set to /dev/null if you
                                   want to disable logging to a file. Default:
