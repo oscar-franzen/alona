@@ -136,7 +136,11 @@ option | detailed description
 `--qc_auto [yes\|no]` | Automatically filters low quality cells using five quality metrics and Mahalanobis distances. Three standard deviations from the mean is considered an outlier and will be removed. Default: yes
 `--embedding [tSNE\|UMAP]` | The method used to project the data to a 2d space. Only used for visualization purposes. tSNE is more commonly used in scRNA-seq analysis. UMAP may be better at preserving the global structure of the data. Default: tSNE
 
-# Contact
+# Bugs
+Please file a bug report through Github.
+
+# Contact and Support
+Limited support is available through e-mail:
 * Oscar Franzen <p.oscar.franzen@gmail.com>
 
 # Cite
