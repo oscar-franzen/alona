@@ -66,8 +66,9 @@ class AlonaClustering():
         self.params = params
         self.cluster_colors = []
 
-        matplotlib.rcParams['font.sans-serif'] = 'Arial'
-        matplotlib.rcParams['font.family'] = 'sans-serif'
+        # Changing the font will remove '-' in tick labels
+        #matplotlib.rcParams['font.sans-serif'] = 'Arial'
+        #matplotlib.rcParams['font.family'] = 'sans-serif'
 
     def find_variable_genes(self):
         hvg_finder = AlonaHighlyVariableGenes(hvg_method=self.params['hvg_method'],
@@ -405,6 +406,7 @@ class AlonaClustering():
         grid = plt.GridSpec(nrows=1, ncols=5, hspace=0.2, wspace=0.2)
         
         main_ax = plt.subplot(grid[0,0:4]) # python note, A:B (A=0 indexed, B=1 indexed)
+        
         leg1 = plt.subplot(grid[0,-1]) # 3 is 0 indexed
         leg1.set_xlim(0,1)
         leg1.set_ylim(0,1)
@@ -599,6 +601,10 @@ class AlonaClustering():
         main_ax.set_ylabel('%s1' % method)
         main_ax.set_xlabel('%s2' % method)
         main_ax.set_title(title)
+        
+        main_ax.set_xlim(min(self.embeddings[1]),max(self.embeddings[1]))
+        plt.draw()
+        
         plt.savefig(filename, bbox_inches='tight')
         plt.close()
 
