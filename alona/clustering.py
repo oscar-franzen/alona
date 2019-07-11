@@ -454,10 +454,10 @@ class AlonaClustering():
             #leg1.scatter(0.1, 1-0.05*i - 0.05, c=col)
             #leg1.annotate(lab, xy=(0.3, 1-0.05*i - 0.06))
             
-            rect = mpatches.Rectangle((0.05,1-0.05*i - 0.05), width=0.20, height=0.02,linewidth=0,facecolor=col)
+            rect = mpatches.Rectangle((0.05,1-0.03*i - 0.05), width=0.20, height=0.02,linewidth=0,facecolor=col)
             leg1.add_patch(rect)
             
-            leg1.annotate(lab, xy=(0.3, 1-0.05*i - 0.05))
+            leg1.annotate(lab, xy=(0.3, 1-0.03*i - 0.047), size=6)
 
         # NOTE: I would like to position two legends side by side, I can't figure out how.
         
