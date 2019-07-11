@@ -29,7 +29,7 @@ setuptools.setup(
         "License :: OSI Approved :: GPLv3",
         "Operating System :: OS Independent",
     ],
-    
+
     ext_modules=[Extension('annlib', ['./alona/ANN/brute.cpp',
                                  './alona/ANN/bd_tree.cpp',
                                  './alona/ANN/bd_search.cpp',
@@ -44,5 +44,5 @@ setuptools.setup(
                                  './alona/ANN/kd_dump.cpp',
                                  './alona/ANN/kd_util.cpp',
                                  './alona/ANN/NN.cc'],
-                          include_dirs=['./alona/ANN/','./alona/ANN/ANN/'])]
+                          include_dirs=['./alona/ANN/', './alona/ANN/ANN/'])]
 )

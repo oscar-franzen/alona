@@ -31,6 +31,7 @@ import pandas as pd
 import matplotlib
 from matplotlib.patches import Circle
 from matplotlib.collections import PatchCollection
+from matplotlib import lines
 import matplotlib.patches as mpatches
 import matplotlib.pyplot as plt
 
@@ -425,7 +426,9 @@ class AlonaClustering():
             marker_size = 3
 
         legend_items = []
+        offset = 0
 
+        # plot the first legend
         for i in range(len(uniq)):
             idx = np.array(self.leiden_cl) == i
             e = self.embeddings[idx]
@@ -438,35 +441,160 @@ class AlonaClustering():
                 continue
 
             col = self.cluster_colors[i]
-
             main_ax.scatter(x, y, s=marker_size, color=col, label=uniq[i])
+            lab = i
+            
+            rect = mpatches.Rectangle((0.05, 1-0.03*i - 0.05), width=0.20, height=0.02,
+                                      linewidth=0, facecolor=col)
+            leg1.add_patch(rect)
+            an = leg1.annotate(lab, xy=(0.3, 1-0.03*i - 0.047), size=6)
+            
+            renderer = fig.canvas.get_renderer()
+            bb = an.get_window_extent(renderer)
+            bbox_data = leg1.transAxes.inverted().transform(bb)
+            
+            if bbox_data[1][0] > offset:
+                offset = bbox_data[1][0]
+        
+        # add number of cells
+        offset2 = 0
+        for i in range(len(uniq)):
+            idx = np.array(self.leiden_cl) == i
+            e = self.embeddings[idx]
+
+            x = e[1].values
+            y = e[2].values
+
+            if e.shape[0] <= ignore_clusters:
+                continue
+                
+            item = cell_type_obj.res_pred2.iloc[i]
+            ct = item[0]
+            prob = item[1]
+            lt = leg1.text(offset + 0.1, 1-0.03*i - 0.047, len(x), size=6)
+            
+            renderer = fig.canvas.get_renderer()
+            bb = lt.get_window_extent(renderer)
+            bbox_data = leg1.transAxes.inverted().transform(bb)
+            
+            if bbox_data[1][0] > offset2:
+                offset2 = bbox_data[1][0]
+                
+        # add marker-based annotation
+        offset3 = 0
+        for i in range(len(uniq)):
+            idx = np.array(self.leiden_cl) == i
+            e = self.embeddings[idx]
+
+            x = e[1].values
+            y = e[2].values
+
+            if e.shape[0] <= ignore_clusters:
+                continue
 
             pred = cell_type_obj.res_pred.iloc[i]
             ct = pred[1]
             pval = pred[3]
             
-            if ct == 'Unknown':
-                lab = '[%s] %s (n=%s)' % (i, ct, len(x))
-            else:
-                lab = '[%s] %s (n=%s), p=%s' % (i, ct, len(x),
-                                                '{:.1e}'.format(pval))
+            lt = leg1.text(offset2 + 0.1, 1-0.03*i - 0.047, ct, size=6)
             
-            #leg1.scatter(0.1, 1-0.05*i - 0.05, c=col)
-            #leg1.annotate(lab, xy=(0.3, 1-0.05*i - 0.06))
+            renderer = fig.canvas.get_renderer()
+            bb = lt.get_window_extent(renderer)
+            bbox_data = leg1.transAxes.inverted().transform(bb)
             
-            rect = mpatches.Rectangle((0.05,1-0.03*i - 0.05), width=0.20, height=0.02,linewidth=0,facecolor=col)
-            leg1.add_patch(rect)
-            
-            leg1.annotate(lab, xy=(0.3, 1-0.03*i - 0.047), size=6)
+            if bbox_data[1][0] > offset3:
+                offset3 = bbox_data[1][0]
+                
+        # add p-value
+        offset4 = 0
+        for i in range(len(uniq)):
+            idx = np.array(self.leiden_cl) == i
+            e = self.embeddings[idx]
 
-        # NOTE: I would like to position two legends side by side, I can't figure out how.
+            x = e[1].values
+            y = e[2].values
+
+            if e.shape[0] <= ignore_clusters:
+                continue
+
+            pred = cell_type_obj.res_pred.iloc[i]
+            ct = pred[1]
+            pval = pred[3]
+            
+            lt = leg1.text(offset3 + 0.1, 1-0.03*i - 0.047, '{:.1e}'.format(pval), size=5)
+            
+            renderer = fig.canvas.get_renderer()
+            bb = lt.get_window_extent(renderer)
+            bbox_data = leg1.transAxes.inverted().transform(bb)
+            
+            if bbox_data[1][0] > offset4:
+                offset4 = bbox_data[1][0]
+                
+        # add SVM prediction
+        offset5 = 0
+        for i in range(len(uniq)):
+            idx = np.array(self.leiden_cl) == i
+            e = self.embeddings[idx]
+
+            x = e[1].values
+            y = e[2].values
+
+            if e.shape[0] <= ignore_clusters:
+                continue
+                
+            item = cell_type_obj.res_pred2.iloc[i]
+            ct = item[0]
+            
+            lt = leg1.text(offset4 + 0.1, 1-0.03*i - 0.047, ct, size=6)
+            
+            renderer = fig.canvas.get_renderer()
+            bb = lt.get_window_extent(renderer)
+            bbox_data = leg1.transAxes.inverted().transform(bb)
+            
+            if bbox_data[1][0] > offset5:
+                offset5 = bbox_data[1][0]
+                
+        # add probability
+        offset6 = 0
+        y_offset = 0
+        for i in range(len(uniq)):
+            idx = np.array(self.leiden_cl) == i
+            e = self.embeddings[idx]
+
+            x = e[1].values
+            y = e[2].values
+
+            if e.shape[0] <= ignore_clusters:
+                continue
+                
+            item = cell_type_obj.res_pred2.iloc[i]
+            prob = item[1]
+            
+            lt = leg1.text(offset5 + 0.1, 1-0.03*i - 0.047, '{:.2f}'.format(prob), size=5)
+            
+            renderer = fig.canvas.get_renderer()
+            bb = lt.get_window_extent(renderer)
+            bbox_data = leg1.transAxes.inverted().transform(bb)
+            
+            if bbox_data[1][0] > offset6:
+                offset6 = bbox_data[1][0]
+                
+            y_offset = bbox_data[1][1]
+
+        if dark_bg:
+            line_col = '#ffffff'
+        else:
+            line_col = '#000000'
         
-        #if legend and cell_type_obj:
-            #leg0 = main_ax.legend(handles=legend_items,
-            #               borderaxespad=0.,
-            #               #loc='upper left',
-            #               bbox_to_anchor=(1.04, 1),
-            #               title='CTA_RANK_F (marker based)')
+        leg1.vlines(offset4+0.05, y_offset-0.015, 1-0.03, color=line_col, clip_on=False, lw=0.5)
+                
+        # header
+        leg1.text(0.30, 0.99, 'cluster', size=5, rotation=90)
+        leg1.text(offset + 0.1, 0.99, 'no. cells', size=5, rotation=90)
+        leg1.text(offset2 + 0.1, 0.99, 'marker-based\nprediction', size=5, rotation=90)
+        leg1.text(offset3 + 0.1, 0.99, 'p-value', size=5, rotation=90)
+        leg1.text(offset4 + 0.1, 0.99, 'SVM-based\nprediction', size=5, rotation=90)
+        leg1.text(offset5 + 0.1, 0.99, 'probability', size=5, rotation=90)
 
         main_ax.set_ylabel('%s1' % method)
         main_ax.set_xlabel('%s2' % method)

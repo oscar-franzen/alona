@@ -38,6 +38,7 @@ class AlonaCellTypePred():
         self.markers = None
         self.marker_freq = None
         self.res_pred = None
+        self.res_pred2 = None
 
     def median_exp(self):
         """ Represent each cluster with median gene expression. """
@@ -287,4 +288,7 @@ class AlonaCellTypePred():
         pr2.to_csv(out)
         
         out = self.wd + '/csvs/SVM/SVM_cell_type_pred_best.txt'
-        pr2.idxmax().to_csv(out)
+        df = pd.DataFrame({ 'ct' : pr2.idxmax(), 'prob' : pr2.max() })
+        
+        df.to_csv(out)
+        self.res_pred2 = df

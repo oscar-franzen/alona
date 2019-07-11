@@ -404,10 +404,9 @@ set to log2.')
         self.pred.median_exp()
         self.pred.load_markers()
         self.pred.CTA_RANK_F()
-
+        self.pred.download_model()
+        self.pred.run_model_pred()
+        
         fn = self.alonabase.get_wd() + OUTPUT['FILENAME_CELL_SCATTER_PLOT_W_CT_LABELS']
         self._alona_clustering.cell_scatter_plot(fn, cell_type_obj=self.pred,
                                                  title='Colored by cluster')
-
-        self.pred.download_model()
-        self.pred.run_model_pred()
