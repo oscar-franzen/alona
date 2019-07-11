@@ -17,7 +17,7 @@
 
 # Installation
 ### Requirements
-* Linux (alona should work on MacOS too, but it is untested)
+* Linux (alona should in principle work on MacOS and Windows, but I have not tested it)
 * Python >= 3.6
 
 ### Dependencies
