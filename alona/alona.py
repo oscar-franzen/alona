@@ -29,8 +29,8 @@ from .constants import GENOME
 @click.command()
 @click.argument('filename', type=click.Path(exists=True))
 @click.option('-o', '--output', help='Specify name of output directory')
-@click.option('-df', '--dataformat', help='Data format.\n(raw read counts, rpkm, log2 \
-normalized data). Default: raw', type=click.Choice(['raw', 'rpkm', 'log2']), default='raw')
+@click.option('-df', '--dataformat', help='How the input data have been processed. For \
+example, if data are raw read counts, then select "raw". Default: raw', type=click.Choice(['raw', 'rpkm', 'log2']), default='raw')
 
 @click.option('-mr', '--minreads', help='Minimum number of reads per cell to keep the \
 cell. Default: 1000', default=1000)

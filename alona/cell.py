@@ -231,7 +231,7 @@ set to log2.')
             log_debug('Loading data matrix from file')
             return load(norm_mat_path)
 
-        data_cp = data
+        data_cp = data.copy()
         data_cp = data_cp.drop(self.low_quality_cells, axis=1)
 
         if not self.alonabase.params['mrnafull'] and \
@@ -244,8 +244,7 @@ set to log2.')
         elif self.alonabase.params['mrnafull'] and \
              self.alonabase.params['dataformat'] == 'raw':
             data_norm = self.rpkm(data_cp)
-        elif self.alonabase.params['mrnafull'] and \
-             self.alonabase.params['dataformat'] == 'rpkm':
+        elif self.alonabase.params['dataformat'] == 'rpkm':
             log_debug('normalization() Running log2')
             data_norm = np.log2(data_cp+1)
         else:
