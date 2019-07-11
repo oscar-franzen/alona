@@ -20,6 +20,9 @@
 * Linux (alona should work on MacOS too, but it is untested)
 * Python >= 3.6
 
+### Dependencies
+alona takes advantage of the following external Python packages: click, matplotlib, numpy, pandas, scipy, scikit-learn, leidenalg, umap-learn, statsmodels, igraph
+
 ### From GitHub and pip3
 ```bash
 # Clone the repository
