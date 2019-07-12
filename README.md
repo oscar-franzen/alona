@@ -36,7 +36,11 @@ cd alona
 pip3 install .
 ```
 
-# Input files
+# Input data files
+## Organism
+Technically `alona` can be used for data from any organism. However, one of the main goals of `alona` is to determine the composition of cell types. Currently, only cell types from mouse and human can be inferred.
+
+## Formats
 The input file is a single gene expression matrix in plain text format. The header of the matrix are barcodes and the first column are gene symbols. Fields should be separated by tabs, commas or spaces (but not a mix). The file can be compressed with zip, gzip or bzip2. In addition, data can also be in [Matrix Market](https://math.nist.gov/MatrixMarket/) format (a format popular in [NCBI GEO](https://www.ncbi.nlm.nih.gov/geo/)), consisting of three files (one file for the actual data values, a second file for barcodes and a third file for gene symbols), which must be bundled together in a `tar` file (can be compressed with gzip or not).
 
 # Usage example
