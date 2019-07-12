@@ -416,6 +416,7 @@ class AlonaClustering():
             mismatches[i] = not (ct_method1 == ct_method2)
 
         offset = 0
+        ignored_count = 0
 
         # plot the first legend
         for i in range(len(uniq)):
@@ -426,7 +427,7 @@ class AlonaClustering():
             y = e[2].values
 
             if e.shape[0] <= ignore_clusters:
-                log_warning('Ignoring cluster: %s b/c only %s cell(s)' % (i, len(x)))
+                ignored_count += 1
                 continue
 
             col = self.cluster_colors[i]
@@ -444,6 +445,9 @@ class AlonaClustering():
 
             if bbox_data[1][0] > offset:
                 offset = bbox_data[1][0]
+                
+        if ignored_count:
+            log_warning('Ignoring %s cluster(s) (too few cells)' % (ignored_count))
 
         # add number of cells
         offset2 = 0
