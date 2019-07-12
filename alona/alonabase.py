@@ -661,8 +661,21 @@ Too few genes were mappable (<500).')
 
     def prepare(self):
         self.create_work_dir()
+        
+        settings_file = self.get_wd() + OUTPUT['FILENAME_SETTINGS']
+        
+        if os.path.exists(settings_file):
+            with open(settings_file, 'r') as f:
+                for line in f:
+                    key, val = line.replace('\n', '').split('\t')
+                    if key == 'input_filename':
+                        a = val.split('/')[-1]
+                        basename = self.params['input_filename'].split('/')[-1]
+                        if a != basename:
+                            log_error('Input filename is different with the filename \
+specified in settings.txt (%s). Try using a different output directory' % a)
 
-        with open(self.get_wd() + OUTPUT['FILENAME_SETTINGS'], 'w') as f:
+        with open(settings_file, 'w') as f:
             for p in self.params:
                 f.write('%s\t%s\n' % (p, self.params[p]))
 

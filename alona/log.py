@@ -49,6 +49,6 @@ def log_debug(msg):
 def log_warning(msg):
     logging.warning('%s%s%s', YELLOW, msg, END)
 
-def log_error(abobj=None, msg='error'):
+def log_error(msg='error'):
     logging.error('%s%s%s', RED, msg, END)
     sys.exit(1)
