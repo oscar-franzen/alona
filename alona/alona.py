@@ -30,7 +30,8 @@ from .constants import GENOME
 @click.argument('filename', type=click.Path(exists=True))
 @click.option('-o', '--output', help='Specify name of output directory')
 @click.option('-df', '--dataformat', help='How the input data have been processed. For \
-example, if data are raw read counts, then select "raw". Default: raw', type=click.Choice(['raw', 'rpkm', 'log2']), default='raw')
+example, if data are raw read counts, then select "raw". Default: raw',
+              type=click.Choice(['raw', 'rpkm', 'log2']), default='raw')
 
 @click.option('-mr', '--minreads', help='Minimum number of reads per cell to keep the \
 cell. Default: 1000', default=1000)
@@ -111,8 +112,8 @@ def run(filename, output, dataformat, minreads, minexpgenes, qc_auto, mrnafull, 
         path = get_alona_dir() + GENOME[item]
 
         if not os.path.exists(path):
-            print('genome directory is not complete. Cannot find file: "%s". I \
-tried this path: %s' % (GENOME[item], path))
+            print('genome directory is not complete. Cannot find file: "%s". Path \
+tried: %s' % (GENOME[item], path))
             sys.exit(1)
 
     time_start = time.time()
