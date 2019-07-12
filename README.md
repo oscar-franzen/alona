@@ -1,11 +1,4 @@
-```
-  ##   #       ####  #    #   ##   
- #  #  #      #    # ##   #  #  #    A pipeline for cell type prediction from
-#    # #      #    # # #  # #    #        single cell RNA sequencing data.
-###### #      #    # #  # # ###### 
-#    # #      #    # #   ## #    #           "Life is better at the beach"
-#    # ######  ####  #    # #    #          
-```
+![logo](https://panglaodb.se/img/alona_github_logo.png)
 
 # Description
 `alona` is a Python-based software for analysis of scientific data generated using a technology called single cell RNA sequencing (scRNA-seq) ([1][1]). `alona` is command-line centered and performs normalization, quality control, clustering, cell type annotation and visualization. `alona` integrates many state of the art algorithms in scRNA-seq analysis to a single convenient package. In comparison with other scRNA-seq pipelines, `alona` is designed as a command-line tool and not not primarily as an importable library. One purpose of `alona` is to facilitate speedy single cell data analysis without requiring typing new code; at the same time, `alona` is written in portable and easily modifiable Python code. Running `alona` to analyze scRNA-seq data is simple, fast and requires very little tweaking, as most parameters have sensible defaults. The clustering method used in `alona` is similar to the R package called [Seurat](https://github.com/satijalab/seurat); i.e., first computing a shared nearest neighbor network. `alona` uses the [Leiden algorithm](https://github.com/vtraag/leidenalg) (an improved version of the [Louvain algorithm](https://en.wikipedia.org/wiki/Louvain_modularity)) to identify tightly connected communities from the graph.
