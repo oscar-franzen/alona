@@ -20,7 +20,7 @@ setuptools.setup(
     install_requires=['click>=7.0', 'matplotlib>=3.0.3', 'numpy>=1.16.3',
                       'pandas>=0.24.2', 'scipy>=1.2.1', 'scikit-learn>=0.21.0',
                       'leidenalg>=0.7.0', 'umap-learn>=0.3.9', 'statsmodels>=0.9.0',
-                      'igraph>=0.7.1'],
+                      'python-igraph>=0.7.1'],
     include_package_data=True,
     python_requires='>=3.6',
     zip_safe=False,
