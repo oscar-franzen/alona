@@ -28,15 +28,10 @@ import numpy as np
 import numpy.ctypeslib as npct
 import pandas as pd
 
-import matplotlib
-from matplotlib.patches import Circle
-from matplotlib.collections import PatchCollection
-from matplotlib import lines
 import matplotlib.patches as mpatches
 import matplotlib.pyplot as plt
 
 import sklearn.manifold
-from statsmodels import robust
 from scipy.sparse import coo_matrix
 import umap
 
@@ -375,24 +370,13 @@ class AlonaClustering():
         method = self.params['embedding']
 
         ignore_clusters = self.params['ignore_small_clusters']
-        added_labels = []
-
-        def is_overlapping(RectB):
-            """ Checks for overlap between cell type labels. """
-            for RectA in added_labels:
-                if (RectA['X1'] < RectB['X2'] and
-                        RectA['X2'] > RectB['X1'] and
-                        RectA['Y1'] > RectB['Y2'] and
-                        RectA['Y2'] < RectB['Y1']):
-                    return True
-            return False
 
         if dark_bg:
             # Don't remove this block.
             # For some reason this block is needed for --dark_bg to function.
             plt.clf()
             fig = plt.figure(num=None, figsize=(5, 5))
-            ax = fig.add_subplot(111)
+            fig.add_subplot(111)
             plt.style.use('dark_background')
             plt.scatter(1, 1, s=1)
             plt.savefig('/tmp/_.pdf', bbox_inches='tight')
@@ -401,12 +385,12 @@ class AlonaClustering():
         plt.clf()
         fig = plt.figure() # num=None, figsize=(5, 5)
         grid = plt.GridSpec(nrows=1, ncols=5, hspace=0.2, wspace=0.2)
-        
-        main_ax = plt.subplot(grid[0,0:4]) # python note, A:B (A=0 indexed, B=1 indexed)
-        
-        leg1 = plt.subplot(grid[0,-1]) # 3 is 0 indexed
-        leg1.set_xlim(0,1)
-        leg1.set_ylim(0,1)
+
+        main_ax = plt.subplot(grid[0, 0:4]) # python note, A:B (A=0 indexed, B=1 indexed)
+
+        leg1 = plt.subplot(grid[0, -1]) # 3 is 0 indexed
+        leg1.set_xlim(0, 1)
+        leg1.set_ylim(0, 1)
         leg1.axis('off')
 
         if dark_bg:
@@ -415,7 +399,7 @@ class AlonaClustering():
 
         uniq = list(set(self.leiden_cl))
 
-        if len(self.cluster_colors) == 0:
+        if not self.cluster_colors:
             self.cluster_colors = uniqueColors(len(uniq))
 
         cell_count = self.embeddings.shape[0]
@@ -424,7 +408,6 @@ class AlonaClustering():
         else:
             marker_size = 3
 
-        legend_items = []
         offset = 0
 
         # plot the first legend
@@ -442,19 +425,19 @@ class AlonaClustering():
             col = self.cluster_colors[i]
             main_ax.scatter(x, y, s=marker_size, color=col, label=uniq[i])
             lab = i
-            
+
             rect = mpatches.Rectangle((0.05, 1-0.03*i - 0.05), width=0.20, height=0.02,
                                       linewidth=0, facecolor=col)
             leg1.add_patch(rect)
             an = leg1.annotate(lab, xy=(0.3, 1-0.03*i - 0.047), size=6)
-            
+
             renderer = fig.canvas.get_renderer()
             bb = an.get_window_extent(renderer)
             bbox_data = leg1.transAxes.inverted().transform(bb)
-            
+
             if bbox_data[1][0] > offset:
                 offset = bbox_data[1][0]
-        
+
         # add number of cells
         offset2 = 0
         for i in range(len(uniq)):
@@ -466,19 +449,19 @@ class AlonaClustering():
 
             if e.shape[0] <= ignore_clusters:
                 continue
-                
+
             item = cell_type_obj.res_pred2.iloc[i]
             ct = item[0]
             prob = item[1]
             lt = leg1.text(offset + 0.1, 1-0.03*i - 0.047, len(x), size=6)
-            
+
             renderer = fig.canvas.get_renderer()
             bb = lt.get_window_extent(renderer)
             bbox_data = leg1.transAxes.inverted().transform(bb)
-            
+
             if bbox_data[1][0] > offset2:
                 offset2 = bbox_data[1][0]
-                
+
         # add marker-based annotation
         offset3 = 0
         for i in range(len(uniq)):
@@ -494,16 +477,16 @@ class AlonaClustering():
             pred = cell_type_obj.res_pred.iloc[i]
             ct = pred[1]
             pval = pred[3]
-            
+
             lt = leg1.text(offset2 + 0.1, 1-0.03*i - 0.047, ct, size=6)
-            
+
             renderer = fig.canvas.get_renderer()
             bb = lt.get_window_extent(renderer)
             bbox_data = leg1.transAxes.inverted().transform(bb)
-            
+
             if bbox_data[1][0] > offset3:
                 offset3 = bbox_data[1][0]
-                
+
         # add p-value
         offset4 = 0
         for i in range(len(uniq)):
@@ -519,16 +502,16 @@ class AlonaClustering():
             pred = cell_type_obj.res_pred.iloc[i]
             ct = pred[1]
             pval = pred[3]
-            
+
             lt = leg1.text(offset3 + 0.1, 1-0.03*i - 0.047, '{:.1e}'.format(pval), size=5)
-            
+
             renderer = fig.canvas.get_renderer()
             bb = lt.get_window_extent(renderer)
             bbox_data = leg1.transAxes.inverted().transform(bb)
-            
+
             if bbox_data[1][0] > offset4:
                 offset4 = bbox_data[1][0]
-                
+
         # add SVM prediction
         offset5 = 0
         for i in range(len(uniq)):
@@ -540,19 +523,19 @@ class AlonaClustering():
 
             if e.shape[0] <= ignore_clusters:
                 continue
-                
+
             item = cell_type_obj.res_pred2.iloc[i]
             ct = item[0]
-            
+
             lt = leg1.text(offset4 + 0.1, 1-0.03*i - 0.047, ct, size=6)
-            
+
             renderer = fig.canvas.get_renderer()
             bb = lt.get_window_extent(renderer)
             bbox_data = leg1.transAxes.inverted().transform(bb)
-            
+
             if bbox_data[1][0] > offset5:
                 offset5 = bbox_data[1][0]
-                
+
         # add probability
         offset6 = 0
         y_offset = 0
@@ -565,28 +548,29 @@ class AlonaClustering():
 
             if e.shape[0] <= ignore_clusters:
                 continue
-                
+
             item = cell_type_obj.res_pred2.iloc[i]
             prob = item[1]
-            
+
             lt = leg1.text(offset5 + 0.1, 1-0.03*i - 0.047, '{:.2f}'.format(prob), size=5)
-            
+
             renderer = fig.canvas.get_renderer()
             bb = lt.get_window_extent(renderer)
             bbox_data = leg1.transAxes.inverted().transform(bb)
-            
+
             if bbox_data[1][0] > offset6:
                 offset6 = bbox_data[1][0]
-                
+
             y_offset = bbox_data[1][1]
 
         if dark_bg:
             line_col = '#ffffff'
         else:
             line_col = '#000000'
-        
-        leg1.vlines(offset4+0.05, y_offset-0.015, 1-0.03, color=line_col, clip_on=False, lw=0.5)
-                
+
+        leg1.vlines(offset4+0.05, y_offset-0.015, 1-0.03, color=line_col, clip_on=False,
+                    lw=0.5)
+
         # header
         leg1.text(0.30, 0.99, 'cluster', size=5, rotation=90)
         leg1.text(offset + 0.1, 0.99, 'no. cells', size=5, rotation=90)
@@ -597,16 +581,16 @@ class AlonaClustering():
 
         main_ax.set_ylabel('%s1' % method, size=6)
         main_ax.set_xlabel('%s2' % method, size=6)
-        
+
         # smaller than default tick label size
         main_ax.tick_params(axis='both', which='major', labelsize=5)
-        
+
         input_fn = self.params['input_filename']
         main_ax.set_title('%s\n%s' % (title, input_fn.split('/')[-1]), fontsize=7)
-        
-        main_ax.set_xlim(min(self.embeddings[1]),max(self.embeddings[1]))
+
+        main_ax.set_xlim(min(self.embeddings[1]), max(self.embeddings[1]))
         plt.draw()
-        
+
         fn = self.wd + OUTPUT['FILENAME_CELL_SCATTER_PLOT_PREFIX'] + method + '.pdf'
         plt.savefig(fn, bbox_inches='tight')
         plt.close()
