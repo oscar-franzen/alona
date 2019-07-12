@@ -597,7 +597,9 @@ class AlonaClustering():
 
         main_ax.set_ylabel('%s1' % method)
         main_ax.set_xlabel('%s2' % method)
-        main_ax.set_title(title)
+        
+        input_fn = self.params['input_filename']
+        main_ax.set_title('%s\n%s' % (title, input_fn.split('/')[-1]), fontsize=7)
         
         main_ax.set_xlim(min(self.embeddings[1]),max(self.embeddings[1]))
         plt.draw()

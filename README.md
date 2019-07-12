@@ -13,7 +13,7 @@
 `alona` also exists as a parallel cloud-based service ([2][2]).
 
 # What it does
-![Screenshot](https://panglaodb.se/img/github_screenshot.png)
+![Screenshot](https://panglaodb.se/img/github_screenshot2.png)
 
 # Installation
 ### Requirements
