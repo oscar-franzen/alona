@@ -406,13 +406,12 @@ class AlonaClustering():
             marker_size = 0.8
         else:
             marker_size = 3
-            
+
         # check cell type predictions that mismatch between the two methods
         mismatches = {}
         for i in range(len(uniq)):
             ct_method1 = cell_type_obj.res_pred.iloc[i][1]
             ct_method2 = cell_type_obj.res_pred2.iloc[i][0]
-            
             mismatches[i] = not (ct_method1 == ct_method2)
 
         offset = 0
@@ -445,7 +444,7 @@ class AlonaClustering():
 
             if bbox_data[1][0] > offset:
                 offset = bbox_data[1][0]
-                
+
         if ignored_count:
             log_warning('Ignoring %s cluster(s) (too few cells)' % (ignored_count))
 
@@ -485,11 +484,11 @@ class AlonaClustering():
             pred = cell_type_obj.res_pred.iloc[i]
             ct = pred[1]
             pval = pred[3]
-            
-            l = { 'x' : offset2 + 0.1, 'y' : 1-0.03*i - 0.047, 's' : ct, 'size' : 6 }
+
+            l = {'x' : offset2 + 0.1, 'y' : 1-0.03*i - 0.047, 's' : ct, 'size' : 6}
             if mismatches[i]:
                 l['color'] = 'red'
-                
+
             lt = leg1.text(**l)
 
             renderer = fig.canvas.get_renderer()
@@ -538,11 +537,11 @@ class AlonaClustering():
 
             item = cell_type_obj.res_pred2.iloc[i]
             ct = item[0]
-            
-            l = { 'x' : offset4 + 0.1, 'y' : 1-0.03*i - 0.047, 's' : ct, 'size' : 6 }
+
+            l = {'x' : offset4 + 0.1, 'y' : 1-0.03*i - 0.047, 's' : ct, 'size' : 6}
             if mismatches[i]:
                 l['color'] = 'red'
-                
+
             lt = leg1.text(**l)
 
             renderer = fig.canvas.get_renderer()
@@ -605,7 +604,6 @@ class AlonaClustering():
         main_ax.set_title('%s\n%s' % (title, input_fn.split('/')[-1]), fontsize=7)
 
         #main_ax.set_xlim(min(self.embeddings[1]), max(self.embeddings[1]))
-        #plt.draw()
 
         fn = self.wd + OUTPUT['FILENAME_CELL_SCATTER_PLOT_PREFIX'] + method + '.pdf'
         plt.savefig(fn, bbox_inches='tight')
