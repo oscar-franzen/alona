@@ -7,9 +7,6 @@
  How to use:
  https://github.com/oscar-franzen/alona/
 
- Details:
- https://alona.panglaodb.se/
-
  Contact:
  Oscar Franzen <p.oscar.franzen@gmail.com>
 """

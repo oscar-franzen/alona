@@ -13,7 +13,6 @@
 
  How to use alona:
  https://github.com/oscar-franzen/alona/
- https://alona.panglaodb.se/
 
  Contact: Oscar Franzen <p.oscar.franzen@gmail.com>
 """
