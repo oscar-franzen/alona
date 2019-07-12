@@ -406,6 +406,14 @@ class AlonaClustering():
             marker_size = 0.8
         else:
             marker_size = 3
+            
+        # check cell type predictions that mismatch between the two methods
+        mismatches = {}
+        for i in range(len(uniq)):
+            ct_method1 = cell_type_obj.res_pred.iloc[i][1]
+            ct_method2 = cell_type_obj.res_pred2.iloc[i][0]
+            
+            mismatches[i] = not (ct_method1 == ct_method2)
 
         offset = 0
 
@@ -449,9 +457,6 @@ class AlonaClustering():
             if e.shape[0] <= ignore_clusters:
                 continue
 
-            item = cell_type_obj.res_pred2.iloc[i]
-            ct = item[0]
-            prob = item[1]
             lt = leg1.text(offset + 0.1, 1-0.03*i - 0.047, len(x), size=6)
 
             renderer = fig.canvas.get_renderer()
@@ -476,8 +481,12 @@ class AlonaClustering():
             pred = cell_type_obj.res_pred.iloc[i]
             ct = pred[1]
             pval = pred[3]
-
-            lt = leg1.text(offset2 + 0.1, 1-0.03*i - 0.047, ct, size=6)
+            
+            l = { 'x' : offset2 + 0.1, 'y' : 1-0.03*i - 0.047, 's' : ct, 'size' : 6 }
+            if mismatches[i]:
+                l['color'] = 'red'
+                
+            lt = leg1.text(**l)
 
             renderer = fig.canvas.get_renderer()
             bb = lt.get_window_extent(renderer)
@@ -525,8 +534,12 @@ class AlonaClustering():
 
             item = cell_type_obj.res_pred2.iloc[i]
             ct = item[0]
-
-            lt = leg1.text(offset4 + 0.1, 1-0.03*i - 0.047, ct, size=6)
+            
+            l = { 'x' : offset4 + 0.1, 'y' : 1-0.03*i - 0.047, 's' : ct, 'size' : 6 }
+            if mismatches[i]:
+                l['color'] = 'red'
+                
+            lt = leg1.text(**l)
 
             renderer = fig.canvas.get_renderer()
             bb = lt.get_window_extent(renderer)
