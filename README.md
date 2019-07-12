@@ -23,7 +23,13 @@
 ### Dependencies
 alona takes advantage of the following external Python packages: click, matplotlib, numpy, pandas, scipy, scikit-learn, leidenalg, umap-learn, statsmodels, igraph
 
-### From GitHub and pip3
+### From GitHub and pip
+The fastest way to install `alona` is to first clone the GitHub repository and then use [pip3](https://en.wikipedia.org/wiki/Pip_(package_manager)) to install it. `pip3` is a package manager for Python packages. If you don't have `pip3` installed, it can be installed by the following command on Debian-based systems (e.g. Ubuntu):
+```bash
+sudo apt-get install python3-pip
+```
+Then simply...
+
 ```bash
 # Clone the repository
 git clone https://github.com/oscar-franzen/alona/
