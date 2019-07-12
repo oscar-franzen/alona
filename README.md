@@ -13,7 +13,7 @@
 # Installation
 ### Requirements
 * Linux (alona should in principle work on MacOS and Windows, but I have not tested it)
-* Python >= 3.6
+* Python (version >= 3.6)
 
 ### Dependencies
 alona takes advantage of the following external Python packages (missing dependencies are installed if pip3 is used, see below): click, matplotlib, numpy, pandas, scipy, scikit-learn, leidenalg, umap-learn, statsmodels, igraph
