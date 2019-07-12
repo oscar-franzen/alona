@@ -339,7 +339,8 @@ class AlonaClustering():
 
         fn = self.wd + OUTPUT['FILENAME_CLUSTERS_LEIDEN']
 
-        pd.DataFrame(self.leiden_cl).to_csv(fn, header=False, index=False)
+        idx = self._alonacell.data_norm.columns
+        pd.DataFrame(self.leiden_cl, index=idx).to_csv(fn, header=False, index=True)
 
         log_info('leiden formed %s cell clusters' % len(set(cl.membership)))
 
@@ -367,7 +368,6 @@ class AlonaClustering():
         log_debug('Generating scatter plot...')
         dark_bg = self.params['dark_bg']
         method = self.params['embedding']
-
         ignore_clusters = self.params['ignore_small_clusters']
 
         if dark_bg:
@@ -610,3 +610,42 @@ class AlonaClustering():
         plt.close()
 
         log_debug('Done generating scatter plot.')
+
+    def genes_exp_per_cluster(self, title=''):
+        """ Makes a violin plot of number of expressed genes per cluster. """
+        log_debug('Entering genes_exp_per_cluster()')
+        data_norm = self._alonacell.data_norm
+        cl = self.leiden_cl
+        ignore_clusters = self.params['ignore_small_clusters']
+        cluster_colors = self.cluster_colors
+        
+        q = []
+        labels = []
+        ticks = []
+
+        for i, d in data_norm.groupby(by=cl, axis=1):
+            if d.shape[1] <= ignore_clusters:
+                continue
+            
+            genes_expressed = d.apply(lambda x: sum(x > 0), axis=0)
+            q.append(genes_expressed.values)
+            labels.append(i)
+            ticks.append(i+1)
+            
+        plt.clf()
+        fig, ax = plt.subplots(nrows=1, ncols=1, figsize=(7, 5))
+
+        vp = ax.violinplot(q, showmeans=False, showmedians=True)
+        for i, part in enumerate(vp['bodies']):
+            cc = cluster_colors[i]
+            part.set_facecolor(cc)
+        
+        ax.yaxis.grid(True)
+        ax.set_xticks(ticks)
+        ax.set_xticklabels(labels)
+        ax.set_xlabel('Cluster')
+        ax.set_ylabel('Number of exprssed genes')
+        
+        fn = self.wd + OUTPUT['FILENAME_CELL_VIOLIN_GE_PLOT']
+        plt.savefig(fn, bbox_inches='tight')
+        log_debug('Exiting genes_exp_per_cluster()')

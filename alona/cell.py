@@ -405,3 +405,4 @@ set to log2.')
         
         self._alona_clustering.cell_scatter_plot(cell_type_obj=self.pred,
                                                  title='Colored by cluster')
+        self._alona_clustering.genes_exp_per_cluster(title='Colored by cluster')
