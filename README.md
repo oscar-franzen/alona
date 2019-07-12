@@ -60,10 +60,42 @@ python3 -m alona \
 ```
 
 # Output files
+Here is an example of the directory structure and files created by `alona` in the output directory test.
+```
+rand[~/alona/python-alona/test]> tree
+.
+├── csvs
+│   ├── clusters_leiden.csv
+│   ├── CTA_RANK_F
+│   │   ├── cell_type_pred_best.txt
+│   │   └── cell_type_pred_full_table.txt
+│   ├── embeddings.csv
+│   ├── highly_variable_genes.csv
+│   ├── Mahalanobis.csv
+│   ├── median_exp.csv
+│   ├── pca.csv
+│   ├── snn_graph.csv
+│   └── SVM
+│       ├── SVM_cell_type_pred_best.txt
+│       └── SVM_cell_type_pred_full_table.txt
+├── input.mat
+├── input.mat.C
+├── normdata_ERCC.joblib
+├── normdata.joblib
+├── plots
+│   ├── 2d_plot_tSNE.pdf
+│   ├── barplot_ge.pdf
+│   └── barplot_rrc.pdf
+├── settings.txt
+└── unmappable.txt
+
+4 directories, 20 files
+
+```
 
 # All command line options
 ```
-$[~/bio]> python3 -m alona --help
+rand[~/]> python3 -m alona --help
 Usage: alona.py [OPTIONS] FILENAME
 
 Options:
