@@ -595,8 +595,11 @@ class AlonaClustering():
         leg1.text(offset4 + 0.1, 0.99, 'SVM-based\nprediction', size=5, rotation=90)
         leg1.text(offset5 + 0.1, 0.99, 'probability', size=5, rotation=90)
 
-        main_ax.set_ylabel('%s1' % method)
-        main_ax.set_xlabel('%s2' % method)
+        main_ax.set_ylabel('%s1' % method, size=6)
+        main_ax.set_xlabel('%s2' % method, size=6)
+        
+        # smaller than default tick label size
+        main_ax.tick_params(axis='both', which='major', labelsize=5)
         
         input_fn = self.params['input_filename']
         main_ax.set_title('%s\n%s' % (title, input_fn.split('/')[-1]), fontsize=7)
