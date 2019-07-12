@@ -65,6 +65,7 @@ class AlonaClustering():
         self.leiden_cl = None
         self.params = params
         self.cluster_colors = []
+        self.wd = self._alonacell.alonabase.get_wd()
 
         # Changing the font will remove '-' in tick labels
         #matplotlib.rcParams['font.sans-serif'] = 'Arial'
@@ -76,9 +77,7 @@ class AlonaClustering():
                                               data_norm=self._alonacell.data_norm,
                                               data_ERCC=self._alonacell.data_ERCC)
         self.hvg = hvg_finder.find()
-
-        wd = self._alonacell.alonabase.get_wd()
-        pd.DataFrame(self.hvg).to_csv(wd + OUTPUT['FILENAME_HVG'], header=False,
+        pd.DataFrame(self.hvg).to_csv(self.wd + OUTPUT['FILENAME_HVG'], header=False,
                                       index=False)
 
     def PCA(self, out_path):
@@ -237,8 +236,7 @@ class AlonaClustering():
         See: http://mlwiki.org/index.php/SNN_Clustering
         """
 
-        snn_path = self._alonacell.alonabase.get_wd() + \
-            OUTPUT['FILENAME_SNN_GRAPH']
+        snn_path = self.wd + OUTPUT['FILENAME_SNN_GRAPH']
 
         if os.path.exists(snn_path):
             log_debug('Loading SNN from file...')
@@ -345,8 +343,7 @@ class AlonaClustering():
                                       resolution_parameter=res)
         self.leiden_cl = cl.membership
 
-        wd = self._alonacell.alonabase.get_wd()
-        fn = wd + OUTPUT['FILENAME_CLUSTERS_LEIDEN']
+        fn = self.wd + OUTPUT['FILENAME_CLUSTERS_LEIDEN']
 
         pd.DataFrame(self.leiden_cl).to_csv(fn, header=False, index=False)
 
@@ -371,7 +368,7 @@ class AlonaClustering():
         self.snn(k, self.params['prune_snn'])
         self.leiden()
 
-    def cell_scatter_plot(self, filename, cell_type_obj=None, title=''):
+    def cell_scatter_plot(self, cell_type_obj=None, title=''):
         """ Generates a tSNE scatter plot with colored clusters. """
         log_debug('Generating scatter plot...')
         dark_bg = self.params['dark_bg']
@@ -605,7 +602,8 @@ class AlonaClustering():
         main_ax.set_xlim(min(self.embeddings[1]),max(self.embeddings[1]))
         plt.draw()
         
-        plt.savefig(filename, bbox_inches='tight')
+        fn = self.wd + OUTPUT['FILENAME_CELL_SCATTER_PLOT_PREFIX'] + method + '.pdf'
+        plt.savefig(fn, bbox_inches='tight')
         plt.close()
 
         log_debug('Done generating scatter plot.')
