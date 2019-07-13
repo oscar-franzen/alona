@@ -513,8 +513,13 @@ class AlonaClustering():
             pred = cell_type_obj.res_pred.iloc[i]
             ct = pred[1]
             pval = pred[3]
+            
+            if ct == 'Unknown':
+                pval = 'NA'
+            else:
+                pval = '{:.1e}'.format(pval)
 
-            lt = leg1.text(offset3 + 0.1, 1-0.03*i - 0.047, '{:.1e}'.format(pval), size=5)
+            lt = leg1.text(offset3 + 0.1, 1-0.03*i - 0.047, pval, size=5)
 
             renderer = fig.canvas.get_renderer()
             bb = lt.get_window_extent(renderer)
@@ -565,9 +570,15 @@ class AlonaClustering():
                 continue
 
             item = cell_type_obj.res_pred2.iloc[i]
+            ct = item[0]
             prob = item[1]
+            
+            if ct == 'Unknown':
+                prob = 'NA'
+            else:
+                prob = '{:.2f}'.format(prob)
 
-            lt = leg1.text(offset5 + 0.1, 1-0.03*i - 0.047, '{:.2f}'.format(prob), size=5)
+            lt = leg1.text(offset5 + 0.1, 1-0.03*i - 0.047, prob, size=5)
 
             renderer = fig.canvas.get_renderer()
             bb = lt.get_window_extent(renderer)
