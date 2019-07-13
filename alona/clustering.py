@@ -19,24 +19,20 @@
 
 import os
 import sys
-
+import joblib
 import ctypes
 from ctypes import cdll
 
 import numpy as np
 import numpy.ctypeslib as npct
 import pandas as pd
-
 import matplotlib.patches as mpatches
 import matplotlib.pyplot as plt
-
 import sklearn.manifold
 from scipy.sparse import coo_matrix
 import umap
-
 import leidenalg
 import igraph as ig
-
 import alona.irlbpy
 
 from .log import (log_info, log_debug, log_error, log_warning)
@@ -167,6 +163,12 @@ class AlonaClustering():
 
         log_debug('Performing Nearest Neighbour Search')
 
+        fn_knn_map = self.wd + OUTPUT['FILENAME_KNN_map']
+        if os.path.exists(fn_knn_map):
+            self.nn_idx = joblib.load(fn_knn_map)
+            log_debug('Loading KNN map from file.')
+            return
+
         k = inp_k
 
         libpath = get_alona_dir() + 'ANN/annlib.so'
@@ -214,6 +216,8 @@ class AlonaClustering():
         out_dists_mat = np.reshape(out_dists, (no_cells, k))
 
         self.nn_idx = out_index_mat
+        
+        joblib.dump(self.nn_idx, filename=fn_knn_map)
 
         log_debug('Finished NNS')
 

@@ -28,7 +28,8 @@ OUTPUT = {
     'FILENAME_CTA_RANK_F' : '/csvs/CTA_RANK_F/cell_type_pred_full_table.txt',
     'FILENAME_CTA_RANK_F_BEST' : '/csvs/CTA_RANK_F/cell_type_pred_best.txt',
     'FILENAME_SETTINGS' : '/settings.txt',
-    'FILENAME_QC_SCORE' : '/csvs/Mahalanobis.csv'
+    'FILENAME_QC_SCORE' : '/csvs/Mahalanobis.csv',
+    'FILENAME_KNN_map' : '/KNN.joblib'
 }
 
 # Reference data
