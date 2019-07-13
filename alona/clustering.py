@@ -644,7 +644,7 @@ class AlonaClustering():
         ax.set_xticks(ticks)
         ax.set_xticklabels(labels)
         ax.set_xlabel('Cluster')
-        ax.set_ylabel('Number of exprssed genes')
+        ax.set_ylabel('Number of expressed genes')
         
         fn = self.wd + OUTPUT['FILENAME_CELL_VIOLIN_GE_PLOT']
         plt.savefig(fn, bbox_inches='tight')
