@@ -4,3 +4,8 @@
 * Add support for the LargeVis embedding method: https://github.com/lferry007/LargeVis
 * Implement scrublet support: https://www.biorxiv.org/content/biorxiv/early/2018/07/09/357368.full.pdf and https://github.com/AllonKleinLab/scrublet and https://bioconductor.org/packages/release/workflows/vignettes/simpleSingleCell/inst/doc/doublets.html
 * Add support for these graph clustering algorithms: spinglass, multilevel, infomap, fastgreedy, walktrap (all implemented in igraph: https://igraph.org/python/doc/igraph.Graph-class.html)
+
+- top 10 genes
+- constant colors
+- number of expressed cells per cluster
+- scrublet?
