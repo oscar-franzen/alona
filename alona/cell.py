@@ -248,7 +248,8 @@ set to log2.')
             data_norm = data_cp
             log_debug('Normalization is not needed.')
 
-        self._dump(data_norm, fn_out)
+        if fn_out != '':
+            self._dump(data_norm, fn_out)
 
         log_debug('Finished normalization()')
 
