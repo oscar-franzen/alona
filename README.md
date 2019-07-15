@@ -16,7 +16,7 @@
 * Python (version >= 3.6)
 
 ### Dependencies
-`alona` relies heavily on numpy, pandas, matplotlib scipy and other components. Here is a complete list of dependencies (missing dependencies are installed if `pip3` is used for installation, see below): click, matplotlib, numpy, pandas, scipy, scikit-learn, leidenalg, umap-learn, statsmodels, igraph
+`alona` relies heavily on numpy, pandas, matplotlib scipy and other components. Here is a complete list of dependencies (missing dependencies are installed if `pip3` is used for installation, see below): click, matplotlib, numpy, pandas, scipy, scikit-learn, leidenalg, umap-learn, statsmodels, and igraph.
 
 ### Install using git and pip3
 The fastest way to install `alona` is to first clone the GitHub repository and then use [pip3](https://en.wikipedia.org/wiki/Pip_(package_manager)) to install it. `pip3` is a package manager for Python packages. If you don't have `pip3` installed, it can be installed by the following command on Debian-based systems (e.g. Ubuntu):
