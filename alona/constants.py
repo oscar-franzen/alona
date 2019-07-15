@@ -20,7 +20,7 @@ OUTPUT = {
     'FILENAME_CELL_SCATTER_PLOT_PREFIX' : '/plots/2d_plot_',
     'FILENAME_CELL_VIOLIN_GE_PLOT' : '/plots/ge_violin.pdf',
     'FILENAME_PCA' : '/csvs/pca.csv',
-    'FILENAME_EMBEDDINGS' : '/csvs/embeddings.csv',
+    'FILENAME_EMBEDDING_PREFIX' : '/csvs/embeddings_',
     'FILENAME_HVG' : '/csvs/highly_variable_genes.csv',
     'FILENAME_SNN_GRAPH' : '/csvs/snn_graph.csv',
     'FILENAME_CLUSTERS_LEIDEN' : '/csvs/clusters_leiden.csv',

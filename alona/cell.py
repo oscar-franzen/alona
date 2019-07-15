@@ -219,7 +219,8 @@ set to log2.')
         log_debug('Writing dump file %s' % fn)
         dump(d, fn)
 
-    def normalization(self, data, fn_out):
+    def normalization(self, data, fn_out, input_type='raw', mrnafull=False,
+                      remove_low_quality=True):
         """ Performs normalization of the gene expression values. """
         log_debug('Inside normalization()')
         norm_mat_path = self.alonabase.get_wd() + fn_out
@@ -229,19 +230,19 @@ set to log2.')
             return load(norm_mat_path)
 
         data_cp = data.copy()
-        data_cp = data_cp.drop(self.low_quality_cells, axis=1)
+        
+        if remove_low_quality:
+            data_cp = data_cp.drop(self.low_quality_cells, axis=1)
 
-        if not self.alonabase.params['mrnafull'] and \
-           self.alonabase.params['dataformat'] == 'raw':
+        if not mrnafull and input_type == 'raw':
             # Axis 0 will act on all the ROWS in each COLUMN
             # Axis 1 will act on all the COLUMNS in each ROW
             col_sums = data_cp.apply(lambda x: sum(x), axis=0)
             data_norm = (data_cp / col_sums) * 10000
             data_norm = np.log2(data_norm+1)
-        elif self.alonabase.params['mrnafull'] and \
-             self.alonabase.params['dataformat'] == 'raw':
+        elif mrnafull and input_type == 'raw':
             data_norm = self.rpkm(data_cp)
-        elif self.alonabase.params['dataformat'] == 'rpkm':
+        elif input_type == 'rpkm':
             log_debug('normalization() Running log2')
             data_norm = np.log2(data_cp+1)
         else:
@@ -369,8 +370,12 @@ set to log2.')
         self.find_low_quality_cells()
 
         # normalize gene expression values
-        self.data_norm = self.normalization(self.data, '/normdata.joblib')
-        self.data_ERCC = self.normalization(self.data_ERCC, '/normdata_ERCC.joblib')
+        dt = self.alonabase.params['dataformat']
+        mf = self.alonabase.params['mrnafull']
+        self.data_norm = self.normalization(self.data, '/normdata.joblib',
+                                            mrnafull = mf, input_type = dt)
+        self.data_ERCC = self.normalization(self.data_ERCC, '/normdata_ERCC.joblib',
+                                            mrnafull = mf, input_type = dt)
 
         self.print_dimensions()
 
@@ -379,7 +384,9 @@ set to log2.')
     def analysis(self):
         """ Runs the analysis pipeline. """
         log_debug('Running analysis...')
-        embedding_path = self.alonabase.get_wd() + OUTPUT['FILENAME_EMBEDDINGS']
+        embedding_method = self.alonabase.params['embedding']
+        embedding_path = self.alonabase.get_wd() + OUTPUT['FILENAME_EMBEDDING_PREFIX'] + \
+                             embedding_method + '.csv'
         pca_path = self.alonabase.get_wd() + OUTPUT['FILENAME_PCA']
 
         if os.path.exists(embedding_path) and os.path.exists(pca_path):
