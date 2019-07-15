@@ -223,11 +223,10 @@ set to log2.')
                       remove_low_quality=True):
         """ Performs normalization of the gene expression values. """
         log_debug('Inside normalization()')
-        norm_mat_path = self.alonabase.get_wd() + fn_out
 
-        if os.path.exists(norm_mat_path):
+        if os.path.exists(fn_out):
             log_debug('Loading data matrix from file')
-            return load(norm_mat_path)
+            return load(fn_out)
 
         data_cp = data.copy()
         
@@ -249,7 +248,7 @@ set to log2.')
             data_norm = data_cp
             log_debug('Normalization is not needed.')
 
-        self._dump(data_norm, norm_mat_path)
+        self._dump(data_norm, fn_out)
 
         log_debug('Finished normalization()')
 
@@ -372,9 +371,10 @@ set to log2.')
         # normalize gene expression values
         dt = self.alonabase.params['dataformat']
         mf = self.alonabase.params['mrnafull']
-        self.data_norm = self.normalization(self.data, '/normdata.joblib',
+        wd = self.alonabase.get_wd()
+        self.data_norm = self.normalization(self.data, wd + '/normdata.joblib',
                                             mrnafull = mf, input_type = dt)
-        self.data_ERCC = self.normalization(self.data_ERCC, '/normdata_ERCC.joblib',
+        self.data_ERCC = self.normalization(self.data_ERCC, wd + '/normdata_ERCC.joblib',
                                             mrnafull = mf, input_type = dt)
 
         self.print_dimensions()
