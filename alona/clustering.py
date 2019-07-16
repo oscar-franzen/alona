@@ -216,8 +216,8 @@ class AlonaClustering():
 
         self.nn_idx = out_index_mat
         
-        if fn_knn_map != '':
-            joblib.dump(self.nn_idx, filename=fn_knn_map)
+        if filename != '':
+            joblib.dump(self.nn_idx, filename=filename)
 
         log_debug('Finished NNS')
 
@@ -265,30 +265,25 @@ class AlonaClustering():
         snn_sparse = knn_sparse*knn_sparse.transpose()
 
         # prune using same logic as FindClusters in Seurat
-        aa = snn_sparse.nonzero()
+        #aa = snn_sparse.nonzero()
+        cx = coo_matrix(snn_sparse)
 
         node1 = []
         node2 = []
 
         pruned_count = 0
 
-        #print(prune_snn)
-        #d = sys.stdin.readline()
-
-        for q1, q2 in zip(aa[0], aa[1]):
-            val = snn_sparse[q1, q2]
-            strength = val / (k_param + (k_param-val))
-
-            snn_sparse[q1, q2] = strength
-
-            if strength < prune_snn:
-                snn_sparse[q1, q2] = 0
-                pruned_count += 1
+        for i, j, v in zip(cx.row, cx.col, cx.data):
+            item = (i, j, v)
+            strength = v/(k+(k-v))
+            
+            if strength > prune_snn:
+                node1.append(i)
+                node2.append(j)
             else:
-                node1.append(q1)
-                node2.append(q2)
+                pruned_count += 1
 
-        perc_pruned = (pruned_count/len(aa[0]))*100
+        perc_pruned = (pruned_count/len(cx.row))*100
         log_debug('%.2f%% (n=%s) of links pruned' % (perc_pruned,
                                                      '{:,}'.format(pruned_count)))
 
