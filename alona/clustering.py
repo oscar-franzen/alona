@@ -157,16 +157,14 @@ class AlonaClustering():
         self.embeddings.to_csv(path_or_buf=out_path, sep=',', header=None)
         log_debug('Finished t-SNE')
 
-    def knn(self, inp_k):
+    def knn(self, inp_k, filename=''):
         """
         Nearest Neighbour Search. Finds the k number of near neighbours for each cell.
         """
 
         log_debug('Performing Nearest Neighbour Search')
-
-        fn_knn_map = self.wd + OUTPUT['FILENAME_KNN_map']
-        if os.path.exists(fn_knn_map):
-            self.nn_idx = joblib.load(fn_knn_map)
+        if os.path.exists(filename):
+            self.nn_idx = joblib.load(filename)
             log_debug('Loading KNN map from file.')
             return
 
@@ -218,7 +216,8 @@ class AlonaClustering():
 
         self.nn_idx = out_index_mat
         
-        joblib.dump(self.nn_idx, filename=fn_knn_map)
+        if fn_knn_map != '':
+            joblib.dump(self.nn_idx, filename=fn_knn_map)
 
         log_debug('Finished NNS')
 
@@ -364,7 +363,8 @@ class AlonaClustering():
         """ Cluster cells. """
         k = self.params['nn_k']
 
-        self.knn(k)
+        fn_knn_map = self.wd + OUTPUT['FILENAME_KNN_map']
+        self.knn(k, filename=fn_knn_map)
         self.snn(k, self.params['prune_snn'])
         self.leiden()
 
