@@ -72,7 +72,8 @@ class AlonaClustering():
 
     def PCA(self, out_path):
         """
-        Calculate principal components using irlba.
+        Calculate principal components.
+        Default is to approximate PCA using truncated singular value decomposition (IRLBA).
 
         The augmented implicitly restarted Lanczos bidiagonalization algorithm (IRLBA)
         finds a few approximate largest singular values and corresponding singular
