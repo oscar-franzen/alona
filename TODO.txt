@@ -7,5 +7,4 @@
 * top 10 genes
 * constant colors
 * number of expressed cells per cluster
-* scrublet?
 * also regular PCA in addition so singular value decomposition
