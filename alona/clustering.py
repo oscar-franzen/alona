@@ -381,6 +381,14 @@ class AlonaClustering():
         dark_bg = self.params['dark_bg']
         method = self.params['embedding']
         ignore_clusters = self.params['ignore_small_clusters']
+        highlight_specific_cells = self.params['highlight_specific_cells']
+        
+        print(highlight_specific_cells)
+        
+        if highlight_specific_cells:
+            highlight_specific_cells = re.sub(' ', '', highlight_specific_cells).split(',')
+        else:
+            highlight_specific_cells = []
 
         if dark_bg:
             # Don't remove this block.
@@ -428,11 +436,21 @@ class AlonaClustering():
 
         offset = 0
         ignored_count = 0
+        special_cells = []
 
         # plot the first legend
         for i in range(len(uniq)):
             idx = np.array(self.leiden_cl) == i
             e = self.embeddings[idx]
+            
+            col = self.cluster_colors[i]
+            
+            if np.any(e.index.isin(highlight_specific_cells)):
+                special_cell = e[e.index.isin(highlight_specific_cells)]
+                special_cells.append({ 'np' : special_cell,
+                                       'col' : col,
+                                       'cell_id' : special_cell.index.values })
+                e = e.drop(special_cell.index,axis=0)
 
             x = e[1].values
             y = e[2].values
@@ -441,7 +459,6 @@ class AlonaClustering():
                 ignored_count += 1
                 continue
 
-            col = self.cluster_colors[i]
             main_ax.scatter(x, y, s=marker_size, color=col, label=uniq[i])
             lab = i
 
@@ -456,6 +473,18 @@ class AlonaClustering():
 
             if bbox_data[1][0] > offset:
                 offset = bbox_data[1][0]
+        
+        for special in special_cells:
+            x = special['np'][1].values
+            y = special['np'][2].values
+            col = special['col']
+            cell_id = special['cell_id']
+            
+            main_ax.scatter(x, y, s=marker_size*2, marker='^', c=col, edgecolor='black',
+                            linewidth='0.2')
+                            
+            for i in range(0,len(x)):
+                main_ax.annotate(cell_id[i], (x[i]+1, y[i]), size=5)
 
         if ignored_count:
             log_warning('Ignoring %s cluster(s) (too few cells)' % (ignored_count))

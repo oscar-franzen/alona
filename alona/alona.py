@@ -97,6 +97,11 @@ UMAP.', default='tSNE', type=click.Choice(['tSNE', 'UMAP']), show_default=True)
 specified by --embedding), where gene expression is overlaid on cells. Specify multiple \
 genes by comma separating gene symbols.', type=str, show_default=True)
 
+@click.option('--highlight_specific_cells', help='Specific cells can be highlighted in \
+scatter plots in 2d space (using method specified by --embedding). Specify multiple \
+cells by comma separating cell identifiers (usually barcodes).', type=str,
+              show_default=True)
+
 @click.option('-lf', '--logfile', help='Name of log file. Set to /dev/null if you want to \
 disable logging to a file.', default='alona.log', show_default=True)
 
@@ -116,7 +121,7 @@ show_default=True)
 def run(filename, output, dataformat, minreads, minexpgenes, qc_auto, mrnafull, delimiter,
         header, nomito, hvg, hvg_n, nn_k, prune_snn, leiden_partition, leiden_res,
         ignore_small_clusters, embedding, perplexity, species, dark_bg, overlay_genes,
-        logfile, loglevel, nologo, seed, version):
+        highlight_specific_cells, logfile, loglevel, nologo, seed, version):
 
     # confirm the genome reference files can be found
     for item in GENOME:
@@ -157,7 +162,8 @@ tried: %s' % (GENOME[item], path))
         'qc_auto' : qc_auto,
         'embedding' : embedding,
         'seed' : seed,
-        'overlay_genes' : overlay_genes
+        'overlay_genes' : overlay_genes,
+        'highlight_specific_cells' : highlight_specific_cells
     }
 
     alonabase = AlonaBase(alona_opts)
