@@ -18,6 +18,7 @@
 """
 
 import os
+import re
 import sys
 import joblib
 import ctypes
@@ -28,6 +29,7 @@ import numpy.ctypeslib as npct
 import pandas as pd
 import matplotlib.patches as mpatches
 import matplotlib.pyplot as plt
+import seaborn as sb
 import sklearn.manifold
 from scipy.sparse import coo_matrix
 import umap
@@ -670,3 +672,37 @@ class AlonaClustering():
         fn = self.wd + OUTPUT['FILENAME_CELL_VIOLIN_GE_PLOT']
         plt.savefig(fn, bbox_inches='tight')
         log_debug('Exiting genes_exp_per_cluster()')
+
+    def cell_scatter_plot_w_gene_overlay(self, title=''):
+        """ Makes scatter plot(s) with overlaid gene expression on cells. """
+        log_debug('Inside cell_scatter_plot_w_gene_overlay()')
+        method = self.params['embedding']
+        genes = self.params['overlay_genes']
+        genes = re.sub(' ', '', genes).split(',')
+        data_norm = self._alonacell.data_norm
+        symbs = pd.Series(data_norm.index.str.extract('(.+)_')[0])
+        
+        cell_count = self.embeddings.shape[0]
+        if cell_count > 1000:
+            marker_size = 0.8
+        else:
+            marker_size = 3
+            
+        cmap = sb.cubehelix_palette(as_cmap=True)
+        
+        for gene in genes:
+            row = data_norm.iloc[(symbs==gene).values]
+            x = self.embeddings[1].values
+            y = self.embeddings[2].values
+
+            plt.clf()
+            fig, ax = plt.subplots(nrows=1, ncols=1, figsize=(7, 5))
+            #zscore = ((row-row.mean(axis=1)[0])/row.std(axis=1)[0]).values[0]
+            points = ax.scatter(x, y, s=marker_size, c=row.values[0], cmap=cmap)
+            cb = fig.colorbar(points)
+            cb.set_label('%s gene expression (log2 scale)' % (gene))
+            
+            fn = self.wd + OUTPUT['FILENAME_CELL_SCATTER_PLOT_PREFIX'] + gene + '.pdf'
+            plt.savefig(fn, bbox_inches='tight')
+        
+        log_debug('Finished cell_scatter_plot_w_gene_overlay()')
