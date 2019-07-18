@@ -160,6 +160,12 @@ Options:
                                   expression is overlaid on cells. Specify
                                   multiple genes by comma separating gene
                                   symbols.
+  --highlight_specific_cells TEXT
+                                  Specific cells can be highlighted in scatter
+                                  plots in 2d space (using method specified by
+                                  --embedding). Specify multiple cells by
+                                  comma separating cell identifiers (usually
+                                  barcodes).
   -lf, --logfile TEXT             Name of log file. Set to /dev/null if you
                                   want to disable logging to a file.
                                   [default: alona.log]
@@ -184,6 +190,7 @@ option | detailed description
 `--embedding [tSNE\|UMAP]` | The method used to project the data to a 2d space. Only used for visualization purposes. t-SNE is more commonly used in scRNA-seq analysis. UMAP may be better at preserving the global structure of the data. Default: tSNE
 `--seed [int]` | Set a seed for the random number generator. This setting is used to generate plots and results that are numerically identical. Algorithms such as t-SNE and Fast Truncated Singular Value Decomposition need random numbers. Setting a seed guarantees that the random numbers are the same across sessions.
 `--overlay_genes [TEXT]` | Can be used to specify one or more genes for which gene expression will be overlaid on the 2d embedding. The option is useful for examining the expression of individual genes in relation to clusters and cell types. Multiple genes can be given by separating them with comma. If multiple genes are specified, one plot will be generated for each gene.
+`--highlight_specific_cells [TEXT]` | Sometimes it can be useful to highlight where a specific cell is falling on the 2d embedding. This option is used to highlight such cells in the scatter plot. Cell identifiers refer to those present in the header of the data matrix. Multiple cell identifiers can be entered separated by commas.
 
 # Bugs
 Please file a bug report through Github.
