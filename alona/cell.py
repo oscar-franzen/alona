@@ -298,6 +298,7 @@ set to log2.')
 
         log_debug('Inside filter_cells_auto()')
 
+        seed = self.alonabase.params['seed']
         data = self.data
         rRNA_genes = self.rRNA_genes
         data_ERCC = self.data_ERCC
@@ -317,7 +318,7 @@ set to log2.')
                                'perc_mt' : perc_mt,
                                'perc_ERCC' : perc_ERCC})
 
-        robust_cov = MinCovDet().fit(qc_mat)
+        robust_cov = MinCovDet(random_state=seed).fit(qc_mat)
         mahal_dists = robust_cov.mahalanobis(qc_mat)
 
         MD_mean = np.mean(mahal_dists)

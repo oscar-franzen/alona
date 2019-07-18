@@ -95,8 +95,9 @@ class AlonaClustering():
 
         index_v = self._alonacell.data_norm.index.isin(self.hvg)
         sliced = self._alonacell.data_norm[index_v]
+        seed = self.params['seed']
 
-        lanc = alona.irlbpy.lanczos(sliced, nval=75, maxit=1000)
+        lanc = alona.irlbpy.lanczos(sliced, nval=75, maxit=1000, seed=seed)
 
         # weighing by var (Seurat-style)
         self.pca_components = np.dot(lanc.V, np.diag(lanc.s))
@@ -128,11 +129,14 @@ class AlonaClustering():
         https://umap-learn.readthedocs.io/en/latest/
         """
         log_debug('Entering UMAP()')
+        seed = self.params['seed']
+        
         reducer = umap.UMAP()
         self.embeddings = reducer.fit_transform(self.pca_components)
         self.embeddings = pd.DataFrame(self.embeddings,
                                        index=self.pca_components.index,
-                                       columns=[1, 2])
+                                       columns=[1, 2],
+                                       random_state=seed)
         self.embeddings.to_csv(path_or_buf=out_path, sep=',', header=None)
 
         log_debug('Exiting UMAP()')
@@ -145,10 +149,14 @@ class AlonaClustering():
         Using t-SNE. Journal of Machine Learning Research 9:2579-2605, 2008.
         """
         log_debug('Running t-SNE...')
+        
+        seed = self.params['seed']
+        perplexity = self.params['perplexity']
 
         tsne = sklearn.manifold.TSNE(n_components=2,
                                      n_iter=2000,
-                                     perplexity=self.params['perplexity'])
+                                     perplexity=perplexity,
+                                     random_state=seed)
 
         self.embeddings = tsne.fit_transform(self.pca_components)
         self.embeddings = pd.DataFrame(self.embeddings,
@@ -311,6 +319,7 @@ class AlonaClustering():
         log_debug('Running leiden clustering...')
 
         res = self.params['leiden_res']
+        seed = self.params['seed']
 
         # construct the graph object
         nn = set(self.snn_graph[self.snn_graph.columns[0]])
@@ -333,7 +342,8 @@ class AlonaClustering():
         cl = leidenalg.find_partition(g,
                                       part,
                                       n_iterations=10,
-                                      resolution_parameter=res)
+                                      resolution_parameter=res,
+                                      seed=seed)
         self.leiden_cl = cl.membership
 
         fn = self.wd + OUTPUT['FILENAME_CLUSTERS_LEIDEN']

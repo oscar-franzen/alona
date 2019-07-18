@@ -92,7 +92,7 @@ def invcheck(x):
     return(x)
 
 
-def lanczos(A, nval, tol=0.0001, maxit=50, center=None, scale=None, L=None):
+def lanczos(A, nval, tol=0.0001, maxit=50, center=None, scale=None, L=None, seed=None):
     """Estimate a few of the largest singular values and corresponding singular
     vectors of matrix using the implicitly restarted Lanczos bidiagonalization
     method of Baglama and Reichel, see:
@@ -148,6 +148,7 @@ def lanczos(A, nval, tol=0.0001, maxit=50, center=None, scale=None, L=None):
     F = np.zeros((n, 1))
     B = np.zeros((m_b, m_b))
 
+    np.random.seed(seed)
     V[:, 0] = np.random.randn(n)  # Initial vector
     V[:, 0] = V[:, 0] / np.linalg.norm(V)
 
