@@ -101,63 +101,68 @@ Usage: alona.py [OPTIONS] FILENAME
 Options:
   -o, --output TEXT               Specify name of output directory
   -df, --dataformat [raw|rpkm|log2]
-                                  Data format.
-                                  (raw read counts, rpkm, log2
-                                  normalized data). Default: raw
+                                  How the input data have been processed. For
+                                  example, if data are raw read counts, then
+                                  select "raw".  [default: raw]
   -mr, --minreads INTEGER         Minimum number of reads per cell to keep the
-                                  cell. Default: 1000
+                                  cell.  [default: 1000]
   -mg, --minexpgenes FLOAT        Minimum number of expressed genes as percent
                                   of all cells, i.e. genes expressed in fewer
-                                  cells than this are removed. Default: 0.01
+                                  cells than this are removed.  [default:
+                                  0.01]
   --qc_auto [yes|no]              Automatic filtering of low quality cells.
-                                  Default: yes
+                                  [default: yes]
   --mrnafull                      Data come from a full-length protocol, such
-                                  as SMART-seq2.
+                                  as SMART-seq2.  [default: False]
   -d, --delimiter [auto|tab|space]
                                   Data delimiter. The character used to
                                   separate data values. The default setting is
-                                  to autodetect this character. Default: auto
+                                  to autodetect this character.  [default:
+                                  auto]
   -h, --header [auto|yes|no]      Data has a header line. The default setting
                                   is to autodetect if a header is present or
-                                  not. Default: auto
+                                  not.  [default: auto]
   -m, --nomito                    Exclude mitochondrial genes from analysis.
+                                  [default: False]
   --hvg [seurat|Brennecke2013|scran|Chen2016|M3Drop_smartseq2|M3Drop_UMI]
                                   Method to use for identifying highly
-                                  variable genes. Default: seurat
+                                  variable genes.  [default: seurat]
   --hvg_n INTEGER                 Number of top highly variable genes to use.
-                                  Default: 1000
-  --nn_k INTEGER                  k in the nearest neighbour search. Default:
-                                  10
+                                  [default: 1000]
+  --nn_k INTEGER                  k in the nearest neighbour search.
+                                  [default: 10]
   --prune_snn FLOAT               Threshold for pruning the SNN graph, i.e.
                                   the edges with lower value (Jaccard index)
                                   than this will be removed. Set to 0 to
                                   disable pruning. Increasing this value will
-                                  result in fewer edges in the graph. Default:
-                                  0.067
+                                  result in fewer edges in the graph.
+                                  [default: 0.067]
   --leiden_partition [RBERVertexPartition|ModularityVertexPartition]
                                   Partitioning algorithm to use. Can be
                                   RBERVertexPartition or
-                                  ModularityVertexPartition. Default:
-                                  RBERVertexPartition
+                                  ModularityVertexPartition.  [default:
+                                  RBERVertexPartition]
   --leiden_res FLOAT              Resolution parameter for the Leiden
-                                  algorithm (0-1). Default: 0.8
+                                  algorithm (0-1).  [default: 0.8]
   --ignore_small_clusters INTEGER
                                   Ignore clusters with fewer or equal to N
-                                  cells. Default: 10
+                                  cells.  [default: 10]
   --embedding [tSNE|UMAP]         Method used for data projection. Can be
-                                  either tSNE or UMAP.
+                                  either tSNE or UMAP.  [default: tSNE]
   --perplexity INTEGER            The perplexity parameter in the t-SNE
-                                  algorithm. Default: 30
-  -s, --species [human|mouse]     Species your data comes from. Default: mouse
+                                  algorithm.  [default: 30]
+  -s, --species [human|mouse]     Species your data comes from.  [default:
+                                  mouse]
   --dark_bg                       Use dark background in scatter plots.
-                                  Default: False
+                                  [default: False]
   -lf, --logfile TEXT             Name of log file. Set to /dev/null if you
-                                  want to disable logging to a file. Default:
-                                  alona.log
+                                  want to disable logging to a file.
+                                  [default: alona.log]
   -ll, --loglevel [regular|debug]
                                   Set how much runtime information is written
-                                  to the log file. Default: regular
-  -n, --nologo                    Hide the logo. Default: False
+                                  to the log file.  [default: regular]
+  -n, --nologo                    Hide the logo.
+  --seed INTEGER                  Set seed to get reproducible results.
   --version                       Display version number.
   --help                          Show this message and exit.
 ```
@@ -172,6 +177,7 @@ option | detailed description
 `--hvg_n [int]` | Number of highly variable genes to use. If method is `brennecke` then `--hvg_n` determines how many genes will be used from the genes that are significant. Default: 1000
 `--qc_auto [yes\|no]` | Automatically filters low quality cells using five quality metrics and Mahalanobis distances. Three standard deviations from the mean is considered an outlier and will be removed. Default: yes
 `--embedding [tSNE\|UMAP]` | The method used to project the data to a 2d space. Only used for visualization purposes. tSNE is more commonly used in scRNA-seq analysis. UMAP may be better at preserving the global structure of the data. Default: tSNE
+`--seed [int]` | Set a seed for the random number generator. This setting is used to generate plots and results that are numerically identical. Algorithms such as t-SNE and Fast Truncated Singular Value Decomposition need random numbers. Setting a seed guarantees that the random numbers are the same across sessions.
 
 # Bugs
 Please file a bug report through Github.
