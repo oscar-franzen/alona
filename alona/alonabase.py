@@ -35,7 +35,10 @@ class AlonaBase():
 
     params = None
 
-    def __init__(self, params=None):
+    def __init__(self):
+        pass
+            
+    def set_params(self, params):
         if params is None:
             params = {}
 

@@ -19,34 +19,34 @@ from sklearn.preprocessing import scale
 from sklearn.preprocessing import MinMaxScaler
 from scipy.stats import fisher_exact
 
+from .clustering import AlonaClustering
+
 from .constants import (OUTPUT, GENOME, MARKERS)
 from .log import (log_info, log_debug, log_error)
 from .utils import get_alona_dir
 from .stats import p_adjust_bh
 
-class AlonaCellTypePred():
+class AlonaCellTypePred(AlonaClustering):
     """
     Cell type prediction.
     """
 
-    def __init__(self, wd, alonaclustering, alonacell):
-        self.alonaclustering = alonaclustering
-        self.alonacell = alonacell
-        self.wd = wd
+    def __init__(self):
         self.median_expr = None
         self.markers = None
         self.marker_freq = None
         self.res_pred = None
         self.res_pred2 = None
+        super().__init__()
 
     def median_exp(self):
         """ Represent each cluster with median gene expression. """
         log_debug('median_exp() Computing median expression per cluster...')
 
-        clust = self.alonaclustering.leiden_cl
-        data = self.alonacell.data_norm
+        clust = self.leiden_cl
+        data = self.data_norm
 
-        fn = self.wd + OUTPUT['FILENAME_MEDIAN_EXP']
+        fn = self.get_wd() + OUTPUT['FILENAME_MEDIAN_EXP']
 
         # Axis 0 will act on all the ROWS in each COLUMN
         # Axis 1 will act on all the COLUMNS in each ROW
@@ -162,7 +162,7 @@ class AlonaCellTypePred():
                              'p-value',
                              'adjusted p-value BH']
 
-        fn = self.wd + OUTPUT['FILENAME_CTA_RANK_F']
+        fn = self.get_wd() + OUTPUT['FILENAME_CTA_RANK_F']
         final_tbl.to_csv(fn, sep='\t', index=False)
         
         # Save the best scoring for each cluster
@@ -171,7 +171,7 @@ class AlonaCellTypePred():
         _a = self.res_pred['adjusted p-value BH']>0.10
         self.res_pred.loc[_a,'cell type'] = 'Unknown'
         
-        fn = self.wd + OUTPUT['FILENAME_CTA_RANK_F_BEST']
+        fn = self.get_wd() + OUTPUT['FILENAME_CTA_RANK_F_BEST']
         self.res_pred.to_csv(fn, sep='\t', index=True)
 
         log_debug('CTA_RANK_F() finished')
@@ -283,10 +283,10 @@ class AlonaCellTypePred():
         pr2.columns = classes['cell_type']
         pr2 = pr2.transpose()
         
-        out = self.wd + '/csvs/SVM/SVM_cell_type_pred_full_table.txt'
+        out = self.get_wd() + '/csvs/SVM/SVM_cell_type_pred_full_table.txt'
         pr2.to_csv(out)
         
-        out = self.wd + '/csvs/SVM/SVM_cell_type_pred_best.txt'
+        out = self.get_wd() + '/csvs/SVM/SVM_cell_type_pred_best.txt'
         df = pd.DataFrame({ 'ct' : pr2.idxmax(), 'prob' : pr2.max() })
         
         df.to_csv(out)

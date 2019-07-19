@@ -26,17 +26,17 @@ from sklearn.covariance import MinCovDet
 
 from .log import (log_info, log_debug, log_error)
 from .constants import (OUTPUT, ORANGE, GENOME)
-from .clustering import AlonaClustering
-from .celltypes import AlonaCellTypePred
 from .utils import get_alona_dir
 
-class AlonaCell():
+from .alonabase import AlonaBase
+#from .clustering import AlonaClustering
+
+class AlonaCell(AlonaBase):
     """
     Cell data class.
     """
 
-    def __init__(self, alonabase):
-        self.alonabase = alonabase
+    def __init__(self):
         self.data = None
         self.data_norm = None
         self.data_ERCC = None
@@ -44,7 +44,8 @@ class AlonaCell():
         self.rRNA_genes = None
         self.pred = None
 
-        self._alona_clustering = AlonaClustering(self, alonabase.params)
+        #self._alona_clustering = AlonaClustering(self, alonabase.params)
+        #self._alona_clustering = AlonaClustering(self, ['test'])
 
         # make matplotlib more quiet
         logging.getLogger('matplotlib').setLevel(logging.WARNING)
@@ -52,7 +53,7 @@ class AlonaCell():
     def validate_counts(self):
         """ Basic data validation of gene expression values. """
         log_debug('Running validate_counts()')
-        data_format = self.alonabase.params['dataformat']
+        data_format = self.params['dataformat']
 
         if (np.any(self.data.dtypes != 'int64') and data_format == 'raw'):
             log_error(msg='Non-count values detected in data matrix while data format is \
@@ -60,7 +61,7 @@ set to raw read counts.')
         elif (np.any(self.data.dtypes == 'int64') and data_format == 'log2'):
             log_error(msg='Count values detected in data matrix while data format is \
 set to log2.')
-        elif self.alonabase.params['dataformat'] == 'log2':
+        elif self.params['dataformat'] == 'log2':
             if np.any(self.data > 1000):
                 log_error(msg='Data do not appear to be log2 transformed.')
         else:
@@ -91,7 +92,7 @@ set to log2.')
 
     def remove_mito(self):
         """ Remove mitochondrial genes. """
-        if self.alonabase.params['nomito']:
+        if self.params['nomito']:
             log_debug('Removing mitochondrial genes')
 
             mt_count = self.data.index.str.contains('^mt-', regex=True, case=False)
@@ -102,8 +103,8 @@ set to log2.')
 
     def read_counts_per_cell_filter(self):
         """ Generates a bar plot of read counts per cell. """
-        if self.alonabase.params['dataformat'] == 'raw':
-            min_reads = self.alonabase.params['minreads']
+        if self.params['dataformat'] == 'raw':
+            min_reads = self.params['minreads']
             cell_counts = self.data.sum(axis=0)
 
             plt.clf()
@@ -125,7 +126,7 @@ set to log2.')
                 mpatches.Patch(color='#999999', label='Removed')
             ])
             plt.title('sequencing reads')
-            plt.savefig(self.alonabase.get_wd() + \
+            plt.savefig(self.get_wd() + \
                 OUTPUT['FILENAME_BARPLOT_RAW_READ_COUNTS'], bbox_inches='tight')
             plt.close()
 
@@ -141,7 +142,7 @@ set to log2.')
         plt.xlabel('cells (sorted on highest to lowest)')
         plt.title('expressed genes')
 
-        plt.savefig(self.alonabase.get_wd() + \
+        plt.savefig(self.get_wd() + \
             OUTPUT['FILENAME_BARPLOT_GENES_EXPRESSED'], bbox_inches='tight')
         plt.close()
 
@@ -150,8 +151,8 @@ set to log2.')
         Removes cells with too few reads (set by `--minreads`).
         Removes "underexpressed" genes (set by `--minexpgenes`).
         """
-        if self.alonabase.params['dataformat'] == 'raw':
-            min_reads = self.alonabase.params['minreads']
+        if self.params['dataformat'] == 'raw':
+            min_reads = self.params['minreads']
             cell_counts = self.data.sum(axis=0)
             log_info('Keeping %s out of %s cells' % (
                 np.sum(cell_counts > min_reads), len(cell_counts)))
@@ -159,15 +160,15 @@ set to log2.')
             self.data = self.data[self.data.columns[cell_counts > min_reads]]
 
             if self.data.shape[1] < 100:
-                log_error(self.alonabase, msg='After removing cells with < %s reads, \
+                log_error(self, msg='After removing cells with < %s reads, \
                    less than 100 reads remain. Please adjust --minreads' % min_reads)
-        if self.alonabase.params['minexpgenes'] > 0:
+        if self.params['minexpgenes'] > 0:
             log_debug('Filtering genes based on --minexpgenes')
 
             genes_expressed = self.data.apply(lambda x: sum(x > 0)/len(x), axis=1)
             log_info('Removing %s genes' % (self.data.shape[0] - np.sum(genes_expressed > \
-                self.alonabase.params['minexpgenes'])))
-            self.data = self.data[genes_expressed > self.alonabase.params['minexpgenes']]
+                self.params['minexpgenes'])))
+            self.data = self.data[genes_expressed > self.params['minexpgenes']]
 
     def print_dimensions(self):
         """ Prints the new dimensions after quality filtering. """
@@ -178,7 +179,7 @@ set to log2.')
         """ Normalize expression values as RPKM. """
         """ doi:10.1186/s13059-016-0881-8 """
         log_debug('Normalizing data to RPKM')
-        if self.alonabase.params['species'] == 'human':
+        if self.params['species'] == 'human':
             # TODO: Implement RPKM for human. This should be executed _before_ mapping
             # to mouse orthologs (16-May-2019).
             log_info('RPKM for "--species human" is not implemented at the moment.')
@@ -293,12 +294,12 @@ set to log2.')
         Input should be raw read counts.
         """
 
-        if self.alonabase.params['qc_auto'] == 'no':
+        if self.params['qc_auto'] == 'no':
             return
 
         log_debug('Inside filter_cells_auto()')
 
-        seed = self.alonabase.params['seed']
+        seed = self.params['seed']
         data = self.data
         rRNA_genes = self.rRNA_genes
         data_ERCC = self.data_ERCC
@@ -331,7 +332,7 @@ set to log2.')
 
         self.low_quality_cells = data.columns[res].values
 
-        fn = self.alonabase.get_wd() + OUTPUT['FILENAME_QC_SCORE']
+        fn = self.get_wd() + OUTPUT['FILENAME_QC_SCORE']
         pd.DataFrame(mahal_dists, index=data.columns).to_csv(fn, header=None)
 
         log_info('%s low quality cells were removed' % len(self.low_quality_cells))
@@ -339,17 +340,17 @@ set to log2.')
 
     def load_data(self):
         """ Load expression matrix. """
-        norm_mat_path = self.alonabase.get_wd() + '/normdata.joblib'
+        norm_mat_path = self.get_wd() + '/normdata.joblib'
         if os.path.exists(norm_mat_path):
             self.data_norm = load(norm_mat_path)
             return
 
         log_debug('loading expression matrix')
-        self.data = pd.read_csv(self.alonabase.get_matrix_file(),
-                                delimiter=self.alonabase._delimiter,
-                                header=0 if self.alonabase._has_header else None)
+        self.data = pd.read_csv(self.get_matrix_file(),
+                                delimiter=self._delimiter,
+                                header=0 if self._has_header else None)
 
-        if self.alonabase._has_gene_id_column_id or not self.alonabase._has_header:
+        if self._has_gene_id_column_id or not self._has_header:
             self.data.index = self.data[self.data.columns[0]]
             self.data = self.data.drop(self.data.columns[0], axis=1)
 
@@ -371,9 +372,9 @@ set to log2.')
         self.find_low_quality_cells()
 
         # normalize gene expression values
-        dt = self.alonabase.params['dataformat']
-        mf = self.alonabase.params['mrnafull']
-        wd = self.alonabase.get_wd()
+        dt = self.params['dataformat']
+        mf = self.params['mrnafull']
+        wd = self.get_wd()
         self.data_norm = self.normalization(self.data, wd + '/normdata.joblib',
                                             mrnafull = mf, input_type = dt)
         self.data_ERCC = self.normalization(self.data_ERCC, wd + '/normdata_ERCC.joblib',
@@ -386,33 +387,30 @@ set to log2.')
     def analysis(self):
         """ Runs the analysis pipeline. """
         log_debug('Running analysis...')
-        embedding_method = self.alonabase.params['embedding']
-        embedding_path = self.alonabase.get_wd() + OUTPUT['FILENAME_EMBEDDING_PREFIX'] + \
+        embedding_method = self.params['embedding']
+        embedding_path = self.get_wd() + OUTPUT['FILENAME_EMBEDDING_PREFIX'] + \
                              embedding_method + '.csv'
-        pca_path = self.alonabase.get_wd() + OUTPUT['FILENAME_PCA']
+        pca_path = self.get_wd() + OUTPUT['FILENAME_PCA']
 
         if os.path.exists(embedding_path) and os.path.exists(pca_path):
             log_debug('Loading embeddings from file')
-            self._alona_clustering.pca_components = pd.read_csv(pca_path, header=None,
+            self.pca_components = pd.read_csv(pca_path, header=None,
                                                                 index_col=0)
-            self._alona_clustering.embeddings = pd.read_csv(embedding_path, header=None,
+            self.embeddings = pd.read_csv(embedding_path, header=None,
                                                             index_col=0)
         else:
-            self._alona_clustering.find_variable_genes()
-            self._alona_clustering.PCA(pca_path)
-            self._alona_clustering.embedding(embedding_path)
+            self.find_variable_genes()
+            self.PCA(pca_path)
+            self.embedding(embedding_path)
 
-        self._alona_clustering.cluster()
-        self.pred = AlonaCellTypePred(self.alonabase.get_wd(),
-                                      self._alona_clustering,
-                                      self)
-        self.pred.median_exp()
-        self.pred.load_markers()
-        self.pred.CTA_RANK_F()
-        self.pred.download_model()
-        self.pred.run_model_pred()
+        self.cluster()
+        self.median_exp()
+        self.load_markers()
+        self.CTA_RANK_F()
+        self.download_model()
+        self.run_model_pred()
         
-        self._alona_clustering.cell_scatter_plot(cell_type_obj=self.pred,
-                                                 title='Colored by cluster')
-        self._alona_clustering.cell_scatter_plot_w_gene_overlay()
-        self._alona_clustering.genes_exp_per_cluster(title='Colored by cluster')
+        self.cell_scatter_plot(title='Colored by cluster')
+        self.cell_scatter_plot_w_gene_overlay()
+        self.genes_exp_per_cluster(title='Colored by cluster')
+        self.violin_top()

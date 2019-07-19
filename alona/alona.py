@@ -20,7 +20,7 @@ from .log import (init_logging, log_debug, log_error, log_info)
 from .logo import show_logo
 from .exceptions import *
 from .alonabase import AlonaBase
-from .cell import AlonaCell
+from .celltypes import AlonaCellTypePred
 from .constants import GENOME
 
 @click.command()
@@ -101,6 +101,12 @@ genes by comma separating gene symbols.', type=str, show_default=True)
 scatter plots in 2d space (using method specified by --embedding). Specify multiple \
 cells by comma separating cell identifiers (usually barcodes).', type=str,
               show_default=True)
+              
+@click.option('--violin_top', help='Generate violin plots for the specified number of top \
+expressed genes per cluster.', type=int, show_default=True)
+
+@click.option('--timestamp', help='Add timestamp label to plots.', is_flag=True,
+              default=False, show_default=True)
 
 @click.option('-lf', '--logfile', help='Name of log file. Set to /dev/null if you want to \
 disable logging to a file.', default='alona.log', show_default=True)
@@ -121,7 +127,8 @@ show_default=True)
 def run(filename, output, dataformat, minreads, minexpgenes, qc_auto, mrnafull, delimiter,
         header, nomito, hvg, hvg_n, nn_k, prune_snn, leiden_partition, leiden_res,
         ignore_small_clusters, embedding, perplexity, species, dark_bg, overlay_genes,
-        highlight_specific_cells, logfile, loglevel, nologo, seed, version):
+        highlight_specific_cells, violin_top, timestamp, logfile, loglevel, nologo, seed,
+        version):
 
     # confirm the genome reference files can be found
     for item in GENOME:
@@ -163,13 +170,14 @@ tried: %s' % (GENOME[item], path))
         'embedding' : embedding,
         'seed' : seed,
         'overlay_genes' : overlay_genes,
-        'highlight_specific_cells' : highlight_specific_cells
+        'highlight_specific_cells' : highlight_specific_cells,
+        'violin_top' : violin_top,
+        'timestamp' : timestamp
     }
 
-    alonabase = AlonaBase(alona_opts)
-    alonabase.prepare()
-
-    alonacell = AlonaCell(alonabase)
+    alonacell = AlonaCellTypePred()
+    alonacell.set_params(alona_opts)
+    alonacell.prepare()
     alonacell.load_data()
     alonacell.analysis()
 

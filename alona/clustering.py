@@ -37,27 +37,28 @@ import leidenalg
 import igraph as ig
 import alona.irlbpy
 
-from .log import (log_info, log_debug, log_error, log_warning)
-from .constants import OUTPUT
-from .utils import (get_alona_dir, uniqueColors)
+from .alonabase import AlonaBase
+from .cell import AlonaCell
 from .hvg import AlonaHighlyVariableGenes
 
-class AlonaClustering():
+from .log import (log_info, log_debug, log_error, log_warning)
+from .constants import OUTPUT
+from .utils import (get_alona_dir, uniqueColors, get_time)
+
+class AlonaClustering(AlonaCell):
     """
     Clustering class.
     """
 
-    def __init__(self, alonacell, params):
-        self._alonacell = alonacell
+    def __init__(self):
         self.hvg = None
         self.pca_components = None
         self.embeddings = None # pd.DataFrame
         self.nn_idx = None
         self.snn_graph = None
         self.leiden_cl = None
-        self.params = params
         self.cluster_colors = []
-        self.wd = self._alonacell.alonabase.get_wd()
+        super().__init__()
 
         # Changing the font will remove '-' in tick labels
         #matplotlib.rcParams['font.sans-serif'] = 'Arial'
@@ -66,10 +67,10 @@ class AlonaClustering():
     def find_variable_genes(self):
         hvg_finder = AlonaHighlyVariableGenes(hvg_method=self.params['hvg_method'],
                                               hvg_n=self.params['hvg_cutoff'],
-                                              data_norm=self._alonacell.data_norm,
-                                              data_ERCC=self._alonacell.data_ERCC)
+                                              data_norm=self.data_norm,
+                                              data_ERCC=self.data_ERCC)
         self.hvg = hvg_finder.find()
-        pd.DataFrame(self.hvg).to_csv(self.wd + OUTPUT['FILENAME_HVG'], header=False,
+        pd.DataFrame(self.hvg).to_csv(self.get_wd() + OUTPUT['FILENAME_HVG'], header=False,
                                       index=False)
 
     def PCA(self, out_path):
@@ -95,8 +96,8 @@ class AlonaClustering():
 
         log_debug('Running PCA...')
 
-        index_v = self._alonacell.data_norm.index.isin(self.hvg)
-        sliced = self._alonacell.data_norm[index_v]
+        index_v = self.data_norm.index.isin(self.hvg)
+        sliced = self.data_norm[index_v]
         seed = self.params['seed']
 
         lanc = alona.irlbpy.lanczos(sliced, nval=75, maxit=1000, seed=seed)
@@ -233,7 +234,7 @@ class AlonaClustering():
 
         #pd.DataFrame(self.nn_idx).to_csv('~/Temp/qq.csv', header=None, index=None)
         #melted = pd.DataFrame(out_index_mat).melt(id_vars=[0])[[0,'value']]
-        #melted.to_csv(self._alonacell.alonabase.get_wd() + \
+        #melted.to_csv(self.alonabase.get_wd() + \
         #    OUTPUT['FILENAME_SNN_GRAPH'], header=False, index=False)
 
     def snn(self, k, prune_snn):
@@ -244,7 +245,7 @@ class AlonaClustering():
         See: http://mlwiki.org/index.php/SNN_Clustering
         """
 
-        snn_path = self.wd + OUTPUT['FILENAME_SNN_GRAPH']
+        snn_path = self.get_wd() + OUTPUT['FILENAME_SNN_GRAPH']
 
         if os.path.exists(snn_path):
             log_debug('Loading SNN from file...')
@@ -348,15 +349,19 @@ class AlonaClustering():
                                       seed=seed)
         self.leiden_cl = cl.membership
 
-        fn = self.wd + OUTPUT['FILENAME_CLUSTERS_LEIDEN']
+        fn = self.get_wd() + OUTPUT['FILENAME_CLUSTERS_LEIDEN']
 
-        idx = self._alonacell.data_norm.columns
+        idx = self.data_norm.columns
         pd.DataFrame(self.leiden_cl, index=idx).to_csv(fn, header=False, index=True)
 
-        log_info('leiden formed %s cell clusters' % len(set(cl.membership)))
+        clc = np.bincount(cl.membership)
+        ignore_clusters = self.params['ignore_small_clusters']
+        self.n_clusters = np.sum(clc>ignore_clusters)
+        
+        log_info('leiden formed %s cell clusters (n=%s are OK)' % (len(set(cl.membership)),
+             self.n_clusters))
 
         if self.params['loglevel'] == 'debug':
-            clc = np.bincount(cl.membership)
             ind = np.nonzero(clc)[0]
 
             log_debug(('cluster', 'cells'))
@@ -368,22 +373,21 @@ class AlonaClustering():
 
     def cluster(self):
         """ Cluster cells. """
+        print('hej')
         k = self.params['nn_k']
 
-        fn_knn_map = self.wd + OUTPUT['FILENAME_KNN_map']
+        fn_knn_map = self.get_wd() + OUTPUT['FILENAME_KNN_map']
         self.knn(k, filename=fn_knn_map)
         self.snn(k, self.params['prune_snn'])
         self.leiden()
 
-    def cell_scatter_plot(self, cell_type_obj=None, title=''):
+    def cell_scatter_plot(self, title=''):
         """ Generates a tSNE scatter plot with colored clusters. """
         log_debug('Generating scatter plot...')
         dark_bg = self.params['dark_bg']
         method = self.params['embedding']
         ignore_clusters = self.params['ignore_small_clusters']
         highlight_specific_cells = self.params['highlight_specific_cells']
-        
-        print(highlight_specific_cells)
         
         if highlight_specific_cells:
             highlight_specific_cells = re.sub(' ', '', highlight_specific_cells).split(',')
@@ -430,8 +434,8 @@ class AlonaClustering():
         # check cell type predictions that mismatch between the two methods
         mismatches = {}
         for i in range(len(uniq)):
-            ct_method1 = cell_type_obj.res_pred.iloc[i][1]
-            ct_method2 = cell_type_obj.res_pred2.iloc[i][0]
+            ct_method1 = self.res_pred.iloc[i][1]
+            ct_method2 = self.res_pred2.iloc[i][0]
             mismatches[i] = not (ct_method1 == ct_method2)
 
         offset = 0
@@ -522,7 +526,7 @@ class AlonaClustering():
             if e.shape[0] <= ignore_clusters:
                 continue
 
-            pred = cell_type_obj.res_pred.iloc[i]
+            pred = self.res_pred.iloc[i]
             ct = pred[1]
             pval = pred[3]
 
@@ -551,7 +555,7 @@ class AlonaClustering():
             if e.shape[0] <= ignore_clusters:
                 continue
 
-            pred = cell_type_obj.res_pred.iloc[i]
+            pred = self.res_pred.iloc[i]
             ct = pred[1]
             pval = pred[3]
             
@@ -581,7 +585,7 @@ class AlonaClustering():
             if e.shape[0] <= ignore_clusters:
                 continue
 
-            item = cell_type_obj.res_pred2.iloc[i]
+            item = self.res_pred2.iloc[i]
             ct = item[0]
 
             l = {'x' : offset4 + 0.1, 'y' : 1-0.03*i - 0.047, 's' : ct, 'size' : 6}
@@ -610,7 +614,7 @@ class AlonaClustering():
             if e.shape[0] <= ignore_clusters:
                 continue
 
-            item = cell_type_obj.res_pred2.iloc[i]
+            item = self.res_pred2.iloc[i]
             ct = item[0]
             prob = item[1]
             
@@ -657,7 +661,7 @@ class AlonaClustering():
 
         #main_ax.set_xlim(min(self.embeddings[1]), max(self.embeddings[1]))
 
-        fn = self.wd + OUTPUT['FILENAME_CELL_SCATTER_PLOT_PREFIX'] + method + '.pdf'
+        fn = self.get_wd() + OUTPUT['FILENAME_CELL_SCATTER_PLOT_PREFIX'] + method + '.pdf'
         plt.savefig(fn, bbox_inches='tight')
         plt.close()
 
@@ -666,12 +670,12 @@ class AlonaClustering():
     def genes_exp_per_cluster(self, title=''):
         """ Makes a violin plot of number of expressed genes per cluster. """
         log_debug('Entering genes_exp_per_cluster()')
-        data_norm = self._alonacell.data_norm
+        data_norm = self.data_norm
         cl = self.leiden_cl
         ignore_clusters = self.params['ignore_small_clusters']
         cluster_colors = self.cluster_colors
         
-        q = []
+        data_points = [] # array of arrays
         labels = []
         ticks = []
 
@@ -680,14 +684,15 @@ class AlonaClustering():
                 continue
             
             genes_expressed = d.apply(lambda x: sum(x > 0), axis=0)
-            q.append(genes_expressed.values)
+            data_points.append(genes_expressed.values)
             labels.append(i)
             ticks.append(i+1)
             
         plt.clf()
         fig, ax = plt.subplots(nrows=1, ncols=1, figsize=(7, 5))
 
-        vp = ax.violinplot(q, showmeans=False, showmedians=True)
+        vp = ax.violinplot(data_points, showmeans=False, showmedians=True)
+        
         for i, part in enumerate(vp['bodies']):
             cc = cluster_colors[i]
             part.set_facecolor(cc)
@@ -698,7 +703,7 @@ class AlonaClustering():
         ax.set_xlabel('Cluster')
         ax.set_ylabel('Number of expressed genes')
         
-        fn = self.wd + OUTPUT['FILENAME_CELL_VIOLIN_GE_PLOT']
+        fn = self.get_wd() + OUTPUT['FILENAME_CELL_VIOLIN_GE_PLOT']
         plt.savefig(fn, bbox_inches='tight')
         log_debug('Exiting genes_exp_per_cluster()')
 
@@ -708,7 +713,7 @@ class AlonaClustering():
         method = self.params['embedding']
         genes = self.params['overlay_genes']
         genes = re.sub(' ', '', genes).split(',')
-        data_norm = self._alonacell.data_norm
+        data_norm = self.data_norm
         symbs = pd.Series(data_norm.index.str.extract('(.+)_')[0])
         
         cell_count = self.embeddings.shape[0]
@@ -731,7 +736,46 @@ class AlonaClustering():
             cb = fig.colorbar(points)
             cb.set_label('%s gene expression (log2 scale)' % (gene))
             
-            fn = self.wd + OUTPUT['FILENAME_CELL_SCATTER_PLOT_PREFIX'] + gene + '.pdf'
+            fn = self.get_wd() + OUTPUT['FILENAME_CELL_SCATTER_PLOT_PREFIX'] + gene + '.pdf'
             plt.savefig(fn, bbox_inches='tight')
         
         log_debug('Finished cell_scatter_plot_w_gene_overlay()')
+
+    def violin_top(self, title=''):
+        """ Makes violin plots of the top expressed genes per cluster. """
+        log_debug('Entering violin_top()')
+        data_norm = self.data_norm
+        n = self.params['violin_top']
+        cl = self.leiden_cl
+        ignore_clusters = self.params['ignore_small_clusters']
+        
+        plt.clf()
+        fig, ax = plt.subplots(nrows=self.n_clusters, ncols=1, figsize=(7, 5))
+        fig.subplots_adjust(hspace=0.5)
+        
+        for idx, d in data_norm.groupby(by=cl, axis=1):
+            if d.shape[1] <= ignore_clusters:
+                continue
+            
+            exp_mean = d.apply(lambda x: np.mean(x), axis=1)
+            top = exp_mean.sort_values(ascending=False).head(n).index
+            
+            d_filt = d[d.index.isin(top)]
+            d_filt = d_filt.reindex(top)
+            
+            data_points = [] # array of arrays
+            
+            for i, row in d_filt.iterrows():
+                data_points.append(row.values)
+
+            vp = ax[idx].violinplot(data_points, showmeans=False, showmedians=True)
+            ax[idx].grid(axis='y')
+            ax[idx].set_xticks(list(range(1,n+1)))
+            ax[idx].set_xticklabels(top.str.extract('^(.+)_')[0].values, size=5, rotation='vertical')
+            ax[idx].set_ylabel('gene expression (log2 norm)', size=6)
+            ax[idx].set_title('cluster %s' % idx)
+
+        fn = self.get_wd() + OUTPUT['FILENAME_CELL_VIOLIN_TOP']
+        plt.savefig(fn, bbox_inches='tight')
+        
+        log_debug('Finished violin_top()')

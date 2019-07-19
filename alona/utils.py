@@ -12,11 +12,23 @@ import sys
 import random
 import inspect
 
+import time
+import datetime
+
 import numpy as np
 from sklearn.cluster import KMeans
 
 from ._version import __version__
 from .log import log_error
+
+def plot_add_title(axes):
+    """ Adds the title to a pyplot axes. """
+
+def get_time():
+    """ Get current date (international format), time, and time zone. """
+    currentDT = datetime.datetime.now()
+    ts = currentDT.strftime("%Y-%m-%d %H:%M ") + time.tzname[0]
+    return ts
 
 def print_version(ctx, param, value):
     """ Prints alona version number. """
