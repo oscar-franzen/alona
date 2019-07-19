@@ -1,10 +1,14 @@
 """
- This file contains cell type prediction methods used by alona.
+ alona
 
- How to use alona:
+ Description:
+ An analysis pipeline for scRNA-seq data.
+
+ How to use:
  https://github.com/oscar-franzen/alona/
 
- Contact: Oscar Franzen <p.oscar.franzen@gmail.com>
+ Contact:
+ Oscar Franzen <p.oscar.franzen@gmail.com>
 """
 
 import os
@@ -28,7 +32,7 @@ from .stats import p_adjust_bh
 
 class AlonaCellTypePred(AlonaClustering):
     """
-    Cell type prediction.
+    Cell type prediction methods.
     """
 
     def __init__(self):
@@ -48,8 +52,6 @@ class AlonaCellTypePred(AlonaClustering):
 
         fn = self.get_wd() + OUTPUT['FILENAME_MEDIAN_EXP']
 
-        # Axis 0 will act on all the ROWS in each COLUMN
-        # Axis 1 will act on all the COLUMNS in each ROW
         ret = data.groupby(clust, axis=1).aggregate(np.median)
         ret = ret.iloc[:,ret.columns.isin(self.clusters_targets)]
         
@@ -59,7 +61,7 @@ class AlonaCellTypePred(AlonaClustering):
 
         log_debug('median_exp() finished')
 
-    def CTA_RANK_F(self):
+    def CTA_RANK_F(self, marker_plot=False):
         """
         Cell Type Activity and Rank-based annotation with a one-sided Fisher's Exact test
         """
@@ -98,8 +100,6 @@ class AlonaCellTypePred(AlonaClustering):
         s_freqs = marker_freq[marker_freq.index.isin(s)]
         weights = 1+np.sqrt(((max(marker_freq)-s_freqs)/(max(marker_freq)-min(marker_freq))))
 
-        # Axis 0 will act on all the ROWS in each COLUMN
-        # Axis 1 will act on all the COLUMNS in each ROW
         def _guess_cell_type(x):
             rr = median_expr.loc[:, median_expr.columns == x.name].values.flatten()
             # genes expressed in this cell cluster
@@ -175,6 +175,9 @@ class AlonaCellTypePred(AlonaClustering):
         
         fn = self.get_wd() + OUTPUT['FILENAME_CTA_RANK_F_BEST']
         self.res_pred.to_csv(fn, sep='\t', index=True)
+        
+        if marker_plot:
+            sys.exit('test')
 
         log_debug('CTA_RANK_F() finished')
 
