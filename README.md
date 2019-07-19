@@ -7,7 +7,10 @@
 
 `alona` also exists as a parallel cloud-based service ([2][2]).
 
-# What it does
+# Is alona a replacement for my favorite package XYZ?
+The goal of alona is to enable fast exploratory analysis of new datasets. The aim of alona is not to replace low-level analysis of scRNA-seq data, a task facilitated by packages such as Seurat, scran and others.
+
+# An example
 ![Screenshot](https://panglaodb.se/img/github_screenshot2.png)
 
 # Installation
