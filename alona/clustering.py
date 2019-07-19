@@ -369,6 +369,10 @@ class AlonaClustering(AlonaCell):
             log_debug(i)
             if i[1]>ignore_clusters:
                 self.clusters_targets.append(i[0])
+        
+        if not self.cluster_colors:
+            # generate some unique colors
+            self.cluster_colors = uniqueColors(len(self.clusters_targets))
 
         log_debug('Leiden has finished.')
 
@@ -419,9 +423,6 @@ class AlonaClustering(AlonaCell):
         if dark_bg:
             log_debug('using dark background (--dark_bg is set)')
             plt.style.use('dark_background')
-
-        if not self.cluster_colors:
-            self.cluster_colors = uniqueColors(len(self.clusters_targets))
 
         cell_count = self.embeddings.shape[0]
         if cell_count > 1000:

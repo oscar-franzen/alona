@@ -226,17 +226,14 @@ class AlonaCellTypePred(AlonaClustering):
             ax.collections[0].colorbar.ax.tick_params(labelsize=6)
             ax.collections[0].colorbar.set_label('gene expression (log2 scale)', size=6)
             
-            #line_col = '#000000'
-            #ax.hlines(offset4+0.05, y_offset-0.015, 1-0.03, color=line_col, clip_on=False,lw=0.5)
-            
-            line_col = '#000000'
             # y, xmin, xmax
             xmin = 0
             xmax = 0
-            for item in self.clusters_targets:
-                cell_count = np.sum(np.array(self.leiden_cl)==item)
+            for cl in self.clusters_targets:
+                cell_count = np.sum(np.array(self.leiden_cl)==cl)
                 xmax += cell_count
-                ax.hlines(-0.5, xmin, xmax, color=line_col, clip_on=False, lw=2)
+                col = self.cluster_colors[cl]
+                ax.hlines(-0.5, xmin, xmax, color=col, clip_on=False, lw=2)
                 xmin += cell_count
                 #ax.get_xlim()[1]
 
