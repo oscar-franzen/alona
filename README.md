@@ -166,6 +166,10 @@ Options:
                                   --embedding). Specify multiple cells by
                                   comma separating cell identifiers (usually
                                   barcodes).
+  --violin_top INTEGER            Generate violin plots for the specified
+                                  number of top expressed genes per cluster.
+  --timestamp                     Add timestamp label to plots.  [default:
+                                  False]
   -lf, --logfile TEXT             Name of log file. Set to /dev/null if you
                                   want to disable logging to a file.
                                   [default: alona.log]
@@ -191,6 +195,8 @@ option | detailed description
 `--seed [int]` | Set a seed for the random number generator. This setting is used to generate plots and results that are numerically identical. Algorithms such as t-SNE and Fast Truncated Singular Value Decomposition need random numbers. Setting a seed guarantees that the random numbers are the same across sessions.
 `--overlay_genes [TEXT]` | Can be used to specify one or more genes for which gene expression will be overlaid on the 2d embedding. The option is useful for examining the expression of individual genes in relation to clusters and cell types. Multiple genes can be given by separating them with comma. If multiple genes are specified, one plot will be generated for each gene.
 `--highlight_specific_cells [TEXT]` | Sometimes it can be useful to highlight where a specific cell is falling on the 2d embedding. This option is used to highlight such cells in the scatter plot. Cell identifiers refer to those present in the header of the data matrix. Multiple cell identifiers can be entered separated by commas.
+`--violin_top [int]` | Generates violin plots for the top genes of every cluster. The argument specifies how many of the top expressed genes of every cluster are included. "Top" is defined by ranking on the mean within every cluster.
+`--timestamp` | Adds a small timestamp to the bottom left corner of every plot. Can be useful when sharing plots in order to distinguish different versions.
 
 # Bugs
 Please file a bug report through Github.
