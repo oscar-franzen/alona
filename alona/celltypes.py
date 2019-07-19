@@ -51,6 +51,8 @@ class AlonaCellTypePred(AlonaClustering):
         # Axis 0 will act on all the ROWS in each COLUMN
         # Axis 1 will act on all the COLUMNS in each ROW
         ret = data.groupby(clust, axis=1).aggregate(np.median)
+        ret = ret.iloc[:,ret.columns.isin(self.clusters_targets)]
+        
         ret.to_csv(fn, header=True)
 
         self.median_expr = ret

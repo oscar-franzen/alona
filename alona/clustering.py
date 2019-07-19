@@ -360,20 +360,20 @@ class AlonaClustering(AlonaCell):
         
         log_info('leiden formed %s cell clusters (n=%s are OK)' % (len(set(cl.membership)),
              self.n_clusters))
+             
+        ind = np.nonzero(clc)[0]
+        log_debug(('cluster', 'cells'))
+        self.clusters_targets = []
 
-        if self.params['loglevel'] == 'debug':
-            ind = np.nonzero(clc)[0]
-
-            log_debug(('cluster', 'cells'))
-
-            for i in zip(ind, clc):
-                log_debug(i)
+        for i in zip(ind, clc):
+            log_debug(i)
+            if i[1]>ignore_clusters:
+                self.clusters_targets.append(i[0])
 
         log_debug('Leiden has finished.')
 
     def cluster(self):
         """ Cluster cells. """
-        print('hej')
         k = self.params['nn_k']
 
         fn_knn_map = self.get_wd() + OUTPUT['FILENAME_KNN_map']
@@ -420,10 +420,8 @@ class AlonaClustering(AlonaCell):
             log_debug('using dark background (--dark_bg is set)')
             plt.style.use('dark_background')
 
-        uniq = list(set(self.leiden_cl))
-
         if not self.cluster_colors:
-            self.cluster_colors = uniqueColors(len(uniq))
+            self.cluster_colors = uniqueColors(len(self.clusters_targets))
 
         cell_count = self.embeddings.shape[0]
         if cell_count > 1000:
@@ -433,7 +431,7 @@ class AlonaClustering(AlonaCell):
 
         # check cell type predictions that mismatch between the two methods
         mismatches = {}
-        for i in range(len(uniq)):
+        for i in range(len(self.clusters_targets)):
             ct_method1 = self.res_pred.iloc[i][1]
             ct_method2 = self.res_pred2.iloc[i][0]
             mismatches[i] = not (ct_method1 == ct_method2)
@@ -443,7 +441,7 @@ class AlonaClustering(AlonaCell):
         special_cells = []
 
         # plot the first legend
-        for i in range(len(uniq)):
+        for i in range(len(self.clusters_targets)):
             idx = np.array(self.leiden_cl) == i
             e = self.embeddings[idx]
             
@@ -463,7 +461,7 @@ class AlonaClustering(AlonaCell):
                 ignored_count += 1
                 continue
 
-            main_ax.scatter(x, y, s=marker_size, color=col, label=uniq[i])
+            main_ax.scatter(x, y, s=marker_size, color=col, label=self.clusters_targets[i])
             lab = i
 
             rect = mpatches.Rectangle((0.05, 1-0.03*i - 0.05), width=0.20, height=0.02,
@@ -495,7 +493,7 @@ class AlonaClustering(AlonaCell):
 
         # add number of cells
         offset2 = 0
-        for i in range(len(uniq)):
+        for i in range(len(self.clusters_targets)):
             idx = np.array(self.leiden_cl) == i
             e = self.embeddings[idx]
 
@@ -516,7 +514,7 @@ class AlonaClustering(AlonaCell):
 
         # add marker-based annotation
         offset3 = 0
-        for i in range(len(uniq)):
+        for i in range(len(self.clusters_targets)):
             idx = np.array(self.leiden_cl) == i
             e = self.embeddings[idx]
 
@@ -545,7 +543,7 @@ class AlonaClustering(AlonaCell):
 
         # add p-value
         offset4 = 0
-        for i in range(len(uniq)):
+        for i in range(len(self.clusters_targets)):
             idx = np.array(self.leiden_cl) == i
             e = self.embeddings[idx]
 
@@ -575,7 +573,7 @@ class AlonaClustering(AlonaCell):
 
         # add SVM prediction
         offset5 = 0
-        for i in range(len(uniq)):
+        for i in range(len(self.clusters_targets)):
             idx = np.array(self.leiden_cl) == i
             e = self.embeddings[idx]
 
@@ -604,7 +602,7 @@ class AlonaClustering(AlonaCell):
         # add probability
         offset6 = 0
         y_offset = 0
-        for i in range(len(uniq)):
+        for i in range(len(self.clusters_targets)):
             idx = np.array(self.leiden_cl) == i
             e = self.embeddings[idx]
 
