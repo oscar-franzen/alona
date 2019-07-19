@@ -9,7 +9,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="alona-oscarf",
-    version="0.0.1",
+    version="0.1",
     author="Oscar Franzen",
     author_email="p.oscar.franzen@gmail.com",
     description="Analysis pipeline for single cell RNA sequencing data.",
