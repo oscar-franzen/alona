@@ -662,6 +662,10 @@ class AlonaClustering(AlonaCell):
         #main_ax.set_xlim(min(self.embeddings[1]), max(self.embeddings[1]))
 
         fn = self.get_wd() + OUTPUT['FILENAME_CELL_SCATTER_PLOT_PREFIX'] + method + '.pdf'
+        
+        if self.params['timestamp']:
+            plt.figtext(0.05, 0, get_time(), size=5)
+        
         plt.savefig(fn, bbox_inches='tight')
         plt.close()
 
@@ -703,6 +707,9 @@ class AlonaClustering(AlonaCell):
         ax.set_xlabel('Cluster')
         ax.set_ylabel('Number of expressed genes')
         
+        if self.params['timestamp']:
+            plt.figtext(0.05, 0, get_time(), size=5)
+        
         fn = self.get_wd() + OUTPUT['FILENAME_CELL_VIOLIN_GE_PLOT']
         plt.savefig(fn, bbox_inches='tight')
         log_debug('Exiting genes_exp_per_cluster()')
@@ -737,6 +744,10 @@ class AlonaClustering(AlonaCell):
             cb.set_label('%s gene expression (log2 scale)' % (gene))
             
             fn = self.get_wd() + OUTPUT['FILENAME_CELL_SCATTER_PLOT_PREFIX'] + gene + '.pdf'
+            
+            if self.params['timestamp']:
+                plt.figtext(0.05, 0, get_time(), size=5)
+            
             plt.savefig(fn, bbox_inches='tight')
         
         log_debug('Finished cell_scatter_plot_w_gene_overlay()')
@@ -776,6 +787,10 @@ class AlonaClustering(AlonaCell):
             ax[idx].set_title('cluster %s' % idx)
 
         fn = self.get_wd() + OUTPUT['FILENAME_CELL_VIOLIN_TOP']
+        
+        if self.params['timestamp']:
+            plt.figtext(0.05, 0, get_time(), size=5)
+                
         plt.savefig(fn, bbox_inches='tight')
         
         log_debug('Finished violin_top()')

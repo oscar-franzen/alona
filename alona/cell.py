@@ -26,7 +26,7 @@ from sklearn.covariance import MinCovDet
 
 from .log import (log_info, log_debug, log_error)
 from .constants import (OUTPUT, ORANGE, GENOME)
-from .utils import get_alona_dir
+from .utils import (get_alona_dir, get_time)
 
 from .alonabase import AlonaBase
 #from .clustering import AlonaClustering
@@ -126,6 +126,10 @@ set to log2.')
                 mpatches.Patch(color='#999999', label='Removed')
             ])
             plt.title('sequencing reads')
+            
+            if self.params['timestamp']:
+                plt.figtext(0.05, 0, get_time(), size=5)
+            
             plt.savefig(self.get_wd() + \
                 OUTPUT['FILENAME_BARPLOT_RAW_READ_COUNTS'], bbox_inches='tight')
             plt.close()
@@ -141,9 +145,12 @@ set to log2.')
         plt.ylabel('number of genes')
         plt.xlabel('cells (sorted on highest to lowest)')
         plt.title('expressed genes')
+        
+        if self.params['timestamp']:
+            plt.figtext(0.05, 0, get_time(), size=5)
 
-        plt.savefig(self.get_wd() + \
-            OUTPUT['FILENAME_BARPLOT_GENES_EXPRESSED'], bbox_inches='tight')
+        plt.savefig(self.get_wd() + OUTPUT['FILENAME_BARPLOT_GENES_EXPRESSED'],
+                    bbox_inches='tight')
         plt.close()
 
     def simple_filters(self):

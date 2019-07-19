@@ -21,9 +21,6 @@ from sklearn.cluster import KMeans
 from ._version import __version__
 from .log import log_error
 
-def plot_add_title(axes):
-    """ Adds the title to a pyplot axes. """
-
 def get_time():
     """ Get current date (international format), time, and time zone. """
     currentDT = datetime.datetime.now()
