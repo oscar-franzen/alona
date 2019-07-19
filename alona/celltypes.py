@@ -208,7 +208,9 @@ class AlonaCellTypePred(AlonaClustering):
             
             plt.clf()
             fig, ax = plt.subplots(nrows=1, ncols=1, figsize=(7, 5))
-            ax = sb.heatmap(data_slice2, linewidth=0)
+            ax = sb.heatmap(data_slice2,
+                            linewidth=0,
+                            cbar_kws={"shrink": 0.5}) # controls size of the colorbar)
             ax.get_xaxis().set_visible(False)
             ax.set_yticks(list(range(1,data_slice2.shape[0]+1)))
             ax.set_yticklabels(data_slice2.index.values, size=5)
@@ -220,6 +222,9 @@ class AlonaCellTypePred(AlonaClustering):
             ax.get_yticklines()[len(ax.get_yticklines())-1].set_color('white')
             ax.get_yticklines()[len(ax.get_yticklines())-2].set_color('white')
             # </END WORKAROUND>
+            
+            ax.collections[0].colorbar.ax.tick_params(labelsize=6)
+            ax.collections[0].colorbar.set_label('gene expression (log2 scale)', size=6)
 
             plt.yticks(np.arange(data_slice2.shape[0])+0.5, ll, rotation=0, fontsize="4", va="center")
             plt.savefig('qwe.pdf', bbox_inches='tight')
