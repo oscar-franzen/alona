@@ -22,6 +22,8 @@ import numpy as np
 from sklearn.preprocessing import scale
 from sklearn.preprocessing import MinMaxScaler
 from scipy.stats import fisher_exact
+import matplotlib.pyplot as plt
+import seaborn as sb
 
 from .clustering import AlonaClustering
 
@@ -177,7 +179,50 @@ class AlonaCellTypePred(AlonaClustering):
         self.res_pred.to_csv(fn, sep='\t', index=True)
         
         if marker_plot:
-            sys.exit('test')
+            target_genes = np.unique(','.join(self.res_pred['markers'].values).split(','))
+            symbs = self.data_norm.index.str.extract('^(.+)_.+')[0].str.upper()
+            data_slice = self.data_norm.loc[symbs.isin(target_genes).values]
+            data_slice.index=data_slice.index.str.extract('^(.+)_.+')[0].str.upper()
+            
+            cell_ids = pd.DataFrame({ 'ids' : data_slice.columns.values,
+                                      'cluster' : self.leiden_cl })
+            cell_ids = cell_ids[cell_ids['cluster'].isin(self.clusters_targets)]
+            cell_ids = cell_ids.sort_values(by='cluster')
+            data_slice = data_slice.loc[:,data_slice.columns.isin(cell_ids['ids'].values)]
+            data_slice = data_slice.reindex(cell_ids['ids'], axis=1)
+            
+            data_slice2 = data_slice
+            i = pd.Series([np.nan]*data_slice2.shape[1],
+                           index=data_slice2.columns, name='qq')
+            data_slice2 = data_slice2.append(i)
+            
+            # Workaround until this bug is fixed in matplotlib
+            # https://github.com/matplotlib/matplotlib/issues/14751
+            q = pd.DataFrame([i])
+            data_slice2 = q.append(data_slice2)
+            
+            ll = data_slice2.index.values
+            ll[0]=''
+            ll[len(ll)-1]=''
+            # </END WORKAROUND>
+            
+            plt.clf()
+            fig, ax = plt.subplots(nrows=1, ncols=1, figsize=(7, 5))
+            ax = sb.heatmap(data_slice2, linewidth=0)
+            ax.get_xaxis().set_visible(False)
+            ax.set_yticks(list(range(1,data_slice2.shape[0]+1)))
+            ax.set_yticklabels(data_slice2.index.values, size=5)
+            
+            # Workaround until this bug is fixed in matplotlib
+            # https://github.com/matplotlib/matplotlib/issues/14751
+            ax.get_yticklines()[0].set_color('white')
+            ax.get_yticklines()[0].set_color('white')
+            ax.get_yticklines()[len(ax.get_yticklines())-1].set_color('white')
+            ax.get_yticklines()[len(ax.get_yticklines())-2].set_color('white')
+            # </END WORKAROUND>
+
+            plt.yticks(np.arange(data_slice2.shape[0])+0.5, ll, rotation=0, fontsize="4", va="center")
+            plt.savefig('qwe.pdf', bbox_inches='tight')
 
         log_debug('CTA_RANK_F() finished')
 
