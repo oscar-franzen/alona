@@ -243,7 +243,7 @@ class AlonaCellTypePred(AlonaClustering):
             if self.params['timestamp']:
                 plt.figtext(0.05, 0.05, get_time(), size=4)
             
-            fn = self.get_wd() + OUTPUT['FILENAME_MARKER_HEATMAP'] + '.pdf'
+            fn = self.get_wd() + OUTPUT['FILENAME_MARKER_HEATMAP']
             plt.savefig(fn, bbox_inches='tight')
             #import joblib
             #joblib.dump(self,'q.jl')
