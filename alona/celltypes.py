@@ -199,8 +199,7 @@ class AlonaCellTypePred(AlonaClustering):
 
             dff = pd.DataFrame({ 'gene' : gene, 'cell types' : celltypes})
             dff = dff.sort_values('cell types')
-            
-            #target_genes = np.unique(','.join(self.res_pred['markers'].values).split(','))
+
             target_genes = dff.gene
             symbs = self.data_norm.index.str.extract('^(.+)_.+')[0].str.upper()
             data_slice = self.data_norm.loc[symbs.isin(target_genes).values]
@@ -239,10 +238,6 @@ class AlonaCellTypePred(AlonaClustering):
             ax.set_yticks(list(range(1,data_slice2.shape[0]+1)))
             tt = ax.set_yticklabels(data_slice2.index.values)
             
-            # add space for cell type indicators
-            for text_item in tt:
-                text_item.set_position((-0.05,text_item.get_position()[1]))
-            
             # Workaround until this bug is fixed in matplotlib
             # https://github.com/matplotlib/matplotlib/issues/14751
             ax.get_yticklines()[0].set_color('white')
@@ -261,13 +256,41 @@ class AlonaCellTypePred(AlonaClustering):
                 cell_count = np.sum(np.array(self.leiden_cl)==cl)
                 xmax += cell_count
                 col = self.cluster_colors[cl]
-                ax.hlines(-0.5, xmin, xmax, color=col, clip_on=False, lw=2)
+                ax.hlines(-0.5, xmin, xmax, color=col, clip_on=False, lw=4)
+                # cluster index
                 ax.text(x=xmin, y=-1.2, s=cl, size=5)
                 xmin += cell_count
                 #ax.get_xlim()[1]
 
             tickpos = np.arange(data_slice2.shape[0])+0.5
             plt.yticks(tickpos, ll, rotation=0, fontsize=6, va="center")
+            
+            #import matplotlib.patches as patches
+            #rect = patches.Rectangle((-50,10),10,30,linewidth=1,facecolor='yellow',clip_on=False)
+            #ax.add_patch(rect)
+            
+            grid = np.array(sorted(ct_targets))
+            #for ct in grid:
+            #ax.text(-250, 0.99, 'cluster', size=7, rotation=90, clip_on=False)
+            
+            for idx, ct in enumerate(grid):
+                ax.text(-0.045+idx*0.015, 1, ct, size=7, rotation=90, clip_on=False,
+                        transform=ax.transAxes) # using axes coordinates instead of data coordinates
+                                                         
+            # add space for cell type indicators
+            for text_item in tt:
+                y = text_item.get_position()[1]
+                yax_coord=ax.transLimits.transform((0,y))[1]
+                text_item.set_position((len(grid)*0.015*-1,yax_coord))
+            
+            for idx, d in dff.iterrows():
+                z = d[1].split(',')
+                for p in z:
+                    i = np.where(grid==p)[0][0]
+                    pass
+                    #box_x_pos = 0.05 * i
+                    #box_y_pos = id
+                
             
             if self.params['timestamp']:
                 plt.figtext(0.05, 0.05, get_time(), size=4)
