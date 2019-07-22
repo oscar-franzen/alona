@@ -718,7 +718,10 @@ class AlonaClustering(AlonaCell):
         log_debug('Inside cell_scatter_plot_w_gene_overlay()')
         method = self.params['embedding']
         genes = self.params['overlay_genes']
-        genes = re.sub(' ', '', genes).split(',')
+        if genes:
+            genes = re.sub(' ', '', genes).split(',')
+        else:
+            genes = []
         data_norm = self.data_norm
         symbs = pd.Series(data_norm.index.str.extract('(.+)_')[0])
         

@@ -213,7 +213,11 @@ class AlonaCellTypePred(AlonaClustering):
                             cbar_kws={"shrink": 0.5}) # controls size of the colorbar)
             ax.get_xaxis().set_visible(False)
             ax.set_yticks(list(range(1,data_slice2.shape[0]+1)))
-            ax.set_yticklabels(data_slice2.index.values, size=5)
+            tt = ax.set_yticklabels(data_slice2.index.values, size=5)
+            
+            # add space for cell type indicators
+            for text_item in tt:
+                text_item.set_position((-0.05,text_item.get_position()[1]))
             
             # Workaround until this bug is fixed in matplotlib
             # https://github.com/matplotlib/matplotlib/issues/14751
@@ -234,6 +238,7 @@ class AlonaCellTypePred(AlonaClustering):
                 xmax += cell_count
                 col = self.cluster_colors[cl]
                 ax.hlines(-0.5, xmin, xmax, color=col, clip_on=False, lw=2)
+                ax.text(x=xmin, y=-1.2, s=cl, size=4)
                 xmin += cell_count
                 #ax.get_xlim()[1]
 
