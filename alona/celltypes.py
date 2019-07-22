@@ -179,7 +179,29 @@ class AlonaCellTypePred(AlonaClustering):
         self.res_pred.to_csv(fn, sep='\t', index=True)
         
         if marker_plot:
-            target_genes = np.unique(','.join(self.res_pred['markers'].values).split(','))
+            log_debug('Generating heatmap...')
+            
+            # sort on all the cell types that the gene occurs in
+            ct_targets = self.res_pred[self.res_pred['cell type']!='Unknown']['cell type'].unique()
+            df = self.res_pred[self.res_pred['cell type'].isin(ct_targets)][['cell type','markers']]
+            dff = df['markers'].str.split(',',expand=True)
+            dff['cell type'] = df['cell type'].values
+            dff = dff.melt(id_vars='cell type')
+            dff = dff[dff['value'].values!=None]
+            dff = dff[['cell type','value']]
+            dff = dff.drop_duplicates()
+
+            gene = []
+            celltypes = []
+            for item in dff.groupby(['value']):
+                gene.append(item[0])
+                celltypes.append(','.join(sorted(item[1]['cell type'].values)))
+
+            dff = pd.DataFrame({ 'gene' : gene, 'cell types' : celltypes})
+            dff = dff.sort_values('cell types')
+            
+            #target_genes = np.unique(','.join(self.res_pred['markers'].values).split(','))
+            target_genes = dff.gene
             symbs = self.data_norm.index.str.extract('^(.+)_.+')[0].str.upper()
             data_slice = self.data_norm.loc[symbs.isin(target_genes).values]
             data_slice.index=data_slice.index.str.extract('^(.+)_.+')[0].str.upper()
@@ -190,6 +212,7 @@ class AlonaCellTypePred(AlonaClustering):
             cell_ids = cell_ids.sort_values(by='cluster')
             data_slice = data_slice.loc[:,data_slice.columns.isin(cell_ids['ids'].values)]
             data_slice = data_slice.reindex(cell_ids['ids'], axis=1)
+            data_slice = data_slice.reindex(dff['gene'], axis=0)
             
             data_slice2 = data_slice
             i = pd.Series([np.nan]*data_slice2.shape[1],
@@ -207,13 +230,14 @@ class AlonaCellTypePred(AlonaClustering):
             # </END WORKAROUND>
             
             plt.clf()
-            fig, ax = plt.subplots(nrows=1, ncols=1, figsize=(7, 5))
+            fig_size_y = round(data_slice2.shape[0]/8) # 8 genes per inch
+            fig, ax = plt.subplots(nrows=1, ncols=1, figsize=(15, fig_size_y)) # xy
             ax = sb.heatmap(data_slice2,
                             linewidth=0,
                             cbar_kws={"shrink": 0.5}) # controls size of the colorbar)
             ax.get_xaxis().set_visible(False)
             ax.set_yticks(list(range(1,data_slice2.shape[0]+1)))
-            tt = ax.set_yticklabels(data_slice2.index.values, size=5)
+            tt = ax.set_yticklabels(data_slice2.index.values)
             
             # add space for cell type indicators
             for text_item in tt:
@@ -238,12 +262,12 @@ class AlonaCellTypePred(AlonaClustering):
                 xmax += cell_count
                 col = self.cluster_colors[cl]
                 ax.hlines(-0.5, xmin, xmax, color=col, clip_on=False, lw=2)
-                ax.text(x=xmin, y=-1.2, s=cl, size=4)
+                ax.text(x=xmin, y=-1.2, s=cl, size=5)
                 xmin += cell_count
                 #ax.get_xlim()[1]
 
             tickpos = np.arange(data_slice2.shape[0])+0.5
-            plt.yticks(tickpos, ll, rotation=0, fontsize="4", va="center")
+            plt.yticks(tickpos, ll, rotation=0, fontsize=6, va="center")
             
             if self.params['timestamp']:
                 plt.figtext(0.05, 0.05, get_time(), size=4)

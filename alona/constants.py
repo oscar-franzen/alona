@@ -20,7 +20,7 @@ OUTPUT = {
     'FILENAME_CELL_SCATTER_PLOT_PREFIX' : '/plots/2d_plot_',
     'FILENAME_CELL_VIOLIN_GE_PLOT' : '/plots/ge_violin.pdf',
     'FILENAME_CELL_VIOLIN_TOP' : '/plots/ge_violin_top.pdf',
-    'FILENAME_MARKER_HEATMAP' : '/plots/marker_heatmap.pdf',
+    'FILENAME_MARKER_HEATMAP' : '/plots/marker_heatmap.png',
     'FILENAME_PCA' : '/csvs/pca.csv',
     'FILENAME_EMBEDDING_PREFIX' : '/csvs/embeddings_',
     'FILENAME_HVG' : '/csvs/highly_variable_genes.csv',
