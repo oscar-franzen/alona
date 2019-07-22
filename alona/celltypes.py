@@ -29,7 +29,7 @@ from .clustering import AlonaClustering
 
 from .constants import (OUTPUT, GENOME, MARKERS)
 from .log import (log_info, log_debug, log_error)
-from .utils import get_alona_dir
+from .utils import (get_alona_dir, get_time)
 from .stats import p_adjust_bh
 
 class AlonaCellTypePred(AlonaClustering):
@@ -239,6 +239,9 @@ class AlonaCellTypePred(AlonaClustering):
 
             tickpos = np.arange(data_slice2.shape[0])+0.5
             plt.yticks(tickpos, ll, rotation=0, fontsize="4", va="center")
+            
+            if self.params['timestamp']:
+                plt.figtext(0.05, 0.05, get_time(), size=4)
             
             fn = self.get_wd() + OUTPUT['FILENAME_MARKER_HEATMAP'] + '.pdf'
             plt.savefig(fn, bbox_inches='tight')
