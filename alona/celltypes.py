@@ -237,8 +237,11 @@ class AlonaCellTypePred(AlonaClustering):
                 xmin += cell_count
                 #ax.get_xlim()[1]
 
-            plt.yticks(np.arange(data_slice2.shape[0])+0.5, ll, rotation=0, fontsize="4", va="center")
-            plt.savefig('qwe.pdf', bbox_inches='tight')
+            offset = data_slice2.shape[0])+0.5
+            plt.yticks(np.arange(offset, ll, rotation=0, fontsize="4", va="center")
+            
+            fn = self.get_wd() + OUTPUT['FILENAME_MARKER_HEATMAP'] + '.pdf'
+            plt.savefig(fn, bbox_inches='tight')
             #import joblib
             #joblib.dump(self,'q.jl')
 
