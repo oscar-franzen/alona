@@ -273,8 +273,9 @@ class AlonaCellTypePred(AlonaClustering):
             #for ct in grid:
             #ax.text(-250, 0.99, 'cluster', size=7, rotation=90, clip_on=False)
             
+            offset=len(grid)*0.015*-1
             for idx, ct in enumerate(grid):
-                ax.text(-0.045+idx*0.015, 1, ct, size=7, rotation=90, clip_on=False,
+                ax.text(offset+idx*0.015, 1.005, ct, size=7, rotation=90, clip_on=False,
                         transform=ax.transAxes) # using axes coordinates instead of data coordinates
                                                          
             # add space for cell type indicators
