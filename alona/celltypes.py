@@ -190,24 +190,24 @@ class AlonaCellTypePred(AlonaClustering):
             zx = self.res_pred['cell type'] != 'Unknown'
             ct_targets = self.res_pred[zx]['cell type'].unique()
             zx = self.res_pred['cell type'].isin(ct_targets)
-            df = self.res_pred[zx][['cell type','markers']]
-            
+            df = self.res_pred[zx][['cell type', 'markers']]
+
             if add_ct:
                 for item in add_ct.upper().split(','):
-                    if not np.any(df['cell type']==item):
-                        zx = self.markers['cell type'].str.upper()==item
+                    if not np.any(df['cell type'] == item):
+                        zx = self.markers['cell type'].str.upper() == item
                         ct_mark = self.markers[zx]['official gene symbol'].str.cat(sep=',')
-                        zx = self.markers['cell type'].str.upper()==item
+                        zx = self.markers['cell type'].str.upper() == item
                         l = self.markers[zx]['cell type'].unique()[0]
-                        zx = pd.Series([ l, ct_mark ], index=['cell type','markers'])
+                        zx = pd.Series([l, ct_mark], index=['cell type', 'markers'])
                         df = df.append(zx, ignore_index=True)
                         ct_targets = np.append(ct_targets, l)
-            
-            dff = df['markers'].str.split(',',expand=True)
+
+            dff = df['markers'].str.split(',', expand=True)
             dff['cell type'] = df['cell type'].values
             dff = dff.melt(id_vars='cell type')
-            dff = dff[dff['value'].values!=None]
-            dff = dff[['cell type','value']]
+            dff = dff[dff['value'].values != None]
+            dff = dff[['cell type', 'value']]
             dff = dff.drop_duplicates()
 
             gene = []
@@ -216,44 +216,44 @@ class AlonaCellTypePred(AlonaClustering):
                 gene.append(item[0])
                 celltypes.append(','.join(sorted(item[1]['cell type'].values)))
 
-            dff = pd.DataFrame({ 'gene' : gene, 'cell types' : celltypes})
+            dff = pd.DataFrame({'gene' : gene, 'cell types' : celltypes})
             dff = dff.sort_values('cell types')
-            dff.index = np.arange(1,dff.shape[0]+1)
+            dff.index = np.arange(1, dff.shape[0]+1)
 
             target_genes = dff.gene
             symbs = self.data_norm.index.str.extract('^(.+)_.+')[0].str.upper()
             data_slice = self.data_norm.loc[symbs.isin(target_genes).values]
             data_slice.index = data_slice.index.str.extract('^(.+)_.+')[0].str.upper()
-            
-            cell_ids = pd.DataFrame({ 'ids' : data_slice.columns.values,
-                                      'cluster' : self.leiden_cl })
+
+            cell_ids = pd.DataFrame({'ids' : data_slice.columns.values,
+                                     'cluster' : self.leiden_cl})
             cell_ids = cell_ids[cell_ids['cluster'].isin(self.clusters_targets)]
             cell_ids = cell_ids.sort_values(by='cluster')
-            data_slice = data_slice.loc[:,data_slice.columns.isin(cell_ids['ids'].values)]
+            data_slice = data_slice.loc[:, data_slice.columns.isin(cell_ids['ids'].values)]
             data_slice = data_slice.reindex(cell_ids['ids'], axis=1)
             data_slice = data_slice.reindex(dff['gene'], axis=0)
-            
+
             plt.clf()
             fig_size_y = round(data_slice.shape[0]/8) # 8 genes per inch
             fig, ax = plt.subplots(nrows=1, ncols=1, figsize=(15, fig_size_y)) # xy
-            
+
             ax = sb.heatmap(data_slice,
                             linewidth=0,
                             cbar_kws={"shrink": 0.5}) # controls size of the colorbar
             ax.get_xaxis().set_visible(False)
             ax.get_yaxis().set_visible(False)
-            
+
             cbar = ax.collections[0].colorbar.ax
             cbar.set_position([0.80, 0.6, 0.19, 0.19])
-            
+
             # setting ylim is needed due to matplotlib/seaborn bug
             # shuld be highest to lowest or data will flip
-            ax.set_ylim([data_slice.shape[0],0])
-            ax.set_xlim([0,data_slice.shape[1]])
-            
+            ax.set_ylim([data_slice.shape[0], 0])
+            ax.set_xlim([0, data_slice.shape[1]])
+
             # x coordinate is axes and y coordinate is data
             trans = transforms.blended_transform_factory(ax.transAxes, ax.transData)
-            
+
             # add gene labels
             y_data_coord = 1 # data coordinates starts at 1
             for gene in data_slice.index:
@@ -261,31 +261,34 @@ class AlonaCellTypePred(AlonaClustering):
                         horizontalalignment='right', clip_on=False, size=7,
                         transform=trans)
                 y_data_coord += 1
-            
+
             ax.collections[0].colorbar.ax.tick_params(labelsize=6)
             ax.collections[0].colorbar.set_label('gene expression (log2 scale)', size=6)
-            
+
             grid = np.array(sorted(ct_targets))
-            
+
             # cell type labels
-            offset=-0.012-0.012*len(ct_targets)+0.006
+            offset = -0.012-0.012*len(ct_targets)+0.006
             for idx, ct in enumerate(grid):
-                ax.text(offset+idx*0.011, 0-0.50, ct, size=6, rotation=90, clip_on=False, transform=trans)
-                
+                ax.text(offset+idx*0.011, 0-0.50, ct, size=6, rotation=90, clip_on=False,
+                        transform=trans)
+
             index = 0
             for idx, d in dff.iterrows():
                 z = d[1].split(',')
                 for p in z:
-                    i = np.where(grid==p)[0][0]
-                    rect = patches.Rectangle((offset+i*0.011, index+0.3), 0.005, 0.6, linewidth=2,facecolor='blue', clip_on=False, transform=trans)
+                    i = np.where(grid == p)[0][0]
+                    rect = patches.Rectangle((offset+i*0.011, index+0.3), 0.005, 0.6,
+                                             linewidth=2, facecolor='blue', clip_on=False,
+                                             transform=trans)
                     ax.add_patch(rect)
                 index += 1
-            
+
             # add cluster indicators
             xmin = 0
             xmax = 0
             for cl in self.clusters_targets:
-                cell_count = np.sum(np.array(self.leiden_cl)==cl)
+                cell_count = np.sum(np.array(self.leiden_cl) == cl)
                 xmax += cell_count
                 col = self.cluster_colors[cl]
                 # y, xmin, xmax
@@ -294,10 +297,10 @@ class AlonaCellTypePred(AlonaClustering):
                 ax.text(x=xmin, y=-1.2, s=cl, size=5)
                 xmin += cell_count
                 #ax.get_xlim()[1]
-            
+
             if self.params['timestamp']:
                 plt.figtext(0.05, 0.05, get_time(), size=4)
-            
+
             fn = self.get_wd() + OUTPUT['FILENAME_MARKER_HEATMAP']
             plt.savefig(fn, bbox_inches='tight')
             #import joblib
@@ -337,7 +340,7 @@ class AlonaCellTypePred(AlonaClustering):
             log_info('Downloading model file...')
             cmd = r"""(wget --load-cookies /tmp/google_cookie.txt "https://docs.google.com/uc?export=download&confirm=$(wget --quiet --save-cookies /tmp/google_cookie.txt --keep-session-cookies --no-check-certificate 'https://docs.google.com/uc?export=download&id=%s' -O- | sed -rn 's/.*confirm=([0-9A-Za-z_]+).*/\1\n/p')&id=%s" -O %s) 2>/dev/null && rm /tmp/google_cookie.txt""" % (file_id, file_id, dl_path)
             os.system(cmd)
-            
+
             # unpack
             cmd = 'tar -C %s -zxf %s' % (get_alona_dir(), dl_path)
             os.system(cmd)
@@ -358,10 +361,10 @@ class AlonaCellTypePred(AlonaClustering):
         """ Runs prediction using the SVM model. """
         median_expr = self.median_expr.copy()
         model_path = get_alona_dir() + '/sklearn_svm_model.production.joblib'
-        
+
         if not os.path.exists(model_path):
             log_error('Fatal: model file was not found')
-        
+
         log_info('Loading model...')
         model = joblib_load(model_path)
 
@@ -372,51 +375,51 @@ class AlonaCellTypePred(AlonaClustering):
 
         features = pd.Series(features).str.extract('(.+_ENSMUS.+)\..+')
         features.index = features[0]
-        
+
         # features present in "data" but not in the training set
         data_specific = median_expr.index.difference(features.index)
-        
+
         # remove non-training features from data
         data = median_expr.loc[median_expr.index.difference(data_specific)]
-        
+
         # missing features in "data" compared with training
         missing = features.index[np.logical_not(features.isin(data.index))[0]]
-        
+
         # add missing features and set expression to zero
         empty = pd.DataFrame(index=missing, columns=data.columns)
         empty = empty.fillna(0)
-        
+
         # concatenate data frames
-        qwe = pd.concat([ data, empty ])
+        qwe = pd.concat([data, empty])
         qwe = qwe.reindex(index=features.index)
-        
+
         # scale data so it lies between 1 to 100
         min_max_scaler = MinMaxScaler(feature_range=(0, 100))
         scaled = min_max_scaler.fit_transform(qwe)
-        
+
         pred = model.predict(scaled.transpose())
         pr = model.predict_proba(scaled.transpose())
-        
+
         class_file = get_alona_dir() + '/cell_types.codes.production.txt'
         classes = pd.read_csv(class_file, sep=',', header=0)
         classes = classes.drop_duplicates()
         classes.columns = ['cell_type', 'id']
-        
+
         pr2 = pd.DataFrame(pr)
         pr2.columns = model.classes_
-        
+
         classes.index = classes['id']
         classes = classes.reindex(index=pr2.columns)
         classes = classes.reset_index()
-        
+
         pr2.columns = classes['cell_type']
         pr2 = pr2.transpose()
-        
+
         out = self.get_wd() + '/csvs/SVM/SVM_cell_type_pred_full_table.txt'
         pr2.to_csv(out)
-        
+
         out = self.get_wd() + '/csvs/SVM/SVM_cell_type_pred_best.txt'
-        df = pd.DataFrame({ 'ct' : pr2.idxmax(), 'prob' : pr2.max() })
-        
+        df = pd.DataFrame({'ct' : pr2.idxmax(), 'prob' : pr2.max()})
+
         df.to_csv(out)
         self.res_pred2 = df
