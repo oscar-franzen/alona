@@ -92,6 +92,9 @@ UMAP.', default='tSNE', type=click.Choice(['tSNE', 'UMAP']), show_default=True)
 
 @click.option('--dark_bg', help='Use dark background in scatter plots.', is_flag=True,
               default=False, show_default=True)
+
+@click.option('--add_celltypes', help='Add markers for these additional cell types to \
+the heatmap plot. Separate multiple cell types with commas.', type=str, show_default=True)
               
 @click.option('--overlay_genes', help='Generate scatter plots in 2d space (using method \
 specified by --embedding), where gene expression is overlaid on cells. Specify multiple \
@@ -126,9 +129,9 @@ show_default=True)
 
 def run(filename, output, dataformat, minreads, minexpgenes, qc_auto, mrnafull, delimiter,
         header, nomito, hvg, hvg_n, nn_k, prune_snn, leiden_partition, leiden_res,
-        ignore_small_clusters, embedding, perplexity, species, dark_bg, overlay_genes,
-        highlight_specific_cells, violin_top, timestamp, logfile, loglevel, nologo, seed,
-        version):
+        ignore_small_clusters, embedding, perplexity, species, dark_bg, add_celltypes,
+        overlay_genes, highlight_specific_cells, violin_top, timestamp, logfile,
+        loglevel, nologo, seed, version):
 
     # confirm the genome reference files can be found
     for item in GENOME:
@@ -172,7 +175,8 @@ tried: %s' % (GENOME[item], path))
         'overlay_genes' : overlay_genes,
         'highlight_specific_cells' : highlight_specific_cells,
         'violin_top' : violin_top,
-        'timestamp' : timestamp
+        'timestamp' : timestamp,
+        'add_celltypes' : add_celltypes
     }
 
     alonacell = AlonaCellTypePred()

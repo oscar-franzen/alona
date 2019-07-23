@@ -183,9 +183,21 @@ class AlonaCellTypePred(AlonaClustering):
         if marker_plot:
             log_debug('Generating heatmap...')
             
+            # additional cell types
+            add_ct = self.params['add_celltypes']
+            
             # sort on all the cell types that the gene occurs in
             ct_targets = self.res_pred[self.res_pred['cell type']!='Unknown']['cell type'].unique()
             df = self.res_pred[self.res_pred['cell type'].isin(ct_targets)][['cell type','markers']]
+            
+            if add_ct != '':
+                for item in add_ct.upper().split(','):
+                    if not np.any(df['cell type']==item):
+                        ct_mark = self.markers[self.markers['cell type'].str.upper()==item]['official gene symbol'].str.cat(sep=',')
+                        l = self.markers[self.markers['cell type'].str.upper()==item]['cell type'].unique()[0]
+                        df = df.append(pd.Series([ l, ct_mark ], index=['cell type','markers']), ignore_index=True)
+                        ct_targets = np.append(ct_targets, l)
+            
             dff = df['markers'].str.split(',',expand=True)
             dff['cell type'] = df['cell type'].values
             dff = dff.melt(id_vars='cell type')
