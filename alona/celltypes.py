@@ -249,7 +249,7 @@ class AlonaCellTypePred(AlonaClustering):
             # cell type labels
             offset=-0.012*len(ct_targets)+0.006
             for idx, ct in enumerate(grid):
-                ax.text(offset+idx*0.011, 0, ct, size=6, rotation=90, clip_on=False, transform=trans)
+                ax.text(offset+idx*0.011, 0-0.50, ct, size=6, rotation=90, clip_on=False, transform=trans)
                 
             index = 0
             for idx, d in dff.iterrows():

@@ -719,11 +719,11 @@ class AlonaClustering(AlonaCell):
         method = self.params['embedding']
         genes = self.params['overlay_genes']
         if genes:
-            genes = re.sub(' ', '', genes).split(',')
+            genes = re.sub(' ', '', genes).upper().split(',')
         else:
             genes = []
         data_norm = self.data_norm
-        symbs = pd.Series(data_norm.index.str.extract('(.+)_')[0])
+        symbs = pd.Series(data_norm.index.str.extract('(.+)_')[0]).str.upper()
         
         cell_count = self.embeddings.shape[0]
         if cell_count > 1000:
@@ -735,6 +735,7 @@ class AlonaClustering(AlonaCell):
         
         for gene in genes:
             row = data_norm.iloc[(symbs==gene).values]
+            
             x = self.embeddings[1].values
             y = self.embeddings[2].values
 
