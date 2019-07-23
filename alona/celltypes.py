@@ -31,7 +31,7 @@ from .clustering import AlonaClustering
 
 from .constants import (OUTPUT, GENOME, MARKERS)
 from .log import (log_info, log_debug, log_error)
-from .utils import (get_alona_dir, get_time)
+from .utils import (get_alona_dir, get_time, uniqueColors)
 from .stats import p_adjust_bh
 
 class AlonaCellTypePred(AlonaClustering):
@@ -209,6 +209,8 @@ class AlonaCellTypePred(AlonaClustering):
             dff = dff[dff['value'].values != None]
             dff = dff[['cell type', 'value']]
             dff = dff.drop_duplicates()
+            
+            ct_color = uniqueColors(len(ct_targets))
 
             gene = []
             celltypes = []
@@ -271,7 +273,7 @@ class AlonaCellTypePred(AlonaClustering):
             offset = -0.012-0.012*len(ct_targets)+0.006
             for idx, ct in enumerate(grid):
                 ax.text(offset+idx*0.011, 0-0.50, ct, size=6, rotation=90, clip_on=False,
-                        transform=trans)
+                        transform=trans, color=ct_color[idx])
 
             index = 0
             for idx, d in dff.iterrows():
@@ -279,8 +281,8 @@ class AlonaCellTypePred(AlonaClustering):
                 for p in z:
                     i = np.where(grid == p)[0][0]
                     rect = patches.Rectangle((offset+i*0.011, index+0.3), 0.005, 0.6,
-                                             linewidth=2, facecolor='blue', clip_on=False,
-                                             transform=trans)
+                                             linewidth=2, facecolor=ct_color[i],
+                                             clip_on=False, transform=trans)
                     ax.add_patch(rect)
                 index += 1
 
