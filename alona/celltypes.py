@@ -190,7 +190,7 @@ class AlonaCellTypePred(AlonaClustering):
             ct_targets = self.res_pred[self.res_pred['cell type']!='Unknown']['cell type'].unique()
             df = self.res_pred[self.res_pred['cell type'].isin(ct_targets)][['cell type','markers']]
             
-            if add_ct != '':
+            if add_ct:
                 for item in add_ct.upper().split(','):
                     if not np.any(df['cell type']==item):
                         ct_mark = self.markers[self.markers['cell type'].str.upper()==item]['official gene symbol'].str.cat(sep=',')
