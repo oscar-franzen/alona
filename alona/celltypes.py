@@ -57,8 +57,8 @@ class AlonaCellTypePred(AlonaClustering):
         fn = self.get_wd() + OUTPUT['FILENAME_MEDIAN_EXP']
 
         ret = data.groupby(clust, axis=1).aggregate(np.median)
-        ret = ret.iloc[:,ret.columns.isin(self.clusters_targets)]
-        
+        ret = ret.iloc[:, ret.columns.isin(self.clusters_targets)]
+
         ret.to_csv(fn, header=True)
 
         self.median_expr = ret
@@ -170,32 +170,37 @@ class AlonaCellTypePred(AlonaClustering):
 
         fn = self.get_wd() + OUTPUT['FILENAME_CTA_RANK_F']
         final_tbl.to_csv(fn, sep='\t', index=False)
-        
+
         # Save the best scoring for each cluster
         self.res_pred = final_tbl.groupby('cluster').nth(0)
-        
-        _a = self.res_pred['adjusted p-value BH']>0.10
-        self.res_pred.loc[_a,'cell type'] = 'Unknown'
-        
+
+        _a = self.res_pred['adjusted p-value BH'] > 0.10
+        self.res_pred.loc[_a, 'cell type'] = 'Unknown'
+
         fn = self.get_wd() + OUTPUT['FILENAME_CTA_RANK_F_BEST']
         self.res_pred.to_csv(fn, sep='\t', index=True)
-        
+
         if marker_plot:
             log_debug('Generating heatmap...')
-            
+
             # additional cell types
             add_ct = self.params['add_celltypes']
-            
+
             # sort on all the cell types that the gene occurs in
-            ct_targets = self.res_pred[self.res_pred['cell type']!='Unknown']['cell type'].unique()
-            df = self.res_pred[self.res_pred['cell type'].isin(ct_targets)][['cell type','markers']]
+            zx = self.res_pred['cell type'] != 'Unknown'
+            ct_targets = self.res_pred[zx]['cell type'].unique()
+            zx = self.res_pred['cell type'].isin(ct_targets)
+            df = self.res_pred[zx][['cell type','markers']]
             
             if add_ct:
                 for item in add_ct.upper().split(','):
                     if not np.any(df['cell type']==item):
-                        ct_mark = self.markers[self.markers['cell type'].str.upper()==item]['official gene symbol'].str.cat(sep=',')
-                        l = self.markers[self.markers['cell type'].str.upper()==item]['cell type'].unique()[0]
-                        df = df.append(pd.Series([ l, ct_mark ], index=['cell type','markers']), ignore_index=True)
+                        zx = self.markers['cell type'].str.upper()==item
+                        ct_mark = self.markers[zx]['official gene symbol'].str.cat(sep=',')
+                        zx = self.markers['cell type'].str.upper()==item
+                        l = self.markers[zx]['cell type'].unique()[0]
+                        zx = pd.Series([ l, ct_mark ], index=['cell type','markers'])
+                        df = df.append(zx, ignore_index=True)
                         ct_targets = np.append(ct_targets, l)
             
             dff = df['markers'].str.split(',',expand=True)
