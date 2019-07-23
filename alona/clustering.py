@@ -764,7 +764,8 @@ class AlonaClustering(AlonaCell):
         ignore_clusters = self.params['ignore_small_clusters']
         
         plt.clf()
-        fig, ax = plt.subplots(nrows=self.n_clusters, ncols=1, figsize=(7, 5))
+        fig_size_y = round(len(self.clusters_targets)*2)
+        fig, ax = plt.subplots(nrows=self.n_clusters, ncols=1, figsize=(7, fig_size_y))
         fig.subplots_adjust(hspace=0.5)
         
         for idx, d in data_norm.groupby(by=cl, axis=1):
@@ -785,9 +786,13 @@ class AlonaClustering(AlonaCell):
             vp = ax[idx].violinplot(data_points, showmeans=False, showmedians=True)
             ax[idx].grid(axis='y')
             ax[idx].set_xticks(list(range(1,n+1)))
-            ax[idx].set_xticklabels(top.str.extract('^(.+)_')[0].values, size=5, rotation='vertical')
-            ax[idx].set_ylabel('gene expression (log2 norm)', size=6)
-            ax[idx].set_title('cluster %s' % idx)
+            ax[idx].set_xticklabels(top.str.extract('^(.+)_')[0].values, size=5,
+                                    rotation='vertical')
+            ax[idx].set_ylabel('gene expression', size=6)
+            ax[idx].set_title('cluster %s' % idx, size=10)
+            
+            ax[idx].tick_params(axis='y', which='major', labelsize=6)
+            ax[idx].tick_params(axis='y', which='minor', labelsize=6)
 
         fn = self.get_wd() + OUTPUT['FILENAME_CELL_VIOLIN_TOP']
         
