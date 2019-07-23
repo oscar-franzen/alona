@@ -23,6 +23,8 @@ from sklearn.preprocessing import scale
 from sklearn.preprocessing import MinMaxScaler
 from scipy.stats import fisher_exact
 import matplotlib.pyplot as plt
+import matplotlib.transforms as transforms
+import matplotlib.patches as patches
 import seaborn as sb
 
 from .clustering import AlonaClustering
@@ -199,11 +201,12 @@ class AlonaCellTypePred(AlonaClustering):
 
             dff = pd.DataFrame({ 'gene' : gene, 'cell types' : celltypes})
             dff = dff.sort_values('cell types')
+            dff.index = np.arange(1,dff.shape[0]+1)
 
             target_genes = dff.gene
             symbs = self.data_norm.index.str.extract('^(.+)_.+')[0].str.upper()
             data_slice = self.data_norm.loc[symbs.isin(target_genes).values]
-            data_slice.index=data_slice.index.str.extract('^(.+)_.+')[0].str.upper()
+            data_slice.index = data_slice.index.str.extract('^(.+)_.+')[0].str.upper()
             
             cell_ids = pd.DataFrame({ 'ids' : data_slice.columns.values,
                                       'cluster' : self.leiden_cl })
@@ -213,85 +216,63 @@ class AlonaCellTypePred(AlonaClustering):
             data_slice = data_slice.reindex(cell_ids['ids'], axis=1)
             data_slice = data_slice.reindex(dff['gene'], axis=0)
             
-            data_slice2 = data_slice
-            i = pd.Series([np.nan]*data_slice2.shape[1],
-                           index=data_slice2.columns, name='qq')
-            data_slice2 = data_slice2.append(i)
-            
-            # Workaround until this bug is fixed in matplotlib
-            # https://github.com/matplotlib/matplotlib/issues/14751
-            q = pd.DataFrame([i])
-            data_slice2 = q.append(data_slice2)
-            
-            ll = data_slice2.index.values
-            ll[0]=''
-            ll[len(ll)-1]=''
-            # </END WORKAROUND>
-            
             plt.clf()
-            fig_size_y = round(data_slice2.shape[0]/8) # 8 genes per inch
+            fig_size_y = round(data_slice.shape[0]/8) # 8 genes per inch
             fig, ax = plt.subplots(nrows=1, ncols=1, figsize=(15, fig_size_y)) # xy
-            ax = sb.heatmap(data_slice2,
+            ax = sb.heatmap(data_slice,
                             linewidth=0,
                             cbar_kws={"shrink": 0.5}) # controls size of the colorbar)
             ax.get_xaxis().set_visible(False)
-            ax.set_yticks(list(range(1,data_slice2.shape[0]+1)))
-            tt = ax.set_yticklabels(data_slice2.index.values)
+            ax.get_yaxis().set_visible(False)
             
-            # Workaround until this bug is fixed in matplotlib
-            # https://github.com/matplotlib/matplotlib/issues/14751
-            ax.get_yticklines()[0].set_color('white')
-            ax.get_yticklines()[0].set_color('white')
-            ax.get_yticklines()[len(ax.get_yticklines())-1].set_color('white')
-            ax.get_yticklines()[len(ax.get_yticklines())-2].set_color('white')
-            # </END WORKAROUND>
+            # setting ylim is needed due to matplotlib/seaborn bug
+            # shuld be highest to lowest or data will flip
+            ax.set_ylim([data_slice.shape[0],0])
+            ax.set_xlim([0,data_slice.shape[1]])
+            
+            # x coordinate is axes and y coordinate is data
+            trans = transforms.blended_transform_factory(ax.transAxes, ax.transData)
+            
+            # add gene labels
+            y_data_coord = 1 # data coordinates starts at 1
+            for gene in data_slice.index:
+                ax.text(x=-0.012*len(ct_targets), y=y_data_coord, s=gene,
+                        horizontalalignment='right', clip_on=False, size=7,
+                        transform=trans)
+                y_data_coord += 1
             
             ax.collections[0].colorbar.ax.tick_params(labelsize=6)
             ax.collections[0].colorbar.set_label('gene expression (log2 scale)', size=6)
             
-            # y, xmin, xmax
+            grid = np.array(sorted(ct_targets))
+            
+            # cell type labels
+            offset=-0.012*len(ct_targets)+0.006
+            for idx, ct in enumerate(grid):
+                ax.text(offset+idx*0.011, 0, ct, size=6, rotation=90, clip_on=False, transform=trans)
+                
+            index = 0
+            for idx, d in dff.iterrows():
+                z = d[1].split(',')
+                for p in z:
+                    i = np.where(grid==p)[0][0]
+                    rect = patches.Rectangle((offset+i*0.011, index+0.3), 0.005, 0.6, linewidth=2,facecolor='blue', clip_on=False, transform=trans)
+                    ax.add_patch(rect)
+                index += 1
+            
+            # add cluster indicators
             xmin = 0
             xmax = 0
             for cl in self.clusters_targets:
                 cell_count = np.sum(np.array(self.leiden_cl)==cl)
                 xmax += cell_count
                 col = self.cluster_colors[cl]
+                # y, xmin, xmax
                 ax.hlines(-0.5, xmin, xmax, color=col, clip_on=False, lw=4)
                 # cluster index
                 ax.text(x=xmin, y=-1.2, s=cl, size=5)
                 xmin += cell_count
                 #ax.get_xlim()[1]
-
-            tickpos = np.arange(data_slice2.shape[0])+0.5
-            plt.yticks(tickpos, ll, rotation=0, fontsize=6, va="center")
-            
-            #import matplotlib.patches as patches
-            #rect = patches.Rectangle((-50,10),10,30,linewidth=1,facecolor='yellow',clip_on=False)
-            #ax.add_patch(rect)
-            
-            grid = np.array(sorted(ct_targets))
-            #for ct in grid:
-            #ax.text(-250, 0.99, 'cluster', size=7, rotation=90, clip_on=False)
-            
-            offset=len(grid)*0.015*-1
-            for idx, ct in enumerate(grid):
-                ax.text(offset+idx*0.015, 1.005, ct, size=7, rotation=90, clip_on=False,
-                        transform=ax.transAxes) # using axes coordinates instead of data coordinates
-                                                         
-            # add space for cell type indicators
-            for text_item in tt:
-                y = text_item.get_position()[1]
-                yax_coord=ax.transLimits.transform((0,y))[1]
-                text_item.set_position((len(grid)*0.015*-1,yax_coord))
-            
-            for idx, d in dff.iterrows():
-                z = d[1].split(',')
-                for p in z:
-                    i = np.where(grid==p)[0][0]
-                    pass
-                    #box_x_pos = 0.05 * i
-                    #box_y_pos = id
-                
             
             if self.params['timestamp']:
                 plt.figtext(0.05, 0.05, get_time(), size=4)
