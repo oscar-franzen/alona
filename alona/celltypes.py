@@ -231,11 +231,15 @@ class AlonaCellTypePred(AlonaClustering):
             plt.clf()
             fig_size_y = round(data_slice.shape[0]/8) # 8 genes per inch
             fig, ax = plt.subplots(nrows=1, ncols=1, figsize=(15, fig_size_y)) # xy
+            
             ax = sb.heatmap(data_slice,
                             linewidth=0,
-                            cbar_kws={"shrink": 0.5}) # controls size of the colorbar)
+                            cbar_kws={"shrink": 0.5}) # controls size of the colorbar
             ax.get_xaxis().set_visible(False)
             ax.get_yaxis().set_visible(False)
+            
+            cbar = ax.collections[0].colorbar.ax
+            cbar.set_position([0.80, 0.6, 0.19, 0.19])
             
             # setting ylim is needed due to matplotlib/seaborn bug
             # shuld be highest to lowest or data will flip
@@ -248,7 +252,7 @@ class AlonaCellTypePred(AlonaClustering):
             # add gene labels
             y_data_coord = 1 # data coordinates starts at 1
             for gene in data_slice.index:
-                ax.text(x=-0.012*len(ct_targets), y=y_data_coord, s=gene,
+                ax.text(x=-0.012-0.012*len(ct_targets), y=y_data_coord, s=gene,
                         horizontalalignment='right', clip_on=False, size=7,
                         transform=trans)
                 y_data_coord += 1
@@ -259,7 +263,7 @@ class AlonaCellTypePred(AlonaClustering):
             grid = np.array(sorted(ct_targets))
             
             # cell type labels
-            offset=-0.012*len(ct_targets)+0.006
+            offset=-0.012-0.012*len(ct_targets)+0.006
             for idx, ct in enumerate(grid):
                 ax.text(offset+idx*0.011, 0-0.50, ct, size=6, rotation=90, clip_on=False, transform=trans)
                 
