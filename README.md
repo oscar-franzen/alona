@@ -44,7 +44,7 @@ pip3 install .
 
 # Input data files
 ## Species
-`alona` works on scRNA-seq data from any organism. However, cell type prediction methods only works with human and mouse data. If your organism is not mouse and human, use the flag `--species other` to indicate this.
+`alona` works on scRNA-seq data from any organism. However, cell type prediction methods only work with human and mouse data. If your organism is not mouse and human, use the flag `--species other` to indicate this.
 
 ## FASTQ files
 Pre-processing (mapping, read counting, etc) of FASTQ files is not a step included in `alona`, because processing of FASTQ files is usually performed on high performance clusters whereas the analysis can be performed on a laptop or desktop computer. We provide a short tutorial on how to preprocess FASTQ files, please [see here](https://github.com/oscar-franzen/alona/tree/master/preprocessing_tutorial). 
