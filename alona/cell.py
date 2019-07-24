@@ -260,8 +260,8 @@ set to log2.')
     def lift_ERCC(self):
         """ Moves ERCC (if present) to a separate matrix. """
         log_debug('Inside lift_ERCC()')
-        self.data_ERCC = self.data[self.data.index.str.contains('^ERCC-[0-9]+$')]
-        self.data = self.data[np.logical_not(self.data.index.str.contains('^ERCC-[0-9]+$'))]
+        self.data_ERCC = self.data[self.data.index.str.contains('^ERCC[_-]\S+$')]
+        self.data = self.data[np.logical_not(self.data.index.str.contains('^ERCC[_-]\S+$'))]
         log_debug('Finishing lift_ERCC()')
 
     def load_rRNA_genes(self):
