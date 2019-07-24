@@ -69,6 +69,10 @@ class AlonaCellTypePred(AlonaClustering):
         """
         Cell Type Activity and Rank-based annotation with a one-sided Fisher's Exact test
         """
+        
+        if not self.params['species'] in ['mouse', 'human']:
+            log_info('"--species other", skipping cell type prediction with CTA_RANK_F')
+            return
 
         log_debug('CTA_RANK_F() starting')
 
@@ -330,6 +334,9 @@ class AlonaCellTypePred(AlonaClustering):
 
     def download_model(self):
         """ Downloads the SVM model. """
+        if not self.params['species'] in ['mouse', 'human']:
+            return
+
         # Determine current model
         cmd = 'curl https://raw.githubusercontent.com/oscar-franzen/PanglaoDB/master/alona_classifier_id.txt 2>/dev/null'
         out = subprocess.check_output(cmd, shell=True)
@@ -361,6 +368,11 @@ class AlonaCellTypePred(AlonaClustering):
 
     def run_model_pred(self):
         """ Runs prediction using the SVM model. """
+        if not self.params['species'] in ['mouse', 'human']:
+            log_info('"--species other", skipping cell type prediction with \
+run_model_pred')
+            return
+            
         median_expr = self.median_expr.copy()
         model_path = get_alona_dir() + '/sklearn_svm_model.production.joblib'
 

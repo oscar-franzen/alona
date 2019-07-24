@@ -13,6 +13,7 @@
 
 import re
 import os
+import sys
 import subprocess
 import magic
 
@@ -467,7 +468,7 @@ number of columns (every row must have the same number of columns).')
                 if gene_id_as_number != 'null':
                     self.mouse_entrez[gene_id_as_number] = ens
 
-    def map_input_genes(self):
+    def map_input_genes_mouse_human(self):
         """ Maps gene symbols to internal gene symbols. """
         data = []
         log_debug('Mapping genes to reference.')
@@ -571,9 +572,6 @@ number of columns (every row must have the same number of columns).')
                     if self.mouse_symbols.get(item, '') != '':
                         genes_found[item] = 1
                         new_gene_name = self.mouse_symbols[item]
-
-                        #ftemp.write('%s%s%s' % (new_gene_name, self._delimiter,
-                        #                        self._delimiter.join(foo[1:])))
                         switch = 1
                         found = 1
                         break
@@ -619,6 +617,16 @@ number of columns (every row must have the same number of columns).')
 
         if (total-len(self.unmappable)) < 500:
             log_error('Input data error. Too few genes were mappable (<500).')
+    
+    def map_input_genes_other(self):
+        """ Nothing to do for other species for now. """
+        pass
+    
+    def map_input_genes(self):
+        if self.params['species'] in ['mouse', 'human']:
+            self.map_input_genes_mouse_human()
+        else:
+            self.map_input_genes_other()
 
     def check_gene_name_column_id_present(self):
         """ Checks if the header line has a column attribute. """
