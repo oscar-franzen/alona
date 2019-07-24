@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="https://panglaodb.se/img/alona_github_logo2.png">
+  <img src="https://panglaodb.se/img/alona_github_logo3.png">
 </p>
 
 # Description
