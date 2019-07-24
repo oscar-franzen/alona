@@ -87,7 +87,8 @@ UMAP.', default='tSNE', type=click.Choice(['tSNE', 'UMAP']), show_default=True)
               default=30, show_default=True)
 
 @click.option('-s', '--species', help='Species your data comes from.',
-              type=click.Choice(['human', 'mouse']), default='mouse', show_default=True)
+              type=click.Choice(['human', 'mouse', 'other']), default='mouse',
+              show_default=True)
 
 @click.option('--dark_bg', help='Use dark background in scatter plots.', is_flag=True,
               default=False, show_default=True)

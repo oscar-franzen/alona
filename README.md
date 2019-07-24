@@ -43,8 +43,8 @@ pip3 install .
 ```
 
 # Input data files
-## Organism
-Technically `alona` can be used on data from any organism. However, one of the main goals of `alona` is to determine the composition of cell types. Currently, only cell types from mouse and human can be inferred.
+## Species
+`alona` works on scRNA-seq data from any organism. However, cell type prediction methods only works with human and mouse data. If your organism is not mouse and human, use the flag `--species other` to indicate this.
 
 ## Formats
 The input file is a single gene expression matrix in plain text format. The header of the matrix are barcodes and the first column are gene symbols. Fields should be separated by tabs, commas or spaces (but not a mix). The file can be compressed with zip, gzip or bzip2. In addition, data can also be in [Matrix Market](https://math.nist.gov/MatrixMarket/) format (a format popular in [NCBI GEO](https://www.ncbi.nlm.nih.gov/geo/)), consisting of three files (one file for the actual data values, a second file for barcodes and a third file for gene symbols), which must be bundled together in a `tar` file (can be compressed with gzip or not).
@@ -157,10 +157,14 @@ Options:
                                   either tSNE or UMAP.  [default: tSNE]
   --perplexity INTEGER            The perplexity parameter in the t-SNE
                                   algorithm.  [default: 30]
-  -s, --species [human|mouse]     Species your data comes from.  [default:
+  -s, --species [human|mouse|other]
+                                  Species your data comes from.  [default:
                                   mouse]
   --dark_bg                       Use dark background in scatter plots.
                                   [default: False]
+  --add_celltypes TEXT            Add markers for these additional cell types
+                                  to the heatmap plot. Separate multiple cell
+                                  types with commas.
   --overlay_genes TEXT            Generate scatter plots in 2d space (using
                                   method specified by --embedding), where gene
                                   expression is overlaid on cells. Specify
