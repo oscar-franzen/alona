@@ -11,12 +11,12 @@
  Oscar Franzen <p.oscar.franzen@gmail.com>
 """
 
-import sys
 import re
 import os
+import sys
 import uuid
-import subprocess
 import magic
+import subprocess
 
 import pandas as pd
 import scipy.io
@@ -31,14 +31,12 @@ class AlonaBase():
     AlonaBase class
     """
 
-    # pylint: disable=too-many-instance-attributes
-
-    params = None
-
     def __init__(self):
+        params = None
         pass
             
     def set_params(self, params):
+        """ Set initial parameters. """
         if params is None:
             params = {}
 
@@ -90,10 +88,11 @@ class AlonaBase():
         return self.params['output_directory']
 
     def get_matrix_file(self):
+        """ Returns the full path to the input data matrix. """
         return '%s/%s' % (self.get_wd(), self.mat_data_file)
 
     def random(self):
-        """ Get random 8 character string """
+        """ Generates a random 8 character string. """
         return str(uuid.uuid4()).split('-')[0]
 
     def create_work_dir(self):
@@ -110,8 +109,9 @@ class AlonaBase():
                      self.get_wd())
 
     def is_file_empty(self):
+        """ Checks if the file is an empty file. """
         if os.stat(self.params['input_filename']).st_size == 0:
-            raise FileEmptyError()
+            log_error('Input file is empty.')
 
     def __enter__(self):
         return self
@@ -128,7 +128,10 @@ class AlonaBase():
         return False
 
     def matrix_market(self):
-        """ Unpacks data in matrix market format (used by NCBI GEO) """
+        """
+        Unpacks data in matrix market format (used by NCBI GEO). A sparse format.
+        https://math.nist.gov/MatrixMarket/formats.html
+        """
         log_debug('entering matrix_market()')
         input_file = self.params['input_filename']
         out_dir = self.get_wd()
@@ -146,12 +149,11 @@ class AlonaBase():
                 files_found += 1
 
         if files_found == 3:
-            # unpack
+            # unpack using system utils
             if re.search('.tar.gz$', input_file):
                 cmd = 'tar -C %s -zxf %s' % (out_dir, input_file)
             else:
                 cmd = 'tar -C %s -xf %s' % (out_dir, input_file)
-
             subprocess.check_output(cmd, shell=True)
 
             m = scipy.io.mmread('%s/matrix.mtx' % out_dir)
@@ -181,12 +183,10 @@ class AlonaBase():
         if os.path.exists(mat_out):
             log_info('Data unpacking has already been done.')
             return
-
         # .tar file?
         if re.search('\.tar', input_file):
             self.matrix_market()
             return
-
         if self._is_binary:
             log_debug('Input file is binary.')
 
@@ -200,12 +200,10 @@ class AlonaBase():
                 try:
                     out = subprocess.check_output('gzip -t %s' % (abs_path), shell=True,
                                                   stderr=subprocess.STDOUT)
-
                     out = out.decode('ascii')
                 except subprocess.CalledProcessError as exc:
                     if re.search('unexpected end of file', exc.output.decode('ascii')):
-                        raise FileCorruptError('Error: input file is corrupt.')
-
+                        log_error('Error: input file is corrupt.')
                 # uncompress
                 os.system('gzip -d -c %s > %s' % (abs_path, mat_out))
             elif re.search(' Zip archive data,', out):
@@ -216,21 +214,19 @@ class AlonaBase():
                     # don't use Zip -T because it only accepts files ending with .zip
                     out = subprocess.check_output("gzip -t %s" % (abs_path), shell=True,
                                                   stderr=subprocess.STDOUT)
-
                     out = out.decode('ascii')
                 except subprocess.CalledProcessError as exc:
                     if re.search(' unexpected end of file', exc.output.decode('ascii')):
-                        raise FileCorruptError('Error: input file is corrupt.')
+                        log_error('Error: input file is corrupt.')
 
                 # check that the archive only contains one file
                 out = subprocess.check_output('unzip -v %s | wc -l' % (abs_path),
                                               shell=True)
-
                 out = out.decode('ascii').replace('\n', '')
                 no_files = int(out) - 5
 
                 if no_files != 1:
-                    raise Exception('More than one file in input archive.')
+                    log_error('More than one file in input archive.')
 
                 # Files  created  by  zip  can be uncompressed by gzip only if they have
                 # a single member compressed with the 'deflation' method.
@@ -242,16 +238,14 @@ class AlonaBase():
                 try:
                     out = subprocess.check_output('bzip2 -t %s' % (abs_path), shell=True,
                                                   stderr=subprocess.STDOUT)
-
                     out = out.decode('ascii')
                 except subprocess.CalledProcessError as exc:
                     if re.search('file ends unexpectedly', exc.output.decode('ascii')):
-                        raise FileCorruptError('Input file is corrupt.')
-
+                        log_error('Input file is corrupt.')
                 # uncompress
                 os.system('bzip2 -d -c %s > %s' % (abs_path, mat_out))
             else:
-                raise InvalidFileFormatError('Invalid format of the input file.')
+                log_error('Invalid format of the input file.')
         else:
             log_debug('Input file is not binary.')
             # Create a symlink to the data
@@ -263,8 +257,7 @@ class AlonaBase():
         f_type = mag.from_buffer(open(mat_out, 'r').read(1024))
 
         if f_type != 'text/plain':
-            raise InputNotPlainTextError('Input file is not plain text (found type=%s).' %
-                                         f_type)
+            log_error('Input file is not plain text (found type=%s).' % f_type)
 
     #def cleanup(self):
     #    """ Removes temporary files. """
@@ -280,7 +273,8 @@ class AlonaBase():
     #            except FileNotFoundError:
     #                log_debug('Not found: %s' % garbage)
 
-    def __guess_delimiter(self):
+    def _guess_delimiter(self):
+        """ Determines the data delimiter character. """
         dcount = {' ' : 0, '\t' : 0, ',' : 0}
         i = 0
         fh = open(self.get_matrix_file(), 'r')
@@ -303,7 +297,7 @@ class AlonaBase():
         """ Figures out the data delimiter of the input data. """
         used_delim = ''
         if self.params['delimiter'] == 'auto':
-            used_delim = self.__guess_delimiter()
+            used_delim = self._guess_delimiter()
         else:
             used_delim = self.params['delimiter'].upper()
             if used_delim == 'TAB':
@@ -316,23 +310,20 @@ class AlonaBase():
         return used_delim
 
     def has_header(self):
-        """ Figures out if the input data uses a header or not. """
+        """ Determines if the input data has a header. """
         ret = None
         if self.params['header'] == 'auto':
-            fh = open(self.get_matrix_file(), 'r')
-            first_line = next(fh).replace('\n', '')
+            with open(self.get_matrix_file(), 'r') as fh:
+                first_line = next(fh).replace('\n', '')
 
-            total = 0
-            count_digit = 0
+                total = 0
+                count_digit = 0
 
-            for item in first_line.split(self._delimiter):
-                if item.replace('.', '', 1).isdigit():
-                    count_digit += 1
-                total += 1
-
-            fh.close()
-
-            ret = not total == count_digit
+                for item in first_line.split(self._delimiter):
+                    if item.replace('.', '', 1).isdigit():
+                        count_digit += 1
+                    total += 1
+                ret = not total == count_digit
         else:
             ret = (self.params['header'] == 'yes')
 
@@ -340,13 +331,11 @@ class AlonaBase():
         self._has_header = ret
 
         log_debug('has header: %s' % self._has_header)
-
         return ret
 
     def sanity_check_columns(self):
         """
-        Sanity check on data integrity. Raises an exception if column count is not
-        consistent.
+        Sanity check on data integrity. Terminates if column count is not consistent.
         """
         with open(self.get_matrix_file(), 'r') as fh:
             if self._has_header:
@@ -358,12 +347,12 @@ class AlonaBase():
                 cols[no_columns] = 1
 
             if len(cols.keys()) > 1:
-                raise IrregularColumnCountError('Rows in your data matrix have different \
+                log_error('Rows in your data matrix have different \
 number of columns (every row must have the same number of columns).')
             log_info('%s columns detected.' % '{:,}'.format(cols.popitem()[0]-1))
 
     def sanity_check_genes(self):
-        """ Sanity check on gene count. Raises an exception if gene count is too low. """
+        """ Sanity check on gene count. Terminates if gene count is too low. """
         with open(self.get_matrix_file(), 'r') as fh:
             if self._has_header:
                 next(fh)
@@ -373,8 +362,7 @@ number of columns (every row must have the same number of columns).')
                 count += 1
 
             if count < 1000:
-                raise IrregularGeneCountError('Number of genes in the input data is too \
-low.')
+                log_error('Number of genes (n=%s) in the input data is too low.' % count)
             log_info('%s genes detected' % '{:,}'.format(count))
 
     def ortholog_mapper(self):
@@ -474,7 +462,7 @@ low.')
                     log_info('%s has duplicates' % gene)
 
             if _cancel:
-                raise GeneDuplicatesError('Gene duplicates detected.')
+                log_error('Gene duplicates detected.')
 
     def load_mouse_gene_symbols(self):
         """ Loads genome annotations. """
@@ -646,8 +634,7 @@ low.')
             log_info('These have been written to unmappable.txt')
 
         if (total-len(self.unmappable)) < 500:
-            raise TooFewGenesMappableError('Input data error. \
-Too few genes were mappable (<500).')
+            log_error('Input data error. Too few genes were mappable (<500).')
 
     def check_gene_name_column_id_present(self):
         log_debug('running check_gene_name_column_id_present()')
@@ -691,41 +678,16 @@ specified in settings.txt (%s). Try using a different output directory' % a)
         except FileEmptyError:
             log_error(None, msg='Input file is empty.')
 
-        try:
-            self.unpack_data()
-        except (InvalidFileFormatError,
-                FileCorruptError,
-                InputNotPlainTextError) as err:
-            log_error(None, msg=err)
-        except Exception as err:
-            log_error(err)
-
+        self.unpack_data()
         self.get_delimiter()
         self.has_header()
-
-        try:
-            self.sanity_check_columns()
-        except (IrregularColumnCountError) as err:
-            log_error(None, msg=err)
-
-        try:
-            self.sanity_check_genes()
-        except (IrregularGeneCountError) as err:
-            log_error(None, msg=err)
+        self.sanity_check_columns()
+        self.sanity_check_genes()
 
         if self.params['species'] == 'human':
             self.ortholog_mapper()
 
-        try:
-            self.sanity_check_gene_dups()
-        except (GeneDuplicatesError) as err:
-            log_error(None, msg=err)
-
+        self.sanity_check_gene_dups()
         self.load_mouse_gene_symbols()
-
-        try:
-            self.map_input_genes()
-        except (TooFewGenesMappableError) as err:
-            log_error(None, msg=err)
-
+        self.map_input_genes()
         self.check_gene_name_column_id_present()

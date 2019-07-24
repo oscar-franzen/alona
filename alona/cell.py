@@ -43,9 +43,7 @@ class AlonaCell(AlonaBase):
         self.low_quality_cells = None
         self.rRNA_genes = None
         self.pred = None
-
-        #self._alona_clustering = AlonaClustering(self, alonabase.params)
-        #self._alona_clustering = AlonaClustering(self, ['test'])
+        super().__init__()
 
         # make matplotlib more quiet
         logging.getLogger('matplotlib').setLevel(logging.WARNING)
@@ -73,8 +71,6 @@ set to log2.')
         """ Removes empty cells and genes """
         data_zero = self.data == 0
 
-        # Axis 0 will act on all the ROWS in each COLUMN
-        # Axis 1 will act on all the COLUMNS in each ROW
         cells = data_zero.sum(axis=0)
         genes = data_zero.sum(axis=1)
 
@@ -242,8 +238,6 @@ set to log2.')
             data_cp = data_cp.drop(self.low_quality_cells, axis=1)
 
         if not mrnafull and input_type == 'raw':
-            # Axis 0 will act on all the ROWS in each COLUMN
-            # Axis 1 will act on all the COLUMNS in each ROW
             col_sums = data_cp.apply(lambda x: sum(x), axis=0)
             data_norm = (data_cp / col_sums) * 10000
             data_norm = np.log2(data_norm+1)
