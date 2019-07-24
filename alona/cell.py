@@ -230,10 +230,10 @@ set to log2.')
         log_debug('Writing dump file %s' % fn)
         dump(d, fn)
 
-    def normalization(self, data, fn_out='', input_type='raw', mrnafull=False,
+    def normalize(self, data, fn_out='', input_type='raw', mrnafull=False,
                       remove_low_quality=True):
-        """ Performs normalization of the gene expression values. """
-        log_debug('Inside normalization()')
+        """ Normalizes gene expression values. """
+        log_debug('Inside normalize()')
 
         if fn_out != '' and os.path.exists(fn_out):
             log_debug('Loading data matrix from file')
@@ -260,7 +260,7 @@ set to log2.')
         if fn_out != '':
             self._dump(data_norm, fn_out)
 
-        log_debug('Finished normalization()')
+        log_debug('Finished normalize()')
 
         return data_norm
 
@@ -383,9 +383,9 @@ set to log2.')
         dt = self.params['dataformat']
         mf = self.params['mrnafull']
         wd = self.get_wd()
-        self.data_norm = self.normalization(self.data, wd + '/normdata.joblib',
+        self.data_norm = self.normalize(self.data, wd + '/normdata.joblib',
                                             mrnafull = mf, input_type = dt)
-        self.data_ERCC = self.normalization(self.data_ERCC, wd + '/normdata_ERCC.joblib',
+        self.data_ERCC = self.normalize(self.data_ERCC, wd + '/normdata_ERCC.joblib',
                                             mrnafull = mf, input_type = dt)
 
         self.print_dimensions()
