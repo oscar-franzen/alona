@@ -46,6 +46,9 @@ pip3 install .
 ## Species
 `alona` works on scRNA-seq data from any organism. However, cell type prediction methods only works with human and mouse data. If your organism is not mouse and human, use the flag `--species other` to indicate this.
 
+## FASTQ files
+Pre-processing (mapping, read counting, etc) of FASTQ files is not a step included in `alona`, because processing of FASTQ files is usually performed on high performance clusters whereas the analysis can be performed on a laptop or desktop computer. We provide a short tutorial on how to preprocess FASTQ files, please [see here](https://github.com/oscar-franzen/alona/tree/master/preprocessing_tutorial). 
+
 ## Formats
 The input file is a single gene expression matrix in plain text format. The header of the matrix are barcodes and the first column are gene symbols. Fields should be separated by tabs, commas or spaces (but not a mix). The file can be compressed with zip, gzip or bzip2. In addition, data can also be in [Matrix Market](https://math.nist.gov/MatrixMarket/) format (a format popular in [NCBI GEO](https://www.ncbi.nlm.nih.gov/geo/)), consisting of three files (one file for the actual data values, a second file for barcodes and a third file for gene symbols), which must be bundled together in a `tar` file (can be compressed with gzip or not).
 
