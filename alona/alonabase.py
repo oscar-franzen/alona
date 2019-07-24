@@ -22,7 +22,6 @@ import pandas as pd
 import scipy.io
 
 from .log import (log_info, log_debug, log_error, log_warning)
-from .exceptions import *
 from .constants import (GENOME, OUTPUT)
 from .utils import (get_alona_dir, get_time)
 

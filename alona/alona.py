@@ -18,7 +18,6 @@ import click
 from .utils import *
 from .log import (init_logging, log_debug, log_error, log_info)
 from .logo import show_logo
-from .exceptions import *
 from .alonabase import AlonaBase
 from .celltypes import AlonaCellTypePred
 from .constants import GENOME
