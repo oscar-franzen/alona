@@ -97,7 +97,7 @@ set to log2.')
                 log_info('detected and removed %s mitochondrial gene(s)' % np.sum(mt_count))
                 self.data = self.data.loc[self.data.index[np.logical_not(mt_count)]]
 
-    def read_counts_per_cell_filter(self):
+    def read_counts_per_cell_barplot(self):
         """ Generates a bar plot of read counts per cell. """
         if self.params['dataformat'] == 'raw':
             min_reads = self.params['minreads']
@@ -373,7 +373,7 @@ set to log2.')
         self.remove_empty()
         self.remove_mito()
         self.lift_ERCC()
-        self.read_counts_per_cell_filter()
+        self.read_counts_per_cell_barplot()
         self.genes_expressed_per_cell_barplot()
         self.simple_filters()
         self.load_rRNA_genes()
