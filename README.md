@@ -52,6 +52,9 @@ Pre-processing (mapping, read counting, etc) of FASTQ files is not a step includ
 ## Formats
 The input file is a single gene expression matrix in plain text format. The header of the matrix are barcodes and the first column are gene symbols. Fields should be separated by tabs, commas or spaces (but not a mix). The file can be compressed with zip, gzip or bzip2. In addition, data can also be in [Matrix Market](https://math.nist.gov/MatrixMarket/) format (a format popular in [NCBI GEO](https://www.ncbi.nlm.nih.gov/geo/)), consisting of three files (one file for the actual data values, a second file for barcodes and a third file for gene symbols), which must be bundled together in a `tar` file (can be compressed with gzip or not).
 
+## Note on ERCC Spikes
+ERCC spikes can be included and will be automatically detected and handled. Make sure ERCC "genes" are labeled with the prefix ERCC_ or ERCC-.
+
 # Usage example
 Here is one example of calling the pipeline using the data set [GSM3689776](https://www.ncbi.nlm.nih.gov/geo/download/?acc=GSM3689776&format=file&file=GSM3689776%5Fmouse%5F10X%5Fmatrix%2Etxt%2Egz).
 ```bash
