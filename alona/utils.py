@@ -11,7 +11,7 @@ import os
 import sys
 import random
 import inspect
-
+import uuid
 import time
 import datetime
 
@@ -20,6 +20,18 @@ from sklearn.cluster import KMeans
 
 from ._version import __version__
 from .log import log_error
+
+def is_binary(filename):
+    """ Checks if the file is binary. """
+    with open(filename, 'rb') as fh:
+        for block in fh:
+            if b'\0' in block:
+                return True
+    return False
+
+def random_str():
+    """ Generates a random 8 character string. """
+    return str(uuid.uuid4()).split('-')[0]
 
 def get_time():
     """ Get current date (international format), time, and time zone. """

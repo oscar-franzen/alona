@@ -13,17 +13,15 @@
 
 import re
 import os
-import sys
-import uuid
-import magic
 import subprocess
+import magic
 
 import pandas as pd
 import scipy.io
 
 from .log import (log_info, log_debug, log_error, log_warning)
 from .constants import (GENOME, OUTPUT)
-from .utils import (get_alona_dir, get_time)
+from .utils import (get_alona_dir, random_str, is_binary)
 
 class AlonaBase():
     """
@@ -31,9 +29,8 @@ class AlonaBase():
     """
 
     def __init__(self):
-        params = None
-        pass
-            
+        self.params = None
+
     def set_params(self, params):
         """ Set initial parameters. """
         if params is None:
@@ -57,7 +54,7 @@ class AlonaBase():
 
         # Set default options
         if self.get_wd() is None:
-            self.params['output_directory'] = 'alona_out_%s' % self.random()
+            self.params['output_directory'] = 'alona_out_%s' % random_str()
         if self.params['loglevel'] == 'debug':
             log_debug('*** parameters *********************')
             for par in self.params:
@@ -66,19 +63,19 @@ class AlonaBase():
 
         # validate some of the input parameters
         if self.params['minreads'] < 0:
-            log_error(self, msg='--minreads must be a positive integer.')
+            log_error('--minreads must be a positive integer.')
         if self.params['minexpgenes'] < 0 or self.params['minexpgenes'] > 99:
-            log_error(self, msg='--minexpgenes must be a value within [0,100).')
+            log_error('--minexpgenes must be a value within [0,100).')
         if self.params['nn_k'] < 0:
-            log_error(self, '--nn_k cannot be negative.')
+            log_error('--nn_k cannot be negative.')
         if self.params['prune_snn'] < 0 or self.params['prune_snn'] > 1:
-            log_error(self, msg='--prune_snn must have a value within [0,1]')
+            log_error('--prune_snn must have a value within [0,1]')
         if self.params['perplexity'] < 0:
-            log_error(self, msg='Perplexity cannot be less than 0.')
+            log_error('Perplexity cannot be less than 0.')
         if self.params['perplexity'] > 100:
             log_warning('Recommended values of --perplexity is 5-50.')
         if self.params['hvg_cutoff'] <= 0:
-            log_error(self, msg='--hvg must be a positive value')
+            log_error('--hvg must be a positive value')
         if self.params['hvg_cutoff'] < 50:
             log_warning('--hvg is set too low')
 
@@ -89,10 +86,6 @@ class AlonaBase():
     def get_matrix_file(self):
         """ Returns the full path to the input data matrix. """
         return '%s/%s' % (self.get_wd(), self.mat_data_file)
-
-    def random(self):
-        """ Generates a random 8 character string. """
-        return str(uuid.uuid4()).split('-')[0]
 
     def create_work_dir(self):
         """ Creates a working directory for temporary and output files. """
@@ -117,14 +110,6 @@ class AlonaBase():
 
     def __exit__(self, *args):
         return self
-
-    def is_binary(self, filename):
-        """ Checks if the file is binary. """
-        with open(filename, 'rb') as fh:
-            for block in fh:
-                if b'\0' in block:
-                    return True
-        return False
 
     def matrix_market(self):
         """
@@ -177,13 +162,13 @@ class AlonaBase():
         mat_out = self.get_matrix_file()
 
         # Is the file binary?
-        self._is_binary = self.is_binary(input_file)
+        self._is_binary = is_binary(input_file)
 
         if os.path.exists(mat_out):
             log_info('Data unpacking has already been done.')
             return
         # .tar file?
-        if re.search('\.tar', input_file):
+        if re.search(r'.tar', input_file):
             self.matrix_market()
             return
         if self._is_binary:
@@ -357,7 +342,7 @@ number of columns (every row must have the same number of columns).')
                 next(fh)
 
             count = 0
-            for line in fh:
+            for _ in fh:
                 count += 1
 
             if count < 1000:
@@ -512,7 +497,8 @@ number of columns (every row must have the same number of columns).')
             if not re.search('^[0-9]+$', gene):
                 is_entrez_gene_id = 0
 
-        if is_entrez_gene_id: log_debug('Gene symbols appear to be Entrez.')
+        if is_entrez_gene_id:
+            log_debug('Gene symbols appear to be Entrez.')
 
         for line in data:
             total += 1
@@ -602,7 +588,6 @@ number of columns (every row must have the same number of columns).')
         ftemp.close()
 
         if ercc_count > 0:
-            fn = self.get_wd() + '/ERCC.mat'
             log_info('%s ERCC genes were detected' % ercc_count)
 
         if self.params['species'] == 'human':
@@ -621,7 +606,7 @@ number of columns (every row must have the same number of columns).')
             #                                              self.get_wd()))
             self.mat_data_file = mat_file.split('/')[-1] + '.C'
 
-        if len(self.unmappable) == 0:
+        if not self.unmappable:
             log_info('All genes were mapped to internal symbols.')
         else:
             with open(self.get_wd() + '/unmappable.txt', 'w') as fh:
@@ -636,6 +621,7 @@ number of columns (every row must have the same number of columns).')
             log_error('Input data error. Too few genes were mappable (<500).')
 
     def check_gene_name_column_id_present(self):
+        """ Checks if the header line has a column attribute. """
         log_debug('running check_gene_name_column_id_present()')
 
         with open(self.get_matrix_file(), 'r') as fh:
@@ -649,10 +635,11 @@ number of columns (every row must have the same number of columns).')
                 log_info('A column ID for the gene symbols was identified.')
 
     def prepare(self):
+        """ Prepares data for analysis. """
         self.create_work_dir()
-        
+
         settings_file = self.get_wd() + OUTPUT['FILENAME_SETTINGS']
-        
+
         if os.path.exists(settings_file):
             with open(settings_file, 'r') as f:
                 for line in f:
@@ -672,11 +659,7 @@ specified in settings.txt (%s). Try using a different output directory' % a)
             log_debug('prepare(): normdata.joblib detected, skipping some steps')
             return
 
-        try:
-            self.is_file_empty()
-        except FileEmptyError:
-            log_error(None, msg='Input file is empty.')
-
+        self.is_file_empty()
         self.unpack_data()
         self.get_delimiter()
         self.has_header()
