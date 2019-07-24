@@ -430,13 +430,6 @@ class AlonaClustering(AlonaCell):
         else:
             marker_size = 3
 
-        # check cell type predictions that mismatch between the two methods
-        mismatches = {}
-        for i in range(len(self.clusters_targets)):
-            ct_method1 = self.res_pred.iloc[i][1]
-            ct_method2 = self.res_pred2.iloc[i][0]
-            mismatches[i] = not (ct_method1 == ct_method2)
-
         offset = 0
         ignored_count = 0
         special_cells = []
@@ -492,162 +485,170 @@ class AlonaClustering(AlonaCell):
         if ignored_count:
             log_warning('Ignoring %s cluster(s) (too few cells)' % (ignored_count))
 
-        # add number of cells
-        offset2 = 0
-        for i in range(len(self.clusters_targets)):
-            idx = np.array(self.leiden_cl) == i
-            e = self.embeddings[idx]
+        if self.params['species'] in ['mouse', 'human']:
+            # check cell type predictions that mismatch between the two methods
+            mismatches = {}
+            for i in range(len(self.clusters_targets)):
+                ct_method1 = self.res_pred.iloc[i][1]
+                ct_method2 = self.res_pred2.iloc[i][0]
+                mismatches[i] = not (ct_method1 == ct_method2)
 
-            x = e[1].values
-            y = e[2].values
+            # add number of cells
+            offset2 = 0
+            for i in range(len(self.clusters_targets)):
+                idx = np.array(self.leiden_cl) == i
+                e = self.embeddings[idx]
 
-            if e.shape[0] <= ignore_clusters:
-                continue
+                x = e[1].values
+                y = e[2].values
 
-            lt = leg1.text(offset + 0.1, 1-0.03*i - 0.047, len(x), size=6)
+                if e.shape[0] <= ignore_clusters:
+                    continue
 
-            renderer = fig.canvas.get_renderer()
-            bb = lt.get_window_extent(renderer)
-            bbox_data = leg1.transAxes.inverted().transform(bb)
+                lt = leg1.text(offset + 0.1, 1-0.03*i - 0.047, len(x), size=6)
 
-            if bbox_data[1][0] > offset2:
-                offset2 = bbox_data[1][0]
+                renderer = fig.canvas.get_renderer()
+                bb = lt.get_window_extent(renderer)
+                bbox_data = leg1.transAxes.inverted().transform(bb)
 
-        # add marker-based annotation
-        offset3 = 0
-        for i in range(len(self.clusters_targets)):
-            idx = np.array(self.leiden_cl) == i
-            e = self.embeddings[idx]
+                if bbox_data[1][0] > offset2:
+                    offset2 = bbox_data[1][0]
 
-            x = e[1].values
-            y = e[2].values
+            # add marker-based annotation
+            offset3 = 0
+            for i in range(len(self.clusters_targets)):
+                idx = np.array(self.leiden_cl) == i
+                e = self.embeddings[idx]
 
-            if e.shape[0] <= ignore_clusters:
-                continue
+                x = e[1].values
+                y = e[2].values
 
-            pred = self.res_pred.iloc[i]
-            ct = pred[1]
-            pval = pred[3]
+                if e.shape[0] <= ignore_clusters:
+                    continue
 
-            l = {'x' : offset2 + 0.1, 'y' : 1-0.03*i - 0.047, 's' : ct, 'size' : 6}
-            if mismatches[i]:
-                l['color'] = 'red'
+                pred = self.res_pred.iloc[i]
+                ct = pred[1]
+                pval = pred[3]
 
-            lt = leg1.text(**l)
+                l = {'x' : offset2 + 0.1, 'y' : 1-0.03*i - 0.047, 's' : ct, 'size' : 6}
+                if mismatches[i]:
+                    l['color'] = 'red'
 
-            renderer = fig.canvas.get_renderer()
-            bb = lt.get_window_extent(renderer)
-            bbox_data = leg1.transAxes.inverted().transform(bb)
+                lt = leg1.text(**l)
 
-            if bbox_data[1][0] > offset3:
-                offset3 = bbox_data[1][0]
+                renderer = fig.canvas.get_renderer()
+                bb = lt.get_window_extent(renderer)
+                bbox_data = leg1.transAxes.inverted().transform(bb)
 
-        # add p-value
-        offset4 = 0
-        for i in range(len(self.clusters_targets)):
-            idx = np.array(self.leiden_cl) == i
-            e = self.embeddings[idx]
+                if bbox_data[1][0] > offset3:
+                    offset3 = bbox_data[1][0]
 
-            x = e[1].values
-            y = e[2].values
+            # add p-value
+            offset4 = 0
+            for i in range(len(self.clusters_targets)):
+                idx = np.array(self.leiden_cl) == i
+                e = self.embeddings[idx]
 
-            if e.shape[0] <= ignore_clusters:
-                continue
+                x = e[1].values
+                y = e[2].values
 
-            pred = self.res_pred.iloc[i]
-            ct = pred[1]
-            pval = pred[3]
-            
-            if ct == 'Unknown':
-                pval = 'NA'
+                if e.shape[0] <= ignore_clusters:
+                    continue
+
+                pred = self.res_pred.iloc[i]
+                ct = pred[1]
+                pval = pred[3]
+                
+                if ct == 'Unknown':
+                    pval = 'NA'
+                else:
+                    pval = '{:.1e}'.format(pval)
+
+                lt = leg1.text(offset3 + 0.1, 1-0.03*i - 0.047, pval, size=5)
+
+                renderer = fig.canvas.get_renderer()
+                bb = lt.get_window_extent(renderer)
+                bbox_data = leg1.transAxes.inverted().transform(bb)
+
+                if bbox_data[1][0] > offset4:
+                    offset4 = bbox_data[1][0]
+
+            # add SVM prediction
+            offset5 = 0
+            for i in range(len(self.clusters_targets)):
+                idx = np.array(self.leiden_cl) == i
+                e = self.embeddings[idx]
+
+                x = e[1].values
+                y = e[2].values
+
+                if e.shape[0] <= ignore_clusters:
+                    continue
+
+                item = self.res_pred2.iloc[i]
+                ct = item[0]
+
+                l = {'x' : offset4 + 0.1, 'y' : 1-0.03*i - 0.047, 's' : ct, 'size' : 6}
+                if mismatches[i]:
+                    l['color'] = 'red'
+
+                lt = leg1.text(**l)
+
+                renderer = fig.canvas.get_renderer()
+                bb = lt.get_window_extent(renderer)
+                bbox_data = leg1.transAxes.inverted().transform(bb)
+
+                if bbox_data[1][0] > offset5:
+                    offset5 = bbox_data[1][0]
+
+            # add probability
+            offset6 = 0
+            y_offset = 0
+            for i in range(len(self.clusters_targets)):
+                idx = np.array(self.leiden_cl) == i
+                e = self.embeddings[idx]
+
+                x = e[1].values
+                y = e[2].values
+
+                if e.shape[0] <= ignore_clusters:
+                    continue
+
+                item = self.res_pred2.iloc[i]
+                ct = item[0]
+                prob = item[1]
+                
+                if ct == 'Unknown':
+                    prob = 'NA'
+                else:
+                    prob = '{:.2f}'.format(prob)
+
+                lt = leg1.text(offset5 + 0.1, 1-0.03*i - 0.047, prob, size=5)
+
+                renderer = fig.canvas.get_renderer()
+                bb = lt.get_window_extent(renderer)
+                bbox_data = leg1.transAxes.inverted().transform(bb)
+
+                if bbox_data[1][0] > offset6:
+                    offset6 = bbox_data[1][0]
+
+                y_offset = bbox_data[1][1]
+
+            if dark_bg:
+                line_col = '#ffffff'
             else:
-                pval = '{:.1e}'.format(pval)
+                line_col = '#000000'
 
-            lt = leg1.text(offset3 + 0.1, 1-0.03*i - 0.047, pval, size=5)
+            leg1.vlines(offset4+0.05, y_offset-0.015, 1-0.03, color=line_col, clip_on=False,
+                        lw=0.5)
 
-            renderer = fig.canvas.get_renderer()
-            bb = lt.get_window_extent(renderer)
-            bbox_data = leg1.transAxes.inverted().transform(bb)
-
-            if bbox_data[1][0] > offset4:
-                offset4 = bbox_data[1][0]
-
-        # add SVM prediction
-        offset5 = 0
-        for i in range(len(self.clusters_targets)):
-            idx = np.array(self.leiden_cl) == i
-            e = self.embeddings[idx]
-
-            x = e[1].values
-            y = e[2].values
-
-            if e.shape[0] <= ignore_clusters:
-                continue
-
-            item = self.res_pred2.iloc[i]
-            ct = item[0]
-
-            l = {'x' : offset4 + 0.1, 'y' : 1-0.03*i - 0.047, 's' : ct, 'size' : 6}
-            if mismatches[i]:
-                l['color'] = 'red'
-
-            lt = leg1.text(**l)
-
-            renderer = fig.canvas.get_renderer()
-            bb = lt.get_window_extent(renderer)
-            bbox_data = leg1.transAxes.inverted().transform(bb)
-
-            if bbox_data[1][0] > offset5:
-                offset5 = bbox_data[1][0]
-
-        # add probability
-        offset6 = 0
-        y_offset = 0
-        for i in range(len(self.clusters_targets)):
-            idx = np.array(self.leiden_cl) == i
-            e = self.embeddings[idx]
-
-            x = e[1].values
-            y = e[2].values
-
-            if e.shape[0] <= ignore_clusters:
-                continue
-
-            item = self.res_pred2.iloc[i]
-            ct = item[0]
-            prob = item[1]
-            
-            if ct == 'Unknown':
-                prob = 'NA'
-            else:
-                prob = '{:.2f}'.format(prob)
-
-            lt = leg1.text(offset5 + 0.1, 1-0.03*i - 0.047, prob, size=5)
-
-            renderer = fig.canvas.get_renderer()
-            bb = lt.get_window_extent(renderer)
-            bbox_data = leg1.transAxes.inverted().transform(bb)
-
-            if bbox_data[1][0] > offset6:
-                offset6 = bbox_data[1][0]
-
-            y_offset = bbox_data[1][1]
-
-        if dark_bg:
-            line_col = '#ffffff'
-        else:
-            line_col = '#000000'
-
-        leg1.vlines(offset4+0.05, y_offset-0.015, 1-0.03, color=line_col, clip_on=False,
-                    lw=0.5)
-
-        # header
-        leg1.text(0.30, 0.99, 'cluster', size=5, rotation=90)
-        leg1.text(offset + 0.1, 0.99, 'no. cells', size=5, rotation=90)
-        leg1.text(offset2 + 0.1, 0.99, 'marker-based\nprediction', size=5, rotation=90)
-        leg1.text(offset3 + 0.1, 0.99, 'p-value', size=5, rotation=90)
-        leg1.text(offset4 + 0.1, 0.99, 'SVM-based\nprediction', size=5, rotation=90)
-        leg1.text(offset5 + 0.1, 0.99, 'probability', size=5, rotation=90)
+            # header
+            leg1.text(0.30, 0.99, 'cluster', size=5, rotation=90)
+            leg1.text(offset + 0.1, 0.99, 'no. cells', size=5, rotation=90)
+            leg1.text(offset2 + 0.1, 0.99, 'marker-based\nprediction', size=5, rotation=90)
+            leg1.text(offset3 + 0.1, 0.99, 'p-value', size=5, rotation=90)
+            leg1.text(offset4 + 0.1, 0.99, 'SVM-based\nprediction', size=5, rotation=90)
+            leg1.text(offset5 + 0.1, 0.99, 'probability', size=5, rotation=90)
 
         main_ax.set_ylabel('%s1' % method, size=6)
         main_ax.set_xlabel('%s2' % method, size=6)
@@ -657,8 +658,6 @@ class AlonaClustering(AlonaCell):
 
         input_fn = self.params['input_filename']
         main_ax.set_title('%s\n%s' % (title, input_fn.split('/')[-1]), fontsize=7)
-
-        #main_ax.set_xlim(min(self.embeddings[1]), max(self.embeddings[1]))
 
         fn = self.get_wd() + OUTPUT['FILENAME_CELL_SCATTER_PLOT_PREFIX'] + method + '.pdf'
         
