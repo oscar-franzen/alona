@@ -31,9 +31,11 @@ example, if data are raw read counts, then select "raw".',
 
 @click.option('-mr', '--minreads', help='Minimum number of reads per cell to keep the \
 cell.', default=1000, show_default=True)
-@click.option('-mg', '--minexpgenes', help='Minimum number of expressed genes as \
-percent of all cells, i.e. genes expressed in fewer cells than this are removed.',
-              default=0.01, show_default=True)
+
+@click.option('-mg', '--minexpgenes', help='Pre-filter the data matrix and remove genes \
+according to this threshold. Can be specified either as a fraction of all cells or as an \
+an integer (translates to the absolute number of cells that at minimum must express the \
+gene).', default=0.01, show_default=True)
 
 @click.option('--qc_auto', help='Automatic filtering of low quality cells.',
               type=click.Choice(['yes', 'no']), default='yes', show_default=True)

@@ -152,7 +152,9 @@ set to log2.')
     def simple_filters(self):
         """
         Removes cells with too few reads (set by `--minreads`).
-        Removes "underexpressed" genes (set by `--minexpgenes`).
+        Removes "underexpressed" genes (set by `--minexpgenes`). If the value set by
+        --minexpgenes is a float, then at least that fraction of cells must express the
+        gene; if integer then minimum that number of cells must express the gene.
         """
         if self.params['dataformat'] == 'raw':
             min_reads = self.params['minreads']
@@ -167,11 +169,16 @@ set to log2.')
                    less than 100 reads remain. Please adjust --minreads' % min_reads)
         if self.params['minexpgenes'] > 0:
             log_debug('Filtering genes based on --minexpgenes')
-
-            genes_expressed = self.data.apply(lambda x: sum(x > 0)/len(x), axis=1)
-            log_info('Removing %s genes' % (self.data.shape[0] - np.sum(genes_expressed > \
-                self.params['minexpgenes'])))
-            self.data = self.data[genes_expressed > self.params['minexpgenes']]
+            thres = self.params['minexpgenes']
+            if thres.is_integer():
+                genes_expressed = self.data.apply(lambda x: sum(x > 0), axis=1)
+                target_genes = genes_expressed[genes_expressed>thres].index
+                log_info('Removing %s genes.' % (np.sum(genes_expressed <= thres)))
+                self.data = self.data[self.data.index.isin(target_genes)]
+            else:
+                genes_expressed = self.data.apply(lambda x: sum(x > 0)/len(x), axis=1)
+                log_info('Removing %s genes' % (np.sum(genes_expressed <= thres)))
+                self.data = self.data[genes_expressed > thres]
 
     def print_dimensions(self):
         """ Prints the new dimensions after quality filtering. """
@@ -365,10 +372,10 @@ set to log2.')
         self.validate_counts()
         self.remove_empty()
         self.remove_mito()
+        self.lift_ERCC()
         self.read_counts_per_cell_filter()
         self.genes_expressed_per_cell_barplot()
         self.simple_filters()
-        self.lift_ERCC()
         self.load_rRNA_genes()
         self.find_low_quality_cells()
 

@@ -65,8 +65,8 @@ class AlonaBase():
         # validate some of the input parameters
         if self.params['minreads'] < 0:
             log_error('--minreads must be a positive integer.')
-        if self.params['minexpgenes'] < 0 or self.params['minexpgenes'] > 99:
-            log_error('--minexpgenes must be a value within [0,100).')
+        if self.params['minexpgenes'] < 0:
+            log_error('--minexpgenes must be a positive value.')
         if self.params['nn_k'] < 0:
             log_error('--nn_k cannot be negative.')
         if self.params['prune_snn'] < 0 or self.params['prune_snn'] > 1:
