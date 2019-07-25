@@ -170,14 +170,17 @@ set to log2.')
         if self.params['minexpgenes'] > 0:
             log_debug('Filtering genes based on --minexpgenes')
             thres = self.params['minexpgenes']
+            
             if thres.is_integer():
                 genes_expressed = self.data.apply(lambda x: sum(x > 0), axis=1)
                 target_genes = genes_expressed[genes_expressed>thres].index
-                log_info('Removing %s genes.' % (np.sum(genes_expressed <= thres)))
+                d = '{0:,g}'.format(np.sum(genes_expressed <= thres))
+                log_info('Removing %s genes.' % d)
                 self.data = self.data[self.data.index.isin(target_genes)]
             else:
                 genes_expressed = self.data.apply(lambda x: sum(x > 0)/len(x), axis=1)
-                log_info('Removing %s genes' % (np.sum(genes_expressed <= thres)))
+                d = '{0:,g}'.format(np.sum(genes_expressed <= thres))
+                log_info('Removing %s genes.' % d)
                 self.data = self.data[genes_expressed > thres]
 
     def print_dimensions(self):
@@ -413,6 +416,8 @@ set to log2.')
             self.embedding(embedding_path)
 
         self.cluster()
+        self.findMarkers()
+        
         self.median_exp()
         self.load_markers()
         self.CTA_RANK_F(marker_plot=True)

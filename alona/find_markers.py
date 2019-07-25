@@ -12,3 +12,18 @@
 """
 
 import sys
+
+from .celltypes import AlonaCellTypePred
+
+class AlonaFindmarkers(AlonaCellTypePred):
+    """
+    Find markers class.
+    """
+
+    def __init__(self):
+        super().__init__()
+
+    def findMarkers(self):
+        print(self.data_norm)
+        print(self.leiden_cl)
+        print('hello from findMarkers()')

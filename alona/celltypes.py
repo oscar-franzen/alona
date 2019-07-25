@@ -168,8 +168,8 @@ class AlonaCellTypePred(AlonaClustering):
         final_tbl.columns = ['cluster',
                              'activity score',
                              'cell type',
-                             'markers',
                              'p-value',
+                             'markers',
                              'adjusted p-value BH']
 
         fn = self.get_wd() + OUTPUT['FILENAME_CTA_RANK_F']

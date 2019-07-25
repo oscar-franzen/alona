@@ -19,7 +19,7 @@ from .utils import *
 from .log import (init_logging, log_debug, log_error, log_info)
 from .logo import show_logo
 from .alonabase import AlonaBase
-from .celltypes import AlonaCellTypePred
+from .find_markers import AlonaFindmarkers
 from .constants import GENOME
 
 @click.command()
@@ -181,7 +181,7 @@ tried: %s' % (GENOME[item], path))
         'add_celltypes' : add_celltypes
     }
 
-    alonacell = AlonaCellTypePred()
+    alonacell = AlonaFindmarkers()
     alonacell.set_params(alona_opts)
     alonacell.prepare()
     alonacell.load_data()

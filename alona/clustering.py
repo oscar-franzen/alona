@@ -529,7 +529,6 @@ class AlonaClustering(AlonaCell):
 
                 pred = self.res_pred.iloc[i]
                 ct = pred[1]
-                pval = pred[3]
 
                 l = {'x' : offset2 + 0.1, 'y' : 1-0.03*i - 0.047, 's' : ct, 'size' : 6}
                 if mismatches[i]:
@@ -558,7 +557,7 @@ class AlonaClustering(AlonaCell):
 
                 pred = self.res_pred.iloc[i]
                 ct = pred[1]
-                pval = pred[3]
+                pval = pred[2]
                 
                 if ct == 'Unknown':
                     pval = 'NA'
