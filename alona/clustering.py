@@ -759,6 +759,7 @@ class AlonaClustering(AlonaCell):
         """ Makes violin plots of the top expressed genes per cluster. """
         log_debug('Entering violin_top()')
         data_norm = self.data_norm
+        
         n = self.params['violin_top']
         cl = self.leiden_cl
         ignore_clusters = self.params['ignore_small_clusters']
@@ -766,7 +767,7 @@ class AlonaClustering(AlonaCell):
         plt.clf()
         fig_size_y = round(len(self.clusters_targets)*2)
         fig, ax = plt.subplots(nrows=self.n_clusters, ncols=1, figsize=(7, fig_size_y))
-        fig.subplots_adjust(hspace=0.5)
+        fig.subplots_adjust(hspace=1)
         
         for idx, d in data_norm.groupby(by=cl, axis=1):
             if d.shape[1] <= ignore_clusters:
@@ -786,10 +787,15 @@ class AlonaClustering(AlonaCell):
             vp = ax[idx].violinplot(data_points, showmeans=False, showmedians=True)
             ax[idx].grid(axis='y')
             ax[idx].set_xticks(list(range(1,n+1)))
-            ax[idx].set_xticklabels(top.str.extract('^(.+)_')[0].values, size=5,
-                                    rotation='vertical')
+            
+            if self.params['species'] in ['mouse', 'human']:
+                gene_labels = top.str.extract('^(.+)_')[0].values
+            else:
+                gene_labels = top
+            
+            ax[idx].set_xticklabels(gene_labels, size=5, rotation='vertical')
             ax[idx].set_ylabel('gene expression', size=6)
-            ax[idx].set_title('cluster %s' % idx, size=10)
+            ax[idx].set_title('cluster %s' % idx, size=6)
             
             ax[idx].tick_params(axis='y', which='major', labelsize=6)
             ax[idx].tick_params(axis='y', which='minor', labelsize=6)
