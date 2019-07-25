@@ -75,10 +75,8 @@ class AlonaBase():
             log_error('Perplexity cannot be less than 0.')
         if self.params['perplexity'] > 100:
             log_warning('Recommended values of --perplexity is 5-50.')
-        if self.params['hvg_cutoff'] <= 0:
+        if self.params['hvg_n'] <= 0:
             log_error('--hvg must be a positive value')
-        if self.params['hvg_cutoff'] < 50:
-            log_warning('--hvg is set too low')
 
     def get_wd(self):
         """ Retrieves the name of the output directory. """

@@ -394,6 +394,7 @@ set to log2.')
     def analysis(self):
         """ Runs the analysis pipeline. """
         log_debug('Running analysis...')
+        
         embedding_method = self.params['embedding']
         embedding_path = self.get_wd() + OUTPUT['FILENAME_EMBEDDING_PREFIX'] + \
                              embedding_method + '.csv'

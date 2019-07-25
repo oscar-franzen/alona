@@ -65,13 +65,15 @@ class AlonaClustering(AlonaCell):
         #matplotlib.rcParams['font.family'] = 'sans-serif'
 
     def find_variable_genes(self):
+        log_debug('Entering find_variable_genes()')
         hvg_finder = AlonaHighlyVariableGenes(hvg_method=self.params['hvg_method'],
-                                              hvg_n=self.params['hvg_cutoff'],
+                                              hvg_n=self.params['hvg_n'],
                                               data_norm=self.data_norm,
                                               data_ERCC=self.data_ERCC)
         self.hvg = hvg_finder.find()
         pd.DataFrame(self.hvg).to_csv(self.get_wd() + OUTPUT['FILENAME_HVG'], header=False,
                                       index=False)
+        log_debug('Finished find_variable_genes()')
 
     def PCA(self, out_path):
         """

@@ -170,7 +170,7 @@ tried: %s' % (GENOME[item], path))
         'leiden_res' : leiden_res,
         'ignore_small_clusters' : ignore_small_clusters,
         'hvg_method' : hvg,
-        'hvg_cutoff' : hvg_n,
+        'hvg_n' : hvg_n,
         'qc_auto' : qc_auto,
         'embedding' : embedding,
         'seed' : seed,
