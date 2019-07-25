@@ -261,7 +261,6 @@ set to log2.')
             self._dump(data_norm, fn_out)
 
         log_debug('Finished normalize()')
-
         return data_norm
 
     def lift_ERCC(self):

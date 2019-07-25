@@ -134,12 +134,11 @@ class AlonaClustering(AlonaCell):
         log_debug('Entering UMAP()')
         seed = self.params['seed']
         
-        reducer = umap.UMAP()
+        reducer = umap.UMAP(random_state=seed)
         self.embeddings = reducer.fit_transform(self.pca_components)
         self.embeddings = pd.DataFrame(self.embeddings,
                                        index=self.pca_components.index,
-                                       columns=[1, 2],
-                                       random_state=seed)
+                                       columns=[1, 2])
         self.embeddings.to_csv(path_or_buf=out_path, sep=',', header=None)
 
         log_debug('Exiting UMAP()')
