@@ -230,10 +230,11 @@ set to log2.')
         log_debug('Writing dump file %s' % fn)
         dump(d, fn)
 
-    def normalize(self, data, fn_out='', input_type='raw', mrnafull=False,
-                      remove_low_quality=True):
+    def normalize(self, data, fn_out='', input_type='raw', mrnafull=False):
         """ Normalizes gene expression values. """
         log_debug('Inside normalize()')
+        
+        remove_low_quality = self.params['qc_auto']
 
         if fn_out != '' and os.path.exists(fn_out):
             log_debug('Loading data matrix from file')

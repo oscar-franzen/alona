@@ -37,8 +37,8 @@ according to this threshold. Can be specified either as a fraction of all cells 
 an integer (translates to the absolute number of cells that at minimum must express the \
 gene).', default=0.01, show_default=True)
 
-@click.option('--qc_auto', help='Automatic filtering of low quality cells.',
-              type=click.Choice(['yes', 'no']), default='yes', show_default=True)
+@click.option('--qc_auto', help='Automatic filtering of low quality cells.', type=bool,
+              default=True, show_default=True)
 
 @click.option('--mrnafull', help='Data come from a full-length protocol, such as \
 SMART-seq2.', is_flag=True, show_default=True)
