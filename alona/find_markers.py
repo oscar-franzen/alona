@@ -12,6 +12,7 @@
 """
 
 import sys
+import joblib
 
 import numpy as np
 import statsmodels.api as sm
@@ -48,6 +49,9 @@ class AlonaFindmarkers(AlonaCellTypePred):
         log_debug('Entering findMarkers()')
         data_norm = self.data_norm.transpose()
         leiden_cl = self.leiden_cl
+        
+        #joblib.dump([data_norm, leiden_cl], 'testing.joblib')
+        #sys.exit()
 
         # full design matrix
         dm_full = patsy.dmatrix('~ 0 + C(cl)', pd.DataFrame({'cl' : leiden_cl}))
@@ -59,8 +63,6 @@ class AlonaFindmarkers(AlonaCellTypePred):
                                            )
         res = lm.fit()
         coef = res.params # coefficients
-
-        pred = lm.predict(res.params)
 
         # computing standard errors
         # https://stats.stackexchange.com/questions/44838/how-are-the-standard-errors-of-coefficients-calculated-in-a-regression
@@ -88,9 +90,9 @@ class AlonaFindmarkers(AlonaCellTypePred):
             con[k,] = 1
 
             std_new = np.sqrt((std_dev**2).dot(con**2))
-            std_err = std_new**2*sigma2
 
             for i in np.arange(k-1):
+                std_err = std_new[i]**2*sigma2
                 target_cl = clusts[i]
 
                 # log2 fold change, reminder: log2(A/B)=log2(A)-log2(B)
