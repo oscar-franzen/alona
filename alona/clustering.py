@@ -102,12 +102,13 @@ class AlonaClustering(AlonaCell):
 
         log_debug('Running PCA...')
         
+        n_comp = self.params['pca_n']
         index_v = self.data_norm.index.isin(self.hvg)
         sliced = self.data_norm[index_v]
         seed = self.params['seed']
         
         if self.params['pca'] == 'irlb':
-            lanc = alona.irlbpy.lanczos(sliced, nval=75, maxit=1000, seed=seed)
+            lanc = alona.irlbpy.lanczos(sliced, nval=n_comp, maxit=1000, seed=seed)
             # weighing by var
             self.pca_components = np.dot(lanc.V, np.diag(lanc.s))
             self.pca_components = pd.DataFrame(self.pca_components, index=sliced.columns)
@@ -122,7 +123,7 @@ class AlonaClustering(AlonaCell):
             s_d = d/np.sqrt(x.shape[0]-1)
 
             retx = x.dot(v)
-            retx = retx[:,0:75]
+            retx = retx[:,0:n_comp]
 
             self.pca_components = retx
             self.pca_components = pd.DataFrame(self.pca_components, index=sliced.index)
