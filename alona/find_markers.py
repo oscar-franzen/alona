@@ -58,7 +58,7 @@ class AlonaFindmarkers(AlonaCellTypePred):
         data_norm = data_norm[np.isin(leiden_cl, clusters_targets)]
         leiden_cl = np.array(leiden_cl)[np.isin(leiden_cl, clusters_targets)]
 
-        #joblib.dump([data_norm, leiden_cl, clusters_targets], 'testing.joblib')
+        joblib.dump([data_norm, leiden_cl, clusters_targets], 'testing.joblib')
         #sys.exit()
 
         # full design matrix
@@ -116,12 +116,12 @@ class AlonaFindmarkers(AlonaCellTypePred):
                 left = t_dist.cdf(cur_t)
                 right = 1 - left
 
-                # two sided test
-                pv = np.minimum(left, right)
+                # two sided p-value
+                pv = np.minimum(left, right)*2
                 
                 comparisons.append('%s_vs_%s' % (k,i))
                 out_pv.append(pd.Series(pv))
-                
+        
         out_merged = pd.concat(out_pv,axis=1)
         out_merged.columns = comparisons
         out_merged.index = data_norm.columns
