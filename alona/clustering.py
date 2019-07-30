@@ -131,7 +131,7 @@ class AlonaClustering(AlonaCell):
         log_debug('Finished PCA')
 
     def embedding(self, out_path):
-        """ Cals tSNE or UMAP """
+        """ Calls t-SNE or UMAP """
         method = self.params['embedding']
 
         if method == 'tSNE':
