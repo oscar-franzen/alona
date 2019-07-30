@@ -96,7 +96,6 @@ class AlonaClustering(AlonaCell):
         Some useful notes about the R implementation:
         http://bwlewis.github.io/irlba/
         """
-
         log_debug('Running PCA...')
         
         n_comp = self.params['pca_n']
@@ -190,7 +189,6 @@ class AlonaClustering(AlonaCell):
         """
         Nearest Neighbour Search. Finds the k number of near neighbours for each cell.
         """
-
         log_debug('Performing Nearest Neighbour Search')
         k = inp_k
         
@@ -272,7 +270,6 @@ class AlonaClustering(AlonaCell):
         Traag V, Waltman L, van Eck NJ
         https://arxiv.org/abs/1810.08473
         """
-
         log_debug('Running leiden clustering...')
 
         res = self.params['leiden_res']
