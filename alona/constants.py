@@ -24,6 +24,7 @@ OUTPUT = {
     'FILENAME_PCA' : '/csvs/pca.csv',
     'FILENAME_EMBEDDING_PREFIX' : '/csvs/embeddings_',
     'FILENAME_HVG' : '/csvs/highly_variable_genes.csv',
+    'FILENAME_ALL_T_TESTS' : '/csvs/all_t_tests.csv',
     'FILENAME_SNN_GRAPH' : '/csvs/snn_graph.csv',
     'FILENAME_CLUSTERS_LEIDEN' : '/csvs/clusters_leiden.csv',
     'FILENAME_MEDIAN_EXP' : '/csvs/median_exp.csv',

@@ -21,6 +21,7 @@ import pandas as pd
 import patsy
 
 from .log import (log_info, log_debug, log_error, log_warning)
+from .constants import (OUTPUT)
 from .celltypes import AlonaCellTypePred
 
 class AlonaFindmarkers(AlonaCellTypePred):
@@ -33,23 +34,24 @@ class AlonaFindmarkers(AlonaCellTypePred):
 
     def findMarkers(self):
         """
-        Finds differentially expressed genes between clusters by fitting a linear model
-        to gene expression (response variables) and clusters (explanatory variables).
-        Model coefficients are estimated via the ordinary least squares method and
-        p-values are calculated using t-statistics. One of the benefits of using LM for
+        Finds differentially expressed (DE) genes between clusters by fitting a linear
+        model (LM) to gene expression (response variables) and clusters (explanatory
+        variables). Model coefficients are estimated via the ordinary least squares
+        method and p-values are calculated using t-statistics. One benefit of using LM for
         DE is that computations are vectorized and therefore very fast.
-        
-        The ideas behind using linear models to explore differential expression have been
-        extensively covered by the limma R package.
-        
-        Reference:
+
+        The ideas behind using LM to explore DE have been extensively covered in the
+        limma R package.
+
+        Useful references:
         https://www.bioconductor.org/packages/release/bioc/vignettes/limma/inst/doc/usersguide.pdf
+        https://newonlinecourses.science.psu.edu/stat555/node/12/
         """
 
         log_debug('Entering findMarkers()')
         data_norm = self.data_norm.transpose()
         leiden_cl = self.leiden_cl
-        
+
         #joblib.dump([data_norm, leiden_cl], 'testing.joblib')
         #sys.exit()
 
@@ -74,14 +76,17 @@ class AlonaFindmarkers(AlonaCellTypePred):
 
         q = dm_full.transpose().dot(dm_full)
         chol = np.linalg.cholesky(q)
-        chol2inv = scipy.linalg.cho_solve((chol, False), np.eye(chol.shape[ 0 ]))
+        chol2inv = scipy.linalg.cho_solve((chol, False), np.eye(chol.shape[0]))
         std_dev = np.sqrt(np.diag(chol2inv))
         clusts = np.unique(leiden_cl)
 
         # compare clusters
+        comparisons = []
+        out_pv = []
+
         for _, k in enumerate(np.unique(leiden_cl)):
             ref_cl = clusts[k]
-            ref_coef = coef.iloc[k,:]
+            ref_coef = coef.iloc[k, :]
 
             # recompute coefficients for contrasts
             # https://genomicsclass.github.io/book/pages/interactions_and_contrasts.html
@@ -91,12 +96,12 @@ class AlonaFindmarkers(AlonaCellTypePred):
 
             std_new = np.sqrt((std_dev**2).dot(con**2))
 
-            for i in np.arange(k-1):
+            for i in np.arange(k):
                 std_err = std_new[i]**2*sigma2
                 target_cl = clusts[i]
 
                 # log2 fold change, reminder: log2(A/B)=log2(A)-log2(B)
-                cur_lfc = ref_coef - coef.iloc[i,:]
+                cur_lfc = ref_coef - coef.iloc[i, :]
                 cur_lfc.index = std_err.index
 
                 # compute p-values
@@ -106,6 +111,16 @@ class AlonaFindmarkers(AlonaCellTypePred):
                 right = 1 - left
 
                 # two sided test
-                pv = np.minimum(left,right)
+                pv = np.minimum(left, right)
+                
+                comparisons.append('%s_vs_%s' % (k,i))
+                out_pv.append(pd.Series(pv))
+                
+        out_merged = pd.concat(out_pv,axis=1)
+        out_merged.columns = comparisons
+        out_merged.index = data_norm.columns
+        
+        fn = self.get_wd() + OUTPUT['FILENAME_ALL_T_TESTS']
+        out_merged.to_csv(fn, sep=',')
 
         log_debug('Exiting findMarkers()')
