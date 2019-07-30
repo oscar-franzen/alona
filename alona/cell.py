@@ -355,7 +355,7 @@ set to log2.')
         re_inp = self.params['exclude_gene']
         if re_inp:
             regexp = re.compile(re_inp)
-            r = self.data.index.str.match(regexp)
+            r = self.data.index.str.contains(regexp)
             self.data = self.data[np.logical_not(r)]
             log_info('Removed %s genes based on regexp.' % np.sum(r))
         log_debug('Exiting remove_genes_by_pattern()')
