@@ -43,6 +43,9 @@ gene).', default=0.01, show_default=True)
 @click.option('--mrnafull', help='Data come from a full-length protocol, such as \
 SMART-seq2.', is_flag=True, show_default=True)
 
+@click.option('--exclude_gene', help='Remove any gene matching this regular expression.',
+               show_default=True)
+
 @click.option('-d', '--delimiter', help='Data delimiter. The character used to separate \
 data values. The default setting is to autodetect this character.',
               type=click.Choice(['auto', 'tab', 'space']), default='auto',
@@ -135,11 +138,11 @@ show_default=True)
 @click.option('--version', help='Display version number.', is_flag=True,
               callback=print_version)
 
-def run(filename, output, dataformat, minreads, minexpgenes, qc_auto, mrnafull, delimiter,
-        header, nomito, hvg, hvg_n, pca, pca_n, nn_k, prune_snn, leiden_partition, leiden_res,
-        ignore_small_clusters, embedding, perplexity, species, dark_bg, add_celltypes,
-        overlay_genes, highlight_specific_cells, violin_top, timestamp, logfile,
-        loglevel, nologo, seed, version):
+def run(filename, output, dataformat, minreads, minexpgenes, qc_auto, mrnafull,
+        exclude_gene, delimiter, header, nomito, hvg, hvg_n, pca, pca_n, nn_k, prune_snn,
+        leiden_partition, leiden_res, ignore_small_clusters, embedding, perplexity,
+        species, dark_bg, add_celltypes, overlay_genes, highlight_specific_cells,
+        violin_top, timestamp, logfile, loglevel, nologo, seed, version):
 
     # confirm the genome reference files can be found
     for item in GENOME:
@@ -186,7 +189,8 @@ tried: %s' % (GENOME[item], path))
         'timestamp' : timestamp,
         'add_celltypes' : add_celltypes,
         'pca' : pca,
-        'pca_n' : pca_n
+        'pca_n' : pca_n,
+        'exclude_gene' : exclude_gene
     }
 
     alonacell = AlonaFindmarkers()

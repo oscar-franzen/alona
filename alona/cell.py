@@ -348,6 +348,17 @@ set to log2.')
 
         log_info('%s low quality cells were removed' % len(self.low_quality_cells))
         log_debug('Finished filter_cells_auto()')
+        
+    def remove_genes_by_pattern(self):
+        """ Remove genes matching regexp specified by exclude_gene. """
+        log_debug('Entering remove_genes_by_pattern()')
+        re_inp = self.params['exclude_gene']
+        if re_inp:
+            regexp = re.compile(re_inp)
+            r = self.data.index.str.match(regexp)
+            self.data = self.data[np.logical_not(r)]
+            log_info('Removed %s genes based on regexp.' % np.sum(r))
+        log_debug('Exiting remove_genes_by_pattern()')
 
     def load_data(self):
         """ Load expression matrix. """
@@ -376,6 +387,7 @@ set to log2.')
         self.remove_empty()
         self.remove_mito()
         self.lift_ERCC()
+        self.remove_genes_by_pattern()
         self.read_counts_per_cell_barplot()
         self.simple_filters()
         self.genes_expressed_per_cell_barplot()
