@@ -1,5 +1,4 @@
 #include *.py
 recursive-include alona/irlbpy *
-recursive-include alona/ANN *
 recursive-include alona/markers *
 recursive-include alona/genome *
