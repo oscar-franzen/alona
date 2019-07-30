@@ -61,6 +61,9 @@ autodetect if a header is present or not.', type=click.Choice(['auto', 'yes', 'n
 
 @click.option('--hvg_n', help='Number of top highly variable genes to use.',
               default=1000, show_default=True)
+              
+@click.option('--pca', help='PCA method to use.', type=click.Choice(['irlb', 'regular']),
+              default='irlb', show_default=True)
 
 @click.option('--nn_k', help='k in the nearest neighbour search.',
               default=10, show_default=True)
@@ -130,7 +133,7 @@ show_default=True)
               callback=print_version)
 
 def run(filename, output, dataformat, minreads, minexpgenes, qc_auto, mrnafull, delimiter,
-        header, nomito, hvg, hvg_n, nn_k, prune_snn, leiden_partition, leiden_res,
+        header, nomito, hvg, hvg_n, pca, nn_k, prune_snn, leiden_partition, leiden_res,
         ignore_small_clusters, embedding, perplexity, species, dark_bg, add_celltypes,
         overlay_genes, highlight_specific_cells, violin_top, timestamp, logfile,
         loglevel, nologo, seed, version):
@@ -178,7 +181,8 @@ tried: %s' % (GENOME[item], path))
         'highlight_specific_cells' : highlight_specific_cells,
         'violin_top' : violin_top,
         'timestamp' : timestamp,
-        'add_celltypes' : add_celltypes
+        'add_celltypes' : add_celltypes,
+        'pca' : pca
     }
 
     alonacell = AlonaFindmarkers()

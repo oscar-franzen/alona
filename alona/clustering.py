@@ -31,12 +31,16 @@ import matplotlib.patches as mpatches
 import matplotlib.pyplot as plt
 import seaborn as sb
 import sklearn.manifold
+from sklearn.decomposition import PCA as sklearn_pca
+from sklearn.preprocessing import scale
+from sklearn.neighbors import NearestNeighbors
 from scipy.sparse import coo_matrix
+import scipy.linalg
 import umap
 import leidenalg
 import igraph as ig
-import alona.irlbpy
 
+import alona.irlbpy
 from .alonabase import AlonaBase
 from .cell import AlonaCell
 from .hvg import AlonaHighlyVariableGenes
@@ -97,18 +101,33 @@ class AlonaClustering(AlonaCell):
         """
 
         log_debug('Running PCA...')
-
+        
         index_v = self.data_norm.index.isin(self.hvg)
         sliced = self.data_norm[index_v]
         seed = self.params['seed']
+        
+        if self.params['pca'] == 'irlb':
+            lanc = alona.irlbpy.lanczos(sliced, nval=75, maxit=1000, seed=seed)
+            # weighing by var
+            self.pca_components = np.dot(lanc.V, np.diag(lanc.s))
+            self.pca_components = pd.DataFrame(self.pca_components, index=sliced.columns)
+        elif self.params['pca'] == 'regular':
+            sliced = sliced.transpose()
 
-        lanc = alona.irlbpy.lanczos(sliced, nval=75, maxit=1000, seed=seed)
+            x = scale(sliced, with_mean=True, with_std=False)
+            s = scipy.linalg.svd(x)
+            v = s[2].transpose()
+            d = s[1]
 
-        # weighing by var (Seurat-style)
-        self.pca_components = np.dot(lanc.V, np.diag(lanc.s))
-        self.pca_components = pd.DataFrame(self.pca_components, index=sliced.columns)
+            s_d = d/np.sqrt(x.shape[0]-1)
+
+            retx = x.dot(v)
+            retx = retx[:,0:75]
+
+            self.pca_components = retx
+            self.pca_components = pd.DataFrame(self.pca_components, index=sliced.index)
+
         self.pca_components.to_csv(path_or_buf=out_path, sep=',', header=None)
-
         log_debug('Finished PCA')
 
     def embedding(self, out_path):
@@ -153,7 +172,7 @@ class AlonaClustering(AlonaCell):
         Using t-SNE. Journal of Machine Learning Research 9:2579-2605, 2008.
         """
         log_debug('Running t-SNE...')
-        
+
         seed = self.params['seed']
         perplexity = self.params['perplexity']
 
@@ -175,68 +194,13 @@ class AlonaClustering(AlonaCell):
         """
 
         log_debug('Performing Nearest Neighbour Search')
-        if os.path.exists(filename):
-            self.nn_idx = joblib.load(filename)
-            log_debug('Loading KNN map from file.')
-            return
-
         k = inp_k
-
-        libpath = get_alona_dir() + 'ANN/annlib.so'
-        lib = cdll.LoadLibrary(libpath)
-
-        pca_rotated = np.rot90(self.pca_components)
-        npa = np.ndarray.flatten(pca_rotated)
-        npa2 = npa.astype(np.double).ctypes.data_as(ctypes.POINTER(ctypes.c_double))
-
-        lib.get_NN_2Set.restype = None
-        lib.get_NN_2Set.argtypes = [ctypes.POINTER(ctypes.c_double),
-                                    ctypes.POINTER(ctypes.c_double),
-                                    ctypes.POINTER(ctypes.c_int),
-                                    ctypes.POINTER(ctypes.c_int),
-                                    ctypes.POINTER(ctypes.c_int),
-                                    ctypes.POINTER(ctypes.c_int),
-                                    ctypes.POINTER(ctypes.c_double),
-                                    ctypes.POINTER(ctypes.c_int),
-                                    ctypes.POINTER(ctypes.c_int),
-                                    npct.ndpointer(dtype=np.double, ndim=1,
-                                                   flags='CONTIGUOUS'),
-                                    npct.ndpointer(ctypes.c_int),
-                                    npct.ndpointer(dtype=np.double, ndim=1,
-                                                   flags='CONTIGUOUS')]
-        no_cells = self.pca_components.shape[0]
-        no_comps = self.pca_components.shape[1]
-
-        out_index = np.zeros(no_cells*k, 'int32')
-        out_dists = np.zeros(no_cells*k)
-
-        lib.get_NN_2Set(npa2,
-                        npa2,
-                        ctypes.c_int(no_comps),
-                        ctypes.c_int(no_cells),
-                        ctypes.c_int(no_cells),
-                        ctypes.c_int(k),    # k
-                        ctypes.c_double(0), # EPS
-                        ctypes.c_int(1),    # SEARCHTYPE
-                        ctypes.c_int(1),    # USEBDTREE
-                        np.ndarray(0),      # SQRAD
-                        out_index,
-                        out_dists)
-
-        out_index_mat = np.reshape(out_index, (no_cells, k))
-        out_dists_mat = np.reshape(out_dists, (no_cells, k))
-
-        self.nn_idx = out_index_mat
         
-        if filename != '':
-            joblib.dump(self.nn_idx, filename=filename)
-
+        nbrs = NearestNeighbors(n_neighbors=k, algorithm='ball_tree')
+        nbrs.fit(self.pca_components)
+        indices = nbrs.kneighbors(self.pca_components)[1]
+        self.nn_idx = indices+1
         log_debug('Finished NNS')
-
-        #pd.DataFrame(self.nn_idx).to_csv('~/Temp/qq.csv', header=None, index=None)
-        #melted = pd.DataFrame(out_index_mat).melt(id_vars=[0])[[0,'value']]
-        #melted.to_csv(self.alonabase.get_wd() + \
-        #    OUTPUT['FILENAME_SNN_GRAPH'], header=False, index=False)
 
     def snn(self, k, prune_snn):
         """
@@ -245,16 +209,12 @@ class AlonaClustering(AlonaCell):
         the sum of SNN similarities over all KNNs, which is done with a matrix operation.
         See: http://mlwiki.org/index.php/SNN_Clustering
         """
-
+        log_debug('Computing SNN graph...')
         snn_path = self.get_wd() + OUTPUT['FILENAME_SNN_GRAPH']
-
         if os.path.exists(snn_path):
             log_debug('Loading SNN from file...')
             self.snn_graph = pd.read_csv(snn_path, header=None)
             return
-
-        log_debug('Computing SNN graph...')
-
         k_param = k
 
         # create sparse matrix from tuples
@@ -282,7 +242,6 @@ class AlonaClustering(AlonaCell):
 
         node1 = []
         node2 = []
-
         pruned_count = 0
 
         for i, j, v in zip(cx.row, cx.col, cx.data):
@@ -294,19 +253,15 @@ class AlonaClustering(AlonaCell):
                 node2.append(j)
             else:
                 pruned_count += 1
-
         perc_pruned = (pruned_count/len(cx.row))*100
         log_debug('%.2f%% (n=%s) of links pruned' % (perc_pruned,
                                                      '{:,}'.format(pruned_count)))
-
         if perc_pruned > 80:
             log_warning('more than 80% of the edges were pruned')
 
         df = pd.DataFrame({'source_node' : node1, 'target_node' : node2})
         df.to_csv(snn_path, header=None, index=None)
-
         self.snn_graph = df
-
         log_debug('Done computing SNN.')
 
     def leiden(self):
