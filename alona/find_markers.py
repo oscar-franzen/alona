@@ -129,13 +129,17 @@ class AlonaFindmarkers(AlonaCellTypePred):
         fn = self.get_wd() + OUTPUT['FILENAME_ALL_T_TESTS']
         out_merged.to_csv(fn, sep=',')
         
-        lab = []
+        lab1 = []
+        lab2 = []
 
-        for i in out_pv:
-            lab.append(pd.Series(data_norm.columns))
+        for q in comparisons:
+            lab1.append(pd.Series([q]*data_norm.columns.shape[0]))
+            lab2.append(pd.Series(data_norm.columns))
 
         pval = pd.concat(out_pv)
-        ll = pd.DataFrame({'gene' : pd.concat(lab), 'pval' : pval,
+        ll = pd.DataFrame({'comparison' : pd.concat(lab1),
+                           'gene' : pd.concat(lab2),
+                           'pval' : pval,
                            'padj' : p_adjust_bh(pval)})
         
         fn = self.get_wd() + OUTPUT['FILENAME_ALL_T_TESTS_LONG']
