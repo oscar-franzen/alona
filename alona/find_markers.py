@@ -21,6 +21,7 @@ import pandas as pd
 import patsy
 
 from .log import (log_info, log_debug, log_error, log_warning)
+from .stats import p_adjust_bh
 from .constants import (OUTPUT)
 from .celltypes import AlonaCellTypePred
 
@@ -127,5 +128,17 @@ class AlonaFindmarkers(AlonaCellTypePred):
         
         fn = self.get_wd() + OUTPUT['FILENAME_ALL_T_TESTS']
         out_merged.to_csv(fn, sep=',')
+        
+        lab = []
+
+        for i in out_pv:
+            lab.append(pd.Series(data_norm.columns))
+
+        pval = pd.concat(out_pv)
+        ll = pd.DataFrame({'gene' : pd.concat(lab), 'pval' : pval,
+                           'padj' : p_adjust_bh(pval)})
+        
+        fn = self.get_wd() + OUTPUT['FILENAME_ALL_T_TESTS_LONG']
+        ll.to_csv(fn, sep=',', index=False)
 
         log_debug('Exiting findMarkers()')
