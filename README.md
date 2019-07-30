@@ -222,6 +222,7 @@ option | detailed description
 `--highlight_specific_cells [TEXT]` | Sometimes it can be useful to highlight where a specific cell is falling on the 2d embedding. This option is used to highlight such cells in the scatter plot. Cell identifiers refer to those present in the header of the data matrix. Multiple cell identifiers can be entered separated by commas.
 `--violin_top [int]` | Generates violin plots for the top genes of every cluster. The argument specifies how many of the top expressed genes of every cluster are included. "Top" is defined by ranking on the mean within every cluster.
 `--timestamp` | Adds a small timestamp to the bottom left corner of every plot. Can be useful when sharing plots in order to distinguish different versions.
+`--exclude_gene [TEXT]` | Sometimes we want to exclude certain genes from the analysis. For example tRNA genes or rRNA. This flag can be used to specify a regular expression pattern, which will be matched to the input data and the corresponding genes excluded.
 
 # Bugs
 Please file a bug report through Github.
