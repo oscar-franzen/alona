@@ -51,8 +51,13 @@ class AlonaFindmarkers(AlonaCellTypePred):
         log_debug('Entering findMarkers()')
         data_norm = self.data_norm.transpose()
         leiden_cl = self.leiden_cl
+        clusters_targets = self.clusters_targets
+        
+        # remove clusters with too few cells
+        data_norm = data_norm[np.isin(leiden_cl, clusters_targets)]
+        leiden_cl = np.array(leiden_cl)[np.isin(leiden_cl, clusters_targets)]
 
-        #joblib.dump([data_norm, leiden_cl], 'testing.joblib')
+        #joblib.dump([data_norm, leiden_cl, clusters_targets], 'testing.joblib')
         #sys.exit()
 
         # full design matrix
