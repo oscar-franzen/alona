@@ -678,7 +678,11 @@ class AlonaClustering(AlonaCell):
         else:
             genes = []
         data_norm = self.data_norm
-        symbs = pd.Series(data_norm.index.str.extract('(.+)_')[0]).str.upper()
+        
+        if self.params['species'] in ['mouse', 'human']:
+            symbs = pd.Series(data_norm.index.str.extract('(.+)_')[0]).str.upper()
+        else:
+            symbs = pd.Series(data_norm.index.str.upper())
         
         cell_count = self.embeddings.shape[0]
         if cell_count > 1000:
