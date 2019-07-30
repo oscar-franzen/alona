@@ -128,6 +128,8 @@ Options:
                                   [default: True]
   --mrnafull                      Data come from a full-length protocol, such
                                   as SMART-seq2.  [default: False]
+  --exclude_gene TEXT             Remove any gene matching this regular
+                                  expression.
   -d, --delimiter [auto|tab|space]
                                   Data delimiter. The character used to
                                   separate data values. The default setting is
