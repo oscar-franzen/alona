@@ -238,8 +238,8 @@ A common goal is to define genes that are differentially expressed between cell 
 ## 1. csvs/all_t_tests.csv
 This file contains p-values in a matrix format. The number of rows is equal to the number of input genes. Number of columns is equal to the number of comparisons. The column header contains the performed comparisons, e.g. `1_vs_0` indicates that cluster 1 is compared to cluster 0.
 
-## 2. csvs/all_t_tests_long.csv
-This is in long format and is generated for easy filtering based on selected cutoffs. Every row corresponds to one hypothesis test. Columns correspond to:
+## 2. csvs/all_t_tests_long.tsv
+This is in long format, separated by tabs, and is generated for easy filtering based on selected cutoffs. Every row corresponds to one hypothesis test. Columns correspond to:
 
 Column | What it is
 --- | ---
@@ -251,6 +251,7 @@ t_stat | t statistic
 logFC | log fold change
 mean.A | mean expression of the gene in cluster A
 mean.B | mean expression of the gene in cluster B
+annotations | this column is only added if the `--annotation` flag is specified
 
 # Bugs
 Please file a bug report through Github.
