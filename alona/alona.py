@@ -91,6 +91,12 @@ RBERVertexPartition or ModularityVertexPartition.',
 @click.option('--ignore_small_clusters', help='Ignore clusters with fewer or equal to N \
 cells.', default=10, show_default=True)
 
+@click.option('--annotations', help='An optional file containing gene descriptions. \
+The first column in this file must be gene identifiers and the second \
+column is any string. The two columns should be separated by a tab character. No header \
+is allowed. Gene symbols must match gene symbols of the input data matrix.',
+type=click.Path(exists=True), show_default=True)
+
 @click.option('--embedding', help='Method used for data projection. Can be either tSNE or \
 UMAP.', default='tSNE', type=click.Choice(['tSNE', 'UMAP']), show_default=True)
 
@@ -140,9 +146,10 @@ show_default=True)
 
 def run(filename, output, dataformat, minreads, minexpgenes, qc_auto, mrnafull,
         exclude_gene, delimiter, header, nomito, hvg, hvg_n, pca, pca_n, nn_k, prune_snn,
-        leiden_partition, leiden_res, ignore_small_clusters, embedding, perplexity,
-        species, dark_bg, add_celltypes, overlay_genes, highlight_specific_cells,
-        violin_top, timestamp, logfile, loglevel, nologo, seed, version):
+        leiden_partition, leiden_res, ignore_small_clusters, annotations, embedding,
+        perplexity, species, dark_bg, add_celltypes, overlay_genes,
+        highlight_specific_cells, violin_top, timestamp, logfile, loglevel, nologo, seed,
+        version):
 
     # confirm the genome reference files can be found
     for item in GENOME:
@@ -190,7 +197,8 @@ tried: %s' % (GENOME[item], path))
         'add_celltypes' : add_celltypes,
         'pca' : pca,
         'pca_n' : pca_n,
-        'exclude_gene' : exclude_gene
+        'exclude_gene' : exclude_gene,
+        'annotations' : annotations
     }
 
     alonacell = AlonaFindmarkers()

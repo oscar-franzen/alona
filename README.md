@@ -166,6 +166,13 @@ Options:
   --ignore_small_clusters INTEGER
                                   Ignore clusters with fewer or equal to N
                                   cells.  [default: 10]
+  --annotations PATH              An optional file containing gene
+                                  descriptions. The first column in this file
+                                  must be gene identifiers and the second
+                                  column is any string. The two columns should
+                                  be separated by a tab character. No header
+                                  is allowed. Gene symbols must match gene
+                                  symbols of the input data matrix.
   --embedding [tSNE|UMAP]         Method used for data projection. Can be
                                   either tSNE or UMAP.  [default: tSNE]
   --perplexity INTEGER            The perplexity parameter in the t-SNE
@@ -223,6 +230,7 @@ option | detailed description
 `--violin_top [int]` | Generates violin plots for the top genes of every cluster. The argument specifies how many of the top expressed genes of every cluster are included. "Top" is defined by ranking on the mean within every cluster.
 `--timestamp` | Adds a small timestamp to the bottom left corner of every plot. Can be useful when sharing plots in order to distinguish different versions.
 `--exclude_gene [TEXT]` | Sometimes we want to exclude certain genes from the analysis. For example tRNA genes or rRNA. This flag can be used to specify a regular expression pattern, which will be matched to the input data and the corresponding genes excluded.
+`--annotations [PATH]` | Use this flag to specify a file containing gene annotations. The file should contain two tab-separated columns: one for the genes and one for the annotations. Gene annotation will be added as an additional column in the differential expression analysis files. This option can be useful in case the genome is using systematic gene identifers and not gene symbols.
 
 # Differential gene expression analysis
 A common goal is to define genes that are differentially expressed between cell clusters. `alona` implements linear models for DE discovery similar to the R package `limma`. DE analysis is performed by default and the results are written to two files. A linear model `y~x` is fitted between gene expression and clusters and t statistics and p-values are calculated for coefficients. P-values are two-sided. The final output for the DE analysis is written into two tables:

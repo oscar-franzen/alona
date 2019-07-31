@@ -360,6 +360,22 @@ set to log2.')
             log_info('Removed %s genes based on regexp.' % np.sum(r))
         log_debug('Exiting remove_genes_by_pattern()')
 
+    def load_annotations(self):
+        """ Load gene annotations from file and make the matrix same length as the data. """
+        anno_path = self.params['annotations']
+        if not os.path.exists(anno_path):
+            return
+        anno = pd.read_csv(anno_path,sep='\t', header=None, names=['gene','desc'])
+        anno = anno[anno['gene'].isin(self.data_norm.index)]
+        
+        l = np.logical_not(self.data_norm.index.isin(anno['gene']))
+        missing = self.data_norm.index[l]
+        r = pd.DataFrame({ 'gene' : missing, 'desc' : ['no annotation']*len(missing) })
+        anno = anno.append(r, ignore_index=True)
+        anno.index=anno['gene']
+        anno = anno.reindex(self.data_norm.index)
+        self.anno = anno
+
     def load_data(self):
         """ Load expression matrix. """
         norm_mat_path = self.get_wd() + '/normdata.joblib'
@@ -402,7 +418,7 @@ set to log2.')
                                             mrnafull = mf, input_type = dt)
         self.data_ERCC = self.normalize(self.data_ERCC, wd + '/normdata_ERCC.joblib',
                                             mrnafull = mf, input_type = dt)
-
+        self.load_annotations()
         self.print_dimensions()
 
         log_debug('Done loading expression matrix')

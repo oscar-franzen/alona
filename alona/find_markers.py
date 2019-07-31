@@ -59,9 +59,6 @@ class AlonaFindmarkers(AlonaCellTypePred):
         data_norm = data_norm[np.isin(leiden_cl, clusters_targets)]
         leiden_cl = np.array(leiden_cl)[np.isin(leiden_cl, clusters_targets)]
 
-        joblib.dump([data_norm, leiden_cl, clusters_targets], 'testing.joblib')
-        #sys.exit()
-
         # full design matrix
         dm_full = patsy.dmatrix('~ 0 + C(cl)', pd.DataFrame({'cl' : leiden_cl}))
         resid_df = dm_full.shape[0] - dm_full.shape[1]
@@ -155,10 +152,13 @@ class AlonaFindmarkers(AlonaCellTypePred):
         
         lab1 = []
         lab2 = []
+        anno = []
 
         for q in comparisons:
             lab1.append(pd.Series([q]*data_norm.columns.shape[0]))
             lab2.append(pd.Series(data_norm.columns))
+            if type(self.anno)==pd.core.frame.DataFrame:
+                anno.append(self.anno['desc'])
 
         pval = pd.concat(out_pv, ignore_index=True)
         ll = pd.DataFrame({'comparison_A_vs_B' : pd.concat(lab1, ignore_index=True),
@@ -169,8 +169,10 @@ class AlonaFindmarkers(AlonaCellTypePred):
                    'logFC' : pd.concat(out_lfc, ignore_index=True),
                    'mean.A' : pd.concat(out_mge_g1, ignore_index=True),
                    'mean.B' : pd.concat(out_mge_g2, ignore_index=True)})
-        
+        if anno:
+            ll['annotation'] = pd.concat(anno, ignore_index=True)
+
         fn = self.get_wd() + OUTPUT['FILENAME_ALL_T_TESTS_LONG']
-        ll.to_csv(fn, sep=',', index=False)
+        ll.to_csv(fn, sep='\t', index=False)
 
         log_debug('Exiting findMarkers()')
