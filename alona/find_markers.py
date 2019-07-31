@@ -88,7 +88,7 @@ class AlonaFindmarkers(AlonaCellTypePred):
         clusts = np.unique(leiden_cl)
         
         # mean gene expression for every gene in every cluster
-        mge = [data_norm.iloc[leiden_cl == cl,:].mean() for cl in np.unique(leiden_cl)]
+        mge = [data_norm.iloc[leiden_cl == cl, :].mean() for cl in np.unique(leiden_cl)]
 
         # compare clusters
         comparisons = []

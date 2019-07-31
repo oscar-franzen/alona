@@ -10,8 +10,8 @@
 
 `alona` also exists as a parallel cloud-based service ([2][2]).
 
-## Is alona a replacement for my favorite package XYZ?
-The goal of alona is to enable fast exploratory analysis of new datasets by automating as many steps as possible. The aim of alona is not to replace low-level analysis of scRNA-seq data, a task facilitated by packages such as Seurat, scran and others.
+## Is alona a replacement for my favorite scRNA package XYZ?
+It depends on your goals. The goal of alona is to enable fast exploratory analysis of new datasets by automating as many steps as possible. alona generates data tables which can easily be loaded into your analysis toolkit of choice, where more in-depth statistical analysis can take place.
 
 ## An example
 ![Screenshot](https://panglaodb.se/img/github_screenshot2.png)
@@ -223,6 +223,26 @@ option | detailed description
 `--violin_top [int]` | Generates violin plots for the top genes of every cluster. The argument specifies how many of the top expressed genes of every cluster are included. "Top" is defined by ranking on the mean within every cluster.
 `--timestamp` | Adds a small timestamp to the bottom left corner of every plot. Can be useful when sharing plots in order to distinguish different versions.
 `--exclude_gene [TEXT]` | Sometimes we want to exclude certain genes from the analysis. For example tRNA genes or rRNA. This flag can be used to specify a regular expression pattern, which will be matched to the input data and the corresponding genes excluded.
+
+# Differential gene expression analysis
+A common goal is to perform differential expression (DE) analysis between cell clusters. `alona` implements linear models for DE discovery similar to the R package `limma`. A linear model is fit between gene expression and clusters and t statistics and p-values are calculated for coefficients. The final output for the DE analysis is written into two tables:
+
+## 1. csvs/all_t_tests.csv
+This file contains p-values in a matrix format. The number of rows is equal to the number of input genes. Number of columns is equal to the number of comparisons. The column header contains the performed comparisons, e.g. `1_vs_0` indicates that cluster 1 is compared to cluster 0.
+
+## 2. csvs/all_t_tests_long.csv
+This is in long format and is generated for easy filtering based on selected cutoffs. Every row corresponds to one hypothesis test. Columns correspond to:
+
+Column | What it is
+--- | ---
+comparison_A_vs_B | The comparison that was performed.
+gene | Gene that was tested.
+p_val | P-value of the test from the t statistic.
+FDR | False Discovery Rate based on the Benjamini-Hochberg procedure.
+t_stat | t statistic
+logFC | log fold change
+mean.A | mean expression of the gene in cluster A
+mean.B | mean expression of the gene in cluster B
 
 # Bugs
 Please file a bug report through Github.
