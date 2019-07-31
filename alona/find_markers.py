@@ -86,12 +86,17 @@ class AlonaFindmarkers(AlonaCellTypePred):
         chol2inv = scipy.linalg.cho_solve((chol, False), np.eye(chol.shape[0]))
         std_dev = np.sqrt(np.diag(chol2inv))
         clusts = np.unique(leiden_cl)
+        
+        # mean gene expression for every gene in every cluster
+        mge = [data_norm.iloc[leiden_cl == cl,:].mean() for cl in np.unique(leiden_cl)]
 
         # compare clusters
         comparisons = []
         out_t_stats = []
         out_pv = []
         out_lfc = []
+        out_mge_g1 = []
+        out_mge_g2 = []
 
         for _, k in enumerate(np.unique(leiden_cl)):
             ref_cl = clusts[k]
@@ -137,6 +142,9 @@ class AlonaFindmarkers(AlonaCellTypePred):
                 out_pv.append(pd.Series(pv))
                 out_t_stats.append(pd.Series(cur_t))
                 out_lfc.append(pd.Series(cur_lfc))
+                
+                out_mge_g1.append(mge[k])
+                out_mge_g2.append(mge[i])
         
         out_merged = pd.concat(out_pv,axis=1)
         out_merged.columns = comparisons
@@ -152,14 +160,15 @@ class AlonaFindmarkers(AlonaCellTypePred):
             lab1.append(pd.Series([q]*data_norm.columns.shape[0]))
             lab2.append(pd.Series(data_norm.columns))
 
-        pval = pd.concat(out_pv)
-        ll = pd.DataFrame({'comparison' : pd.concat(lab1),
-                           'gene' : pd.concat(lab2),
-                           'p_val' : pval,
-                           'FDR' : p_adjust_bh(pval)})
-                           
-        ll['t_stat'] = pd.concat(out_t_stats, ignore_index=True)
-        ll['logFC'] = pd.concat(out_lfc, ignore_index=True)
+        pval = pd.concat(out_pv, ignore_index=True)
+        ll = pd.DataFrame({'comparison_A_vs_B' : pd.concat(lab1, ignore_index=True),
+                   'gene' : pd.concat(lab2, ignore_index=True),
+                   'p_val' : pval,
+                   'FDR' : p_adjust_bh(pval),
+                   't_stat' : pd.concat(out_t_stats, ignore_index=True),
+                   'logFC' : pd.concat(out_lfc, ignore_index=True),
+                   'mean.A' : pd.concat(out_mge_g1, ignore_index=True),
+                   'mean.B' : pd.concat(out_mge_g2, ignore_index=True)})
         
         fn = self.get_wd() + OUTPUT['FILENAME_ALL_T_TESTS_LONG']
         ll.to_csv(fn, sep=',', index=False)
