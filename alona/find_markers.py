@@ -88,6 +88,7 @@ class AlonaFindmarkers(AlonaCellTypePred):
 
         # compare clusters
         comparisons = []
+        out_t_stats = []
         out_pv = []
 
         for _, k in enumerate(np.unique(leiden_cl)):
@@ -113,14 +114,20 @@ class AlonaFindmarkers(AlonaCellTypePred):
                 # compute p-values
                 cur_t = cur_lfc/np.sqrt(std_err)
                 t_dist = scipy.stats.t(resid_df)
+                
                 left = t_dist.cdf(cur_t)
                 right = 1 - left
-
+                
                 # two sided p-value
                 pv = np.minimum(left, right)*2
                 
+                # check those with 0 with sf
+                genes_recheck = pv==0
+                pp = t_dist.sf(cur_t[genes_recheck])
+                
                 comparisons.append('%s_vs_%s' % (k,i))
                 out_pv.append(pd.Series(pv))
+                out_t_stats.append(pd.Series(cur_t))
         
         out_merged = pd.concat(out_pv,axis=1)
         out_merged.columns = comparisons
@@ -141,6 +148,8 @@ class AlonaFindmarkers(AlonaCellTypePred):
                            'gene' : pd.concat(lab2),
                            'pval' : pval,
                            'padj' : p_adjust_bh(pval)})
+                           
+        ll['tstat'] = pd.concat(out_t_stats, ignore_index=True)
         
         fn = self.get_wd() + OUTPUT['FILENAME_ALL_T_TESTS_LONG']
         ll.to_csv(fn, sep=',', index=False)
