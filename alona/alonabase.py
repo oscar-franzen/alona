@@ -50,6 +50,7 @@ class AlonaBase():
         self.unmappable = []
         self.state = {}
         self.mat_data_file = 'input.mat'
+        self.anno = None
 
         self.params.update(params)
 

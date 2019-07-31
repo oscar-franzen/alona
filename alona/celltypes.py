@@ -53,15 +53,15 @@ class AlonaCellTypePred(AlonaClustering):
 
         clust = self.leiden_cl
         data = self.data_norm
-
         fn = self.get_wd() + OUTPUT['FILENAME_MEDIAN_EXP']
-
         ret = data.groupby(clust, axis=1).aggregate(np.median)
         ret = ret.iloc[:, ret.columns.isin(self.clusters_targets)]
-
-        ret.to_csv(fn, header=True)
-
         self.median_expr = ret
+        
+        if type(self.anno) == pd.core.frame.DataFrame:
+            ret = pd.concat([self.anno['desc'], ret], axis=1)
+            
+        ret.to_csv(fn, header=True, sep='\t')
 
         log_debug('median_exp() finished')
 

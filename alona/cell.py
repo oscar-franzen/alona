@@ -363,6 +363,8 @@ set to log2.')
     def load_annotations(self):
         """ Load gene annotations from file and make the matrix same length as the data. """
         anno_path = self.params['annotations']
+        if not anno_path:
+            return
         if not os.path.exists(anno_path):
             return
         anno = pd.read_csv(anno_path,sep='\t', header=None, names=['gene','desc'])
