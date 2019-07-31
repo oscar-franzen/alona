@@ -155,11 +155,11 @@ class AlonaFindmarkers(AlonaCellTypePred):
         pval = pd.concat(out_pv)
         ll = pd.DataFrame({'comparison' : pd.concat(lab1),
                            'gene' : pd.concat(lab2),
-                           'pval' : pval,
-                           'padj' : p_adjust_bh(pval)})
+                           'p_val' : pval,
+                           'FDR' : p_adjust_bh(pval)})
                            
-        ll['tstat'] = pd.concat(out_t_stats, ignore_index=True)
-        ll['lfc'] = pd.concat(out_lfc, ignore_index=True)
+        ll['t_stat'] = pd.concat(out_t_stats, ignore_index=True)
+        ll['logFC'] = pd.concat(out_lfc, ignore_index=True)
         
         fn = self.get_wd() + OUTPUT['FILENAME_ALL_T_TESTS_LONG']
         ll.to_csv(fn, sep=',', index=False)
