@@ -225,7 +225,7 @@ option | detailed description
 `--exclude_gene [TEXT]` | Sometimes we want to exclude certain genes from the analysis. For example tRNA genes or rRNA. This flag can be used to specify a regular expression pattern, which will be matched to the input data and the corresponding genes excluded.
 
 # Differential gene expression analysis
-A common goal is to define genes that are differentially expressed between cell clusters. `alona` implements linear models for DE discovery similar to the R package `limma`. DE analysis is performed by default and the results are written to two files. A linear model `y~x` is fitted between gene expression and clusters and t statistics and p-values are calculated for coefficients. The final output for the DE analysis is written into two tables:
+A common goal is to define genes that are differentially expressed between cell clusters. `alona` implements linear models for DE discovery similar to the R package `limma`. DE analysis is performed by default and the results are written to two files. A linear model `y~x` is fitted between gene expression and clusters and t statistics and p-values are calculated for coefficients. P-values are two-sided. The final output for the DE analysis is written into two tables:
 
 ## 1. csvs/all_t_tests.csv
 This file contains p-values in a matrix format. The number of rows is equal to the number of input genes. Number of columns is equal to the number of comparisons. The column header contains the performed comparisons, e.g. `1_vs_0` indicates that cluster 1 is compared to cluster 0.
