@@ -51,6 +51,7 @@ class AlonaFindmarkers(AlonaCellTypePred):
 
         log_debug('Entering findMarkers()')
         data_norm = self.data_norm.transpose()
+        
         leiden_cl = self.leiden_cl
         clusters_targets = self.clusters_targets
         
@@ -67,7 +68,7 @@ class AlonaFindmarkers(AlonaCellTypePred):
 
         # gene expression should be the response
         lm = sm.regression.linear_model.OLS(endog=data_norm, # response
-                                            exog=dm_full, # design matrix of clusters
+                                            exog=dm_full # design matrix of clusters
                                            )
         res = lm.fit()
         coef = res.params # coefficients
@@ -90,6 +91,7 @@ class AlonaFindmarkers(AlonaCellTypePred):
         comparisons = []
         out_t_stats = []
         out_pv = []
+        out_lfc = []
 
         for _, k in enumerate(np.unique(leiden_cl)):
             ref_cl = clusts[k]
@@ -118,16 +120,23 @@ class AlonaFindmarkers(AlonaCellTypePred):
                 left = t_dist.cdf(cur_t)
                 right = 1 - left
                 
-                # two sided p-value
+                # times two since it is a two sided p-value
                 pv = np.minimum(left, right)*2
                 
+                # cdf precision problem relating to floating point precision
+                # https://stackoverflow.com/questions/6298105/precision-of-cdf-in-scipy-stats
+                # https://github.com/scipy/scipy/issues/2238
+                # sf = 1-cdf
                 # check those with 0 with sf
                 genes_recheck = pv==0
                 pp = t_dist.sf(cur_t[genes_recheck])
+                # put back
+                pv[genes_recheck] = pp
                 
                 comparisons.append('%s_vs_%s' % (k,i))
                 out_pv.append(pd.Series(pv))
                 out_t_stats.append(pd.Series(cur_t))
+                out_lfc.append(pd.Series(cur_lfc))
         
         out_merged = pd.concat(out_pv,axis=1)
         out_merged.columns = comparisons
@@ -150,6 +159,7 @@ class AlonaFindmarkers(AlonaCellTypePred):
                            'padj' : p_adjust_bh(pval)})
                            
         ll['tstat'] = pd.concat(out_t_stats, ignore_index=True)
+        ll['lfc'] = pd.concat(out_lfc, ignore_index=True)
         
         fn = self.get_wd() + OUTPUT['FILENAME_ALL_T_TESTS_LONG']
         ll.to_csv(fn, sep=',', index=False)
