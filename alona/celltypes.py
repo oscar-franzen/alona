@@ -49,7 +49,7 @@ class AlonaCellTypePred(AlonaClustering):
 
     def median_exp(self):
         """ Represent each cluster with median gene expression. """
-        log_debug('median_exp() Computing median expression per cluster...')
+        log_debug('median_exp() Computing median expression per cluster')
 
         clust = self.leiden_cl
         data = self.data_norm
@@ -62,8 +62,24 @@ class AlonaCellTypePred(AlonaClustering):
             ret = pd.concat([self.anno['desc'], ret], axis=1)
             
         ret.to_csv(fn, header=True, sep='\t')
-
         log_debug('median_exp() finished')
+        
+    def mean_exp(self):
+        """ Represent each cluster with mean gene expression. """
+        log_debug('mean_exp() Computing mean expression per cluster')
+
+        clust = self.leiden_cl
+        data = self.data_norm
+        fn = self.get_wd() + OUTPUT['FILENAME_MEAN_EXP']
+        ret = data.groupby(clust, axis=1).aggregate(np.mean)
+        ret = ret.iloc[:, ret.columns.isin(self.clusters_targets)]
+        #self.mean_expr = ret
+        
+        if type(self.anno) == pd.core.frame.DataFrame:
+            ret = pd.concat([self.anno['desc'], ret], axis=1)
+            
+        ret.to_csv(fn, header=True, sep='\t')
+        log_debug('mean_exp() finished')
 
     def CTA_RANK_F(self, marker_plot=False):
         """

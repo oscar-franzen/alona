@@ -449,6 +449,7 @@ set to log2.')
         self.findMarkers()
         
         self.median_exp()
+        self.mean_exp()
         self.load_markers()
         self.CTA_RANK_F(marker_plot=True)
         self.download_model()

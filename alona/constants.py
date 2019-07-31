@@ -29,6 +29,7 @@ OUTPUT = {
     'FILENAME_SNN_GRAPH' : '/csvs/snn_graph.csv',
     'FILENAME_CLUSTERS_LEIDEN' : '/csvs/clusters_leiden.csv',
     'FILENAME_MEDIAN_EXP' : '/csvs/median_exp.tsv',
+    'FILENAME_MEAN_EXP' : '/csvs/mean_exp.tsv',
     'FILENAME_CTA_RANK_F' : '/csvs/CTA_RANK_F/cell_type_pred_full_table.txt',
     'FILENAME_CTA_RANK_F_BEST' : '/csvs/CTA_RANK_F/cell_type_pred_best.txt',
     'FILENAME_SETTINGS' : '/settings.txt',
