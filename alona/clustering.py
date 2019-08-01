@@ -71,9 +71,17 @@ class AlonaClustering(AlonaCell):
                                               hvg_n=self.params['hvg_n'],
                                               data_norm=self.data_norm,
                                               data_ERCC=self.data_ERCC)
+            
         self.hvg = hvg_finder.find()
-        pd.DataFrame(self.hvg).to_csv(self.get_wd() + OUTPUT['FILENAME_HVG'], header=False,
-                                      index=False)
+        
+        if type(self.anno) == pd.core.frame.DataFrame:
+            w = pd.DataFrame(self.hvg, index=self.hvg, columns=['gene'])
+            w = w.merge(self.anno)
+        else:
+            w = pd.DataFrame(self.hvg)
+        
+        fn = self.get_wd() + OUTPUT['FILENAME_HVG']
+        w.to_csv(fn, header=False, index=False, sep='\t')
         log_debug('Finished find_variable_genes()')
 
     def PCA(self, out_path):

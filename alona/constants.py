@@ -23,7 +23,7 @@ OUTPUT = {
     'FILENAME_MARKER_HEATMAP' : '/plots/marker_heatmap.png',
     'FILENAME_PCA' : '/csvs/pca.csv',
     'FILENAME_EMBEDDING_PREFIX' : '/csvs/embeddings_',
-    'FILENAME_HVG' : '/csvs/highly_variable_genes.csv',
+    'FILENAME_HVG' : '/csvs/highly_variable_genes.tsv',
     'FILENAME_ALL_T_TESTS' : '/csvs/all_t_tests.csv',
     'FILENAME_ALL_T_TESTS_LONG' : '/csvs/all_t_tests_long.tsv',
     'FILENAME_SNN_GRAPH' : '/csvs/snn_graph.csv',
