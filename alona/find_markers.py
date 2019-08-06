@@ -95,7 +95,7 @@ class AlonaFindmarkers(AlonaCellTypePred):
         out_mge_g1 = []
         out_mge_g2 = []
 
-        for k, ref_cl in enumerate(np.unique(leiden_cl)):
+        for k, _ in enumerate(clusts):
             ref_coef = coef.iloc[k, :]
 
             # recompute coefficients for contrasts
@@ -134,7 +134,7 @@ class AlonaFindmarkers(AlonaCellTypePred):
                 # put back
                 pv[genes_recheck] = pp
                 
-                comparisons.append('%s_vs_%s' % (k,i))
+                comparisons.append('%s_vs_%s' % (clusts[k], clusts[i]))
                 out_pv.append(pd.Series(pv))
                 out_t_stats.append(pd.Series(cur_t))
                 out_lfc.append(pd.Series(cur_lfc))

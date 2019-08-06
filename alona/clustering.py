@@ -281,10 +281,11 @@ class AlonaClustering(AlonaCell):
         self.n_clusters = np.sum(counts>ignore_clusters)
         n = len(set(self.leiden_cl))
         log_info('there are %s cell clusters (n=%s are OK)' % (n, self.n_clusters))
-
-        log_debug(('cluster', 'cells'))
         self.clusters_targets = cl[counts>ignore_clusters]
-        log_debug((cl, counts))
+        
+        log_debug(('cluster', 'cells'))
+        for item in zip(cl, counts):
+            log_debug(item)
         
         if not self.cluster_colors:
             # generate some unique colors
