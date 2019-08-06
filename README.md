@@ -173,6 +173,14 @@ Options:
                                   be separated by a tab character. No header
                                   is allowed. Gene symbols must match gene
                                   symbols of the input data matrix.
+  --custom_clustering PATH        An optional file containing a pre-generated
+                                  clustering. This option can be used if
+                                  clustering has already been performed
+                                  externally. The file should contain two
+                                  columns, delimited by a tab character,
+                                  without header. The first column should
+                                  contain cell identifiers and the second
+                                  column should contain the cluster.
   --embedding [tSNE|UMAP]         Method used for data projection. Can be
                                   either tSNE or UMAP.  [default: tSNE]
   --perplexity INTEGER            The perplexity parameter in the t-SNE
