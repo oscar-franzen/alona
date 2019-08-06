@@ -168,7 +168,7 @@ class AlonaBase():
             log_info('Data unpacking has already been done.')
             return
         # .tar file?
-        if re.search(r'.tar', input_file):
+        if re.search(r'(.tar.gz|tar)$', input_file):
             self.matrix_market()
             return
         if self._is_binary:

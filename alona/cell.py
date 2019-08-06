@@ -43,6 +43,7 @@ class AlonaCell(AlonaBase):
         self.low_quality_cells = None
         self.rRNA_genes = None
         self.pred = None
+        self.preclust = None
         super().__init__()
 
         # make matplotlib more quiet
@@ -367,16 +368,26 @@ set to log2.')
             return
         if not os.path.exists(anno_path):
             return
-        anno = pd.read_csv(anno_path,sep='\t', header=None, names=['gene','desc'])
+        anno = pd.read_csv(anno_path,sep='\t', header=None, names=['gene', 'desc'])
         anno = anno[anno['gene'].isin(self.data_norm.index)]
         
         l = np.logical_not(self.data_norm.index.isin(anno['gene']))
         missing = self.data_norm.index[l]
-        r = pd.DataFrame({ 'gene' : missing, 'desc' : ['no annotation']*len(missing) })
+        r = pd.DataFrame({'gene' : missing, 'desc' : ['no annotation']*len(missing)})
         anno = anno.append(r, ignore_index=True)
         anno.index=anno['gene']
         anno = anno.reindex(self.data_norm.index)
         self.anno = anno
+    
+    def load_preclustering(self):
+        """ If the user has specified a premade clustering with '--custom_clustering' """
+        clust_path = self.params['custom_clustering']
+        if not clust_path:
+            return
+        if not os.path.exists(clust_path):
+            return
+        h = ['cell', 'cluster']
+        self.preclust = pd.read_csv(clust_path,sep='\t', header=None, names=h)
 
     def load_data(self):
         """ Load expression matrix. """
@@ -421,6 +432,7 @@ set to log2.')
         self.data_ERCC = self.normalize(self.data_ERCC, wd + '/normdata_ERCC.joblib',
                                             mrnafull = mf, input_type = dt)
         self.load_annotations()
+        self.load_preclustering()
         self.print_dimensions()
 
         log_debug('Done loading expression matrix')

@@ -95,8 +95,7 @@ class AlonaFindmarkers(AlonaCellTypePred):
         out_mge_g1 = []
         out_mge_g2 = []
 
-        for _, k in enumerate(np.unique(leiden_cl)):
-            ref_cl = clusts[k]
+        for k, ref_cl in enumerate(np.unique(leiden_cl)):
             ref_coef = coef.iloc[k, :]
 
             # recompute coefficients for contrasts

@@ -97,6 +97,12 @@ column is any string. The two columns should be separated by a tab character. No
 is allowed. Gene symbols must match gene symbols of the input data matrix.',
 type=click.Path(exists=True), show_default=True)
 
+@click.option('--custom_clustering', help='An optional file containing a pre-generated \
+clustering. This option can be used if clustering has already been performed externally. \
+The file should contain two columns, delimited by a tab character, without header. The \
+first column should contain cell identifiers and the second column should contain the \
+cluster.', type=click.Path(exists=True), show_default=True)
+
 @click.option('--embedding', help='Method used for data projection. Can be either tSNE or \
 UMAP.', default='tSNE', type=click.Choice(['tSNE', 'UMAP']), show_default=True)
 
@@ -146,10 +152,10 @@ show_default=True)
 
 def run(filename, output, dataformat, minreads, minexpgenes, qc_auto, mrnafull,
         exclude_gene, delimiter, header, nomito, hvg, hvg_n, pca, pca_n, nn_k, prune_snn,
-        leiden_partition, leiden_res, ignore_small_clusters, annotations, embedding,
-        perplexity, species, dark_bg, add_celltypes, overlay_genes,
-        highlight_specific_cells, violin_top, timestamp, logfile, loglevel, nologo, seed,
-        version):
+        leiden_partition, leiden_res, ignore_small_clusters, annotations,
+        custom_clustering, embedding, perplexity, species, dark_bg, add_celltypes,
+        overlay_genes, highlight_specific_cells, violin_top, timestamp, logfile,
+        loglevel, nologo, seed, version):
 
     # confirm the genome reference files can be found
     for item in GENOME:
@@ -198,7 +204,8 @@ tried: %s' % (GENOME[item], path))
         'pca' : pca,
         'pca_n' : pca_n,
         'exclude_gene' : exclude_gene,
-        'annotations' : annotations
+        'annotations' : annotations,
+        'custom_clustering' : custom_clustering
     }
 
     alonacell = AlonaFindmarkers()

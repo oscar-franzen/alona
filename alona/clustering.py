@@ -267,6 +267,28 @@ class AlonaClustering(AlonaCell):
         df.to_csv(snn_path, header=None, index=None)
         self.snn_graph = df
         log_debug('Done computing SNN.')
+    
+    def leiden_prep(self):
+        """ Post-clustering stuff. """
+        fn = self.get_wd() + OUTPUT['FILENAME_CLUSTERS_LEIDEN']
+
+        idx = self.data_norm.columns
+        pd.DataFrame(self.leiden_cl, index=idx).to_csv(fn, header=False, index=True)
+        cl, counts = np.unique(self.leiden_cl, return_counts=True)
+        
+        ignore_clusters = self.params['ignore_small_clusters']
+        
+        self.n_clusters = np.sum(counts>ignore_clusters)
+        n = len(set(self.leiden_cl))
+        log_info('there are %s cell clusters (n=%s are OK)' % (n, self.n_clusters))
+
+        log_debug(('cluster', 'cells'))
+        self.clusters_targets = cl[counts>ignore_clusters]
+        log_debug((cl, counts))
+        
+        if not self.cluster_colors:
+            # generate some unique colors
+            self.cluster_colors = uniqueColors(len(self.clusters_targets))
 
     def leiden(self):
         """
@@ -308,41 +330,24 @@ class AlonaClustering(AlonaCell):
                                       seed=seed)
         self.leiden_cl = cl.membership
 
-        fn = self.get_wd() + OUTPUT['FILENAME_CLUSTERS_LEIDEN']
-
-        idx = self.data_norm.columns
-        pd.DataFrame(self.leiden_cl, index=idx).to_csv(fn, header=False, index=True)
-
-        clc = np.bincount(cl.membership)
-        ignore_clusters = self.params['ignore_small_clusters']
-        self.n_clusters = np.sum(clc>ignore_clusters)
-        
-        log_info('leiden formed %s cell clusters (n=%s are OK)' % (len(set(cl.membership)),
-             self.n_clusters))
-             
-        ind = np.nonzero(clc)[0]
-        log_debug(('cluster', 'cells'))
-        self.clusters_targets = []
-
-        for i in zip(ind, clc):
-            log_debug(i)
-            if i[1]>ignore_clusters:
-                self.clusters_targets.append(i[0])
-        
-        if not self.cluster_colors:
-            # generate some unique colors
-            self.cluster_colors = uniqueColors(len(self.clusters_targets))
+        self.leiden_prep()
 
         log_debug('Leiden has finished.')
 
     def cluster(self):
-        """ Cluster cells. """
-        k = self.params['nn_k']
-
-        fn_knn_map = self.get_wd() + OUTPUT['FILENAME_KNN_map']
-        self.knn(k, filename=fn_knn_map)
-        self.snn(k, self.params['prune_snn'])
-        self.leiden()
+        """ Clusters or loads a pre-made clustering. """
+        if type(self.preclust) == pd.core.frame.DataFrame:
+            if self.data_norm.shape[1] != self.preclust.shape[0]:
+                log_error('Number of cells mismatch (data_norm and preclust)')
+            self.data_norm = self.data_norm.reindex(self.preclust['cell'], axis=1)
+            self.leiden_cl = list(self.preclust['cluster'])
+            self.leiden_prep()
+        else:
+            k = self.params['nn_k']
+            fn_knn_map = self.get_wd() + OUTPUT['FILENAME_KNN_map']
+            self.knn(k, filename=fn_knn_map)
+            self.snn(k, self.params['prune_snn'])
+            self.leiden()
 
     def cell_scatter_plot(self, title=''):
         """ Generates a tSNE scatter plot with colored clusters. """
@@ -638,6 +643,7 @@ class AlonaClustering(AlonaCell):
         data_points = [] # array of arrays
         labels = []
         ticks = []
+        idx = 1
 
         for i, d in data_norm.groupby(by=cl, axis=1):
             if d.shape[1] <= ignore_clusters:
@@ -646,7 +652,8 @@ class AlonaClustering(AlonaCell):
             genes_expressed = d.apply(lambda x: sum(x > 0), axis=0)
             data_points.append(genes_expressed.values)
             labels.append(i)
-            ticks.append(i+1)
+            ticks.append(idx)
+            idx += 1
             
         plt.clf()
         fig, ax = plt.subplots(nrows=1, ncols=1, figsize=(7, 5))
@@ -730,7 +737,9 @@ class AlonaClustering(AlonaCell):
         fig, ax = plt.subplots(nrows=self.n_clusters, ncols=1, figsize=(7, fig_size_y))
         fig.subplots_adjust(hspace=1)
         
-        for idx, d in data_norm.groupby(by=cl, axis=1):
+        idx = 0
+        
+        for cluster_id, d in data_norm.groupby(by=cl, axis=1):
             if d.shape[1] <= ignore_clusters:
                 continue
             
@@ -756,10 +765,11 @@ class AlonaClustering(AlonaCell):
             
             ax[idx].set_xticklabels(gene_labels, size=5, rotation='vertical')
             ax[idx].set_ylabel('gene expression', size=6)
-            ax[idx].set_title('cluster %s' % idx, size=6)
+            ax[idx].set_title('cluster %s' % cluster_id, size=6)
             
             ax[idx].tick_params(axis='y', which='major', labelsize=6)
             ax[idx].tick_params(axis='y', which='minor', labelsize=6)
+            idx += 1
 
         fn = self.get_wd() + OUTPUT['FILENAME_CELL_VIOLIN_TOP']
         
