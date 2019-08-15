@@ -269,7 +269,7 @@ Limited support is available through e-mail:
 * Oscar Franzen <p.oscar.franzen@gmail.com>
 
 # Cite
-A manuscript is in preparation.
+A manuscript has been submitted.
 
 # License
 GPLv3
