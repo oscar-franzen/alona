@@ -229,10 +229,10 @@ set to log2.')
         return data_norm
 
     @staticmethod
-    def _dump(d, fn='foo.joblib'):
+    def _dump(d, fn='foo.joblib', compress=False):
         """ Serialize data. """
         log_debug('Writing dump file %s' % fn)
-        dump(d, fn)
+        dump(d, fn, compress=compress)
 
     def normalize(self, data, fn_out='', input_type='raw', mrnafull=False):
         """ Normalizes gene expression values. """
@@ -263,7 +263,7 @@ set to log2.')
             log_debug('Normalization is not needed.')
 
         if fn_out != '':
-            self._dump(data_norm, fn_out)
+            self._dump(data_norm, fn_out, compress=True)
 
         log_debug('Finished normalize()')
         return data_norm
