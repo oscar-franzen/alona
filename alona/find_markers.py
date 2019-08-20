@@ -41,14 +41,19 @@ class AlonaFindmarkers(AlonaCellTypePred):
         else:
             pv = np.minimum(left,right)*2
         return pv
+        
+    def discover_markers(self, lfc=0, direction='up'):
+        pval_mat = self.fit_lm_tt(lfc, direction)
+        self.combine_tests(pval_mat)
 
-    def findMarkers(self, lfc=0, direction='up'):
+    def fit_lm_tt(self, lfc, direction):
         """
         Finds differentially expressed (DE) genes between clusters by fitting a linear
         model (LM) to gene expression (response variables) and clusters (explanatory
-        variables). Model coefficients are estimated via the ordinary least squares
-        method and p-values are calculated using t-statistics. One benefit of using LM for
-        DE is that computations are vectorized and therefore very fast.
+        variables) and performs pairwise t-tests for significance. Model coefficients are
+        estimated via the ordinary least squares method and p-values are calculated using
+        t-statistics. One benefit of using LM for DE is that computations are vectorized
+        and therefore very fast.
 
         The ideas behind using LM to explore DE have been extensively covered in the
         limma R package.
@@ -63,7 +68,7 @@ class AlonaFindmarkers(AlonaCellTypePred):
         https://newonlinecourses.science.psu.edu/stat555/node/12/
         """
 
-        log_debug('Entering findMarkers()')
+        log_debug('Entering fit_lm_tt()')
         data_norm = self.data_norm.transpose()
         
         leiden_cl = self.leiden_cl
@@ -188,4 +193,34 @@ class AlonaFindmarkers(AlonaCellTypePred):
         fn = self.get_wd() + OUTPUT['FILENAME_ALL_T_TESTS_LONG']
         ll.to_csv(fn, sep='\t', index=False)
 
-        log_debug('Exiting findMarkers()')
+        log_debug('Exiting fit_lm_tt()')
+        return out_merged
+
+    def combine_tests(self, pval_mat):
+        """ Uses Simes' method for combining p-values.
+        
+        Arguments
+        =========
+        pval_mat : A data frame with p-values.
+
+        Simes, R. J. (1986). An improved Bonferroni procedure for multiple tests of
+        significance. Biometrika, 73(3):751-754. 
+        """
+        
+        test_mat = pval_mat
+        clusters_targets = self.clusters_targets
+        
+        res = []
+        for cl in clusters_targets:
+            idx = test_mat.columns.str.match('^%s_vs'%cl)
+            subset_mat = test_mat.iloc[:,idx]
+            
+            r = subset_mat.rank(axis=1)
+            T = (subset_mat.shape[1]*subset_mat/r).min(axis=1).sort_values()
+            T[T>1] = 1
+            
+            df = pd.DataFrame({'cluster' : [cl]*len(T), 'gene' : T.index, 'pvalue.Simes' : T})
+            res.append(df)
+        
+        fn = self.get_wd() + OUTPUT['FILENAME_MARKERS']
+        pd.concat(res).to_csv(fn, sep='\t', index=False)

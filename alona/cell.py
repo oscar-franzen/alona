@@ -458,7 +458,7 @@ set to log2.')
             self.embedding(embedding_path)
 
         self.cluster()
-        self.findMarkers()
+        self.discover_markers(direction=self.params['de_direction'])
         
         self.median_exp()
         self.mean_exp()

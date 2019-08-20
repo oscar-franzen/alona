@@ -26,6 +26,7 @@ OUTPUT = {
     'FILENAME_HVG' : '/csvs/highly_variable_genes.tsv',
     'FILENAME_ALL_T_TESTS' : '/csvs/all_t_tests.csv',
     'FILENAME_ALL_T_TESTS_LONG' : '/csvs/all_t_tests_long.tsv',
+    'FILENAME_MARKERS' : '/csvs/discovered_markers.tsv',
     'FILENAME_SNN_GRAPH' : '/csvs/snn_graph.csv',
     'FILENAME_CLUSTERS_LEIDEN' : '/csvs/clusters_leiden.csv',
     'FILENAME_MEDIAN_EXP' : '/csvs/median_exp.tsv',
