@@ -32,8 +32,17 @@ class AlonaFindmarkers(AlonaCellTypePred):
 
     def __init__(self):
         super().__init__()
+        
+    def _choose_leftright_pvalues(self, left, right, direction):
+        if direction == 'up':
+            pv = right
+        elif direction == 'down':
+            pv = left
+        else:
+            pv = np.minimum(left,right)*2
+        return pv
 
-    def findMarkers(self):
+    def findMarkers(self, lfc=0, direction='up'):
         """
         Finds differentially expressed (DE) genes between clusters by fitting a linear
         model (LM) to gene expression (response variables) and clusters (explanatory
@@ -43,6 +52,11 @@ class AlonaFindmarkers(AlonaCellTypePred):
 
         The ideas behind using LM to explore DE have been extensively covered in the
         limma R package.
+        
+        Arguments
+        =========
+        direction : Can be 'any' for any direction 'up' for up-regulated and 'down'
+                    for down-regulated.
 
         Useful references:
         https://www.bioconductor.org/packages/release/bioc/vignettes/limma/inst/doc/usersguide.pdf
@@ -87,7 +101,7 @@ class AlonaFindmarkers(AlonaCellTypePred):
         # mean gene expression for every gene in every cluster
         mge = [data_norm.iloc[leiden_cl == cl, :].mean() for cl in np.unique(leiden_cl)]
 
-        # compare clusters
+        # perform all pairwise comparisons of clusters (t-tests)
         comparisons = []
         out_t_stats = []
         out_pv = []
@@ -97,7 +111,6 @@ class AlonaFindmarkers(AlonaCellTypePred):
 
         for k, _ in enumerate(clusts):
             ref_coef = coef.iloc[k, :]
-
             # recompute coefficients for contrasts
             # https://genomicsclass.github.io/book/pages/interactions_and_contrasts.html
             con = np.zeros((coef.shape[0], k))
@@ -115,32 +128,33 @@ class AlonaFindmarkers(AlonaCellTypePred):
                 cur_lfc.index = std_err.index
 
                 # compute p-values
-                cur_t = cur_lfc/np.sqrt(std_err)
-                t_dist = scipy.stats.t(resid_df)
-                
-                left = t_dist.cdf(cur_t)
-                right = 1 - left
-                
-                # times two since it is a two sided p-value
-                pv = np.minimum(left, right)*2
-                
-                # cdf precision problem relating to floating point precision
-                # https://stackoverflow.com/questions/6298105/precision-of-cdf-in-scipy-stats
-                # https://github.com/scipy/scipy/issues/2238
-                # sf = 1-cdf
-                # check those with 0 with sf
-                genes_recheck = pv==0
-                pp = t_dist.sf(cur_t[genes_recheck])
-                # put back
-                pv[genes_recheck] = pp
+                if lfc == 0:
+                    cur_t = cur_lfc/np.sqrt(std_err)
+                    t_dist = scipy.stats.t(resid_df)
+                    
+                    left = t_dist.cdf(cur_t)
+                    right = t_dist.sf(cur_t)
+                    
+                    pv1 = self._choose_leftright_pvalues(left, right, direction)
+                    pv2 = self._choose_leftright_pvalues(right, left, direction)
                 
                 comparisons.append('%s_vs_%s' % (clusts[k], clusts[i]))
-                out_pv.append(pd.Series(pv))
+                comparisons.append('%s_vs_%s' % (clusts[i], clusts[k]))
+                
+                out_pv.append(pd.Series(pv1))
+                out_pv.append(pd.Series(pv2))
+            
                 out_t_stats.append(pd.Series(cur_t))
+                out_t_stats.append(pd.Series(cur_t))
+                
                 out_lfc.append(pd.Series(cur_lfc))
+                out_lfc.append(pd.Series(cur_lfc*-1))
                 
                 out_mge_g1.append(mge[k])
                 out_mge_g2.append(mge[i])
+                
+                out_mge_g1.append(mge[i])
+                out_mge_g2.append(mge[k])
         
         out_merged = pd.concat(out_pv,axis=1)
         out_merged.columns = comparisons
