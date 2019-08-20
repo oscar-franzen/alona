@@ -239,15 +239,19 @@ option | detailed description
 `--timestamp` | Adds a small timestamp to the bottom left corner of every plot. Can be useful when sharing plots in order to distinguish different versions.
 `--exclude_gene [TEXT]` | Sometimes we want to exclude certain genes from the analysis. For example tRNA genes or rRNA. This flag can be used to specify a regular expression pattern, which will be matched to the input data and the corresponding genes excluded.
 `--annotations [PATH]` | Use this flag to specify a file containing gene annotations. The file should contain two tab-separated columns: one for the genes and one for the annotations. Gene annotation will be added as an additional column in the differential expression analysis files. This option can be useful in case the genome is using systematic gene identifers and not gene symbols.
+`--de_direction [any|up|down]` | Specifies the direction of the differential gene expression analysis. Default is `up`, because usually we want to find genes that are more expressed in one cluster compared to the other.
 
 # Differential gene expression analysis
-A common goal is to define genes that are differentially expressed between cell clusters. `alona` implements linear models for DE discovery similar to the R package `limma`. DE analysis is performed by default and the results are written to two files. A linear model `y~x` is fitted between gene expression and clusters and t statistics and p-values are calculated for coefficients. P-values are two-sided. The final output for the DE analysis is written into two tables:
+A common goal is to define genes that are differentially expressed between cell clusters. `alona` implements linear models for DE discovery similar to the R package `limma`. DE analysis is performed by default and the results are written to two files. A linear model `y~x` is fitted between gene expression and clusters and t statistics and p-values are calculated for coefficients. P-values are two-sided if direction is set to any (otherwise one-sided). The final output for the DE analysis is written into three tables:
 
 ## 1. csvs/all_t_tests.csv
 This file contains p-values in a matrix format. The number of rows is equal to the number of input genes. Number of columns is equal to the number of comparisons. The column header contains the performed comparisons, e.g. `1_vs_0` indicates that cluster 1 is compared to cluster 0.
 
 ## 2. csvs/all_t_tests_long.tsv
 This is in long format, separated by tabs, and is generated for easy filtering based on selected cutoffs. Every row corresponds to one hypothesis test. Columns correspond to:
+
+## 3. csvs/markers.tsv
+Contains marker genes by combining p-values of the pairwise tests. P-values are combined with Simes' method.
 
 Column | What it is
 --- | ---

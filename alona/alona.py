@@ -115,6 +115,9 @@ UMAP.', default='tSNE', type=click.Choice(['tSNE', 'UMAP']), show_default=True)
 
 @click.option('--dark_bg', help='Use dark background in scatter plots.', is_flag=True,
               default=False, show_default=True)
+              
+@click.option('--de_direction', help='Direction for differential gene expression analysis.',
+              type=click.Choice(['any', 'up', 'down']), default='up')
 
 @click.option('--add_celltypes', help='Add markers for these additional cell types to \
 the heatmap plot. Separate multiple cell types with commas.', type=str, show_default=True)
@@ -153,9 +156,9 @@ show_default=True)
 def run(filename, output, dataformat, minreads, minexpgenes, qc_auto, mrnafull,
         exclude_gene, delimiter, header, nomito, hvg, hvg_n, pca, pca_n, nn_k, prune_snn,
         leiden_partition, leiden_res, ignore_small_clusters, annotations,
-        custom_clustering, embedding, perplexity, species, dark_bg, add_celltypes,
-        overlay_genes, highlight_specific_cells, violin_top, timestamp, logfile,
-        loglevel, nologo, seed, version):
+        custom_clustering, embedding, perplexity, species, dark_bg, de_direction,
+        add_celltypes, overlay_genes, highlight_specific_cells, violin_top, timestamp,
+        logfile, loglevel, nologo, seed, version):
 
     # confirm the genome reference files can be found
     for item in GENOME:
@@ -205,7 +208,8 @@ tried: %s' % (GENOME[item], path))
         'pca_n' : pca_n,
         'exclude_gene' : exclude_gene,
         'annotations' : annotations,
-        'custom_clustering' : custom_clustering
+        'custom_clustering' : custom_clustering,
+        'de_direction' : de_direction
     }
 
     alonacell = AlonaFindmarkers()
