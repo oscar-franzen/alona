@@ -250,9 +250,6 @@ This file contains p-values in a matrix format. The number of rows is equal to t
 ## 2. csvs/all_t_tests_long.tsv
 This is in long format, separated by tabs, and is generated for easy filtering based on selected cutoffs. Every row corresponds to one hypothesis test. Columns correspond to:
 
-## 3. csvs/markers.tsv
-Contains marker genes by combining p-values of the pairwise tests. P-values are combined with Simes' method.
-
 Column | What it is
 --- | ---
 comparison_A_vs_B | The comparison that was performed.
@@ -264,6 +261,9 @@ logFC | log fold change
 mean.A | mean expression of the gene in cluster A
 mean.B | mean expression of the gene in cluster B
 annotations | this column is only added if the `--annotation` flag is specified
+
+## 3. csvs/markers.tsv
+Contains marker genes by combining p-values of the pairwise tests. P-values are combined with Simes' method.
 
 # Bugs
 Please file a bug report through Github.
