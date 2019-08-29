@@ -247,7 +247,11 @@ set to log2.')
         data_cp = data.copy()
         
         if remove_low_quality:
-            data_cp = data_cp.drop(self.low_quality_cells, axis=1)
+            data_cp = data_cp.drop(self.low_quality_cells,
+                                   axis=1,
+                                   errors='ignore' # cells may have been removed using
+                                                   # simple filters
+                                   )
 
         if not mrnafull and input_type == 'raw':
             col_sums = data_cp.apply(lambda x: sum(x), axis=0)
@@ -313,6 +317,7 @@ set to log2.')
 
         seed = self.params['seed']
         data = self.data
+        
         rRNA_genes = self.rRNA_genes
         data_ERCC = self.data_ERCC
 
@@ -418,10 +423,10 @@ set to log2.')
         self.lift_ERCC()
         self.remove_genes_by_pattern()
         self.read_counts_per_cell_barplot()
-        self.simple_filters()
-        self.genes_expressed_per_cell_barplot()
         self.load_rRNA_genes()
         self.find_low_quality_cells()
+        self.simple_filters()
+        self.genes_expressed_per_cell_barplot()
 
         # normalize gene expression values
         dt = self.params['dataformat']
