@@ -18,7 +18,7 @@ It depends on your goals. The goal of alona is to enable fast exploratory analys
 
 # Installation
 ### Requirements
-* Linux (alona should in principle work on MacOS and Windows, but I have not tested it)
+* Linux or MacOS (should in principle work on Windows too, but it has not been tested)
 * Python (version >= 3.6)
 
 ### Dependencies
