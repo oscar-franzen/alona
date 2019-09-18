@@ -15,7 +15,9 @@ import re
 import os
 import sys
 import subprocess
-import magic
+
+# don't use `magic`, libmagic is not installed by default in MacOS
+#import magic
 
 import pandas as pd
 import scipy.io
@@ -236,12 +238,11 @@ class AlonaBase():
             cmd = 'ln -sfn %s %s' % (abs_path, mat_out)
             os.system(cmd)
 
-        mag = magic.Magic(mime=True)
+        #mag = magic.Magic(mime=True)
         # don't use `from_file` (it doesn't follow symlinks)
-        f_type = mag.from_buffer(open(mat_out, 'r').read(1024))
-
-        if f_type != 'text/plain':
-            log_error('Input file is not plain text (found type=%s).' % f_type)
+        #f_type = mag.from_buffer(open(mat_out, 'r').read(1024))
+        #if f_type != 'text/plain':
+        #    log_error('Input file is not plain text (found type=%s).' % f_type)
 
     #def cleanup(self):
     #    """ Removes temporary files. """
