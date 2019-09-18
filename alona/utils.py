@@ -47,12 +47,6 @@ def print_version(ctx, param, value):
     \nhttps://github.com/oscar-franzen/alona' % __version__)
     ctx.exit()
 
-def is_platform_linux():
-    """ Checks if we run Linux """
-    if sys.platform != 'linux':
-        print('alona is developed on Linux and all other systems are untested.')
-        sys.exit(1)
-
 def get_alona_dir():
     """ Returns the alona base directory. """
     return os.path.dirname(inspect.getfile(log_error)) + '/'
