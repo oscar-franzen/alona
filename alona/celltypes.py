@@ -208,6 +208,12 @@ class AlonaCellTypePred(AlonaClustering):
 
             # sort on all the cell types that the gene occurs in
             zx = self.res_pred['cell type'] != 'Unknown'
+            
+            if not np.any(zx):
+                log_debug('Not generating marker plot, because all cell types were \
+"Unknown".')
+                return
+                
             ct_targets = self.res_pred[zx]['cell type'].unique()
             zx = self.res_pred['cell type'].isin(ct_targets)
             df = self.res_pred[zx][['cell type', 'markers']]

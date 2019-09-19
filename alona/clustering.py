@@ -729,6 +729,10 @@ class AlonaClustering(AlonaCell):
         log_debug('Entering violin_top()')
         data_norm = self.data_norm
         
+        import joblib
+        joblib.dump(self, 'q.jl')
+        #sys.exit()
+        
         n = self.params['violin_top']
         cl = self.leiden_cl
         ignore_clusters = self.params['ignore_small_clusters']

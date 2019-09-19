@@ -132,7 +132,7 @@ cells by comma separating cell identifiers (usually barcodes).', type=str,
               show_default=True)
               
 @click.option('--violin_top', help='Generate violin plots for the specified number of top \
-expressed genes per cluster.', type=int, show_default=True)
+expressed genes per cluster.', type=int, default=10, show_default=True)
 
 @click.option('--timestamp', help='Add timestamp label to plots.', is_flag=True,
               default=False, show_default=True)
