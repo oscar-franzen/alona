@@ -57,6 +57,9 @@ class AlonaCell(AlonaBase):
         if (np.any(self.data.dtypes != 'int64') and data_format == 'raw'):
             log_error(msg='Non-count values detected in data matrix while data format is \
 set to raw read counts.')
+        elif (np.any(self.data.dtypes != 'int64') and data_format == 'rpkm'):
+            log_error(msg='Non-count values detected in data matrix while data format is \
+set to "rpkm". Try "-df log2" instead to indicate that your data are already normalized.')
         elif (np.any(self.data.dtypes == 'int64') and data_format == 'log2'):
             log_error(msg='Count values detected in data matrix while data format is \
 set to log2.')
