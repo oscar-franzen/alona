@@ -338,6 +338,8 @@ class AlonaClustering(AlonaCell):
     def cluster(self):
         """ Clusters or loads a pre-made clustering. """
         if type(self.preclust) == pd.core.frame.DataFrame:
+            t = self.preclust.cell.isin(self.data_norm.columns)
+            self.preclust = self.preclust.loc[t, :]
             if self.data_norm.shape[1] != self.preclust.shape[0]:
                 log_error('Number of cells mismatch (data_norm and preclust)')
             self.data_norm = self.data_norm.reindex(self.preclust['cell'], axis=1)
