@@ -39,9 +39,6 @@ git clone https://github.com/oscar-franzen/alona/
 cd alona
 
 # Install the package
-pip3 install .
-
-# On MacOS, you might need to add the '--user' flag:
 pip3 install . --user
 ```
 
