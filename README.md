@@ -61,7 +61,6 @@ Here is one example of calling the pipeline using the data set [GSM3689776](http
 python3 -m alona \
         --species human \
         --embedding tSNE \
-        --dark_bg \
         --hvg_n 1000 \
         --leiden_res 0.1 \
         --output ~/Temp/test \
