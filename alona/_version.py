@@ -1,4 +1,4 @@
-__version__ = '0.2.2'
+__version__ = '0.3.0'
 __license__ = 'GPLv3'
-__author__ = 'Oscar Franzen'
+__author__ = 'Oscar Franzén'
 __email__ = 'p.oscar.franzen@gmail.com'
