@@ -99,10 +99,10 @@ class AlonaCellTypePred(AlonaClustering):
         median_expr_Z = pd.DataFrame(scale(median_expr, with_mean=True, axis=0))
         median_expr_Z.index = median_expr.index
         median_expr_Z.columns = median_expr.columns
-        # reference symbols
-        fn = get_alona_dir() + GENOME['MOUSE_GENE_SYMBOLS']
-        mgs = pd.read_csv(fn, header=None)
-        mgs = mgs[0].str.upper()
+        ## reference symbols
+        #fn = get_alona_dir() + GENOME['MOUSE_GENE_SYMBOLS']
+        #mgs = pd.read_csv(fn, header=None)
+        #mgs = mgs[0].str.upper()
         markers = markers[markers[markers.columns[0]].isin(mgs)]
         dd = defaultdict(list)
         for item in markers.groupby('cell type'):
