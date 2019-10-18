@@ -46,9 +46,8 @@ class AlonaBase():
         self._delimiter = None
         self._has_header = None
         self._has_gene_id_column_id = None
-        self.mouse_symbols = {}
-        self.mouse_ensembls = {}
-        self.mouse_entrez = {}
+        #self.mouse_symbols = {}
+        #self.mouse_ensembls = {}
         self.unmappable = []
         self.state = {}
         self.mat_data_file = 'input.mat'
@@ -341,21 +340,21 @@ number of columns (every row must have the same number of columns).')
             if _cancel:
                 log_error('Gene duplicates detected.')
 
-    def load_mouse_gene_symbols(self):
-        """ Loads genome annotations. """
-        with open(get_alona_dir() + GENOME['MOUSE_GENOME_ANNOTATIONS'], 'r') as fh:
-            for line in fh:
-                if not re.search('gene_id "ERCC_', line):
-                    m = re.search(r'gene_id "(.+?)_(.+?)\.[0-9]+"', line)
-                    symbol, ensembl = m.group(1), m.group(2)
-                    self.mouse_symbols[symbol] = '%s_%s' % (symbol, ensembl)
-                    self.mouse_ensembls[ensembl] = '%s_%s' % (symbol, ensembl)
-        with open(get_alona_dir() + GENOME['ENTREZ_GENE_IDS'], 'r') as fh:
-            next(fh)
-            for line in fh:
-                gene_id_as_number, ens = line.rstrip('\n').split(' ')
-                if gene_id_as_number != 'null':
-                    self.mouse_entrez[gene_id_as_number] = ens
+    #def load_mouse_gene_symbols(self):
+    #    """ Loads genome annotations. """
+        # with open(get_alona_dir() + GENOME['MOUSE_GENOME_ANNOTATIONS'], 'r') as fh:
+            # for line in fh:
+                # if not re.search('gene_id "ERCC_', line):
+                    # m = re.search(r'gene_id "(.+?)_(.+?)\.[0-9]+"', line)
+                    # symbol, ensembl = m.group(1), m.group(2)
+                    # self.mouse_symbols[symbol] = '%s_%s' % (symbol, ensembl)
+                    # self.mouse_ensembls[ensembl] = '%s_%s' % (symbol, ensembl)
+        # with open(get_alona_dir() + GENOME['ENTREZ_GENE_IDS'], 'r') as fh:
+            # next(fh)
+            # for line in fh:
+                # gene_id_as_number, ens = line.rstrip('\n').split(' ')
+                # if gene_id_as_number != 'null':
+                    # self.mouse_entrez[gene_id_as_number] = ens
 
     def check_gene_name_column_id_present(self):
         """ Checks if the header line has a column attribute. """
@@ -395,5 +394,5 @@ specified in settings.txt (%s). Try using a different output directory' % a)
         self.sanity_check_columns()
         self.sanity_check_genes()
         self.sanity_check_gene_dups()
-        self.load_mouse_gene_symbols()
+        #self.load_mouse_gene_symbols()
         self.check_gene_name_column_id_present()
