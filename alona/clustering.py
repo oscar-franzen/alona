@@ -540,81 +540,81 @@ class AlonaClustering(AlonaCell):
                     offset4 = bbox_data[1][0]
 
             # add SVM prediction
-            offset5 = 0
-            for i in range(len(self.clusters_targets)):
-                idx = np.array(self.leiden_cl) == i
-                e = self.embeddings[idx]
+            # offset5 = 0
+            # for i in range(len(self.clusters_targets)):
+                # idx = np.array(self.leiden_cl) == i
+                # e = self.embeddings[idx]
 
-                x = e[1].values
-                y = e[2].values
+                # x = e[1].values
+                # y = e[2].values
 
-                if e.shape[0] <= ignore_clusters:
-                    continue
+                # if e.shape[0] <= ignore_clusters:
+                    # continue
 
-                item = self.res_pred2.iloc[i]
-                ct = item[0]
+                # item = self.res_pred2.iloc[i]
+                # ct = item[0]
 
-                l = {'x' : offset4 + 0.1, 'y' : 1-0.03*i - 0.047, 's' : ct, 'size' : 6}
-                if mismatches[i]:
-                    l['color'] = 'red'
+                # l = {'x' : offset4 + 0.1, 'y' : 1-0.03*i - 0.047, 's' : ct, 'size' : 6}
+                # if mismatches[i]:
+                    # l['color'] = 'red'
 
-                lt = leg1.text(**l)
+                # lt = leg1.text(**l)
 
-                renderer = fig.canvas.get_renderer()
-                bb = lt.get_window_extent(renderer)
-                bbox_data = leg1.transAxes.inverted().transform(bb)
+                # renderer = fig.canvas.get_renderer()
+                # bb = lt.get_window_extent(renderer)
+                # bbox_data = leg1.transAxes.inverted().transform(bb)
 
-                if bbox_data[1][0] > offset5:
-                    offset5 = bbox_data[1][0]
+                # if bbox_data[1][0] > offset5:
+                    # offset5 = bbox_data[1][0]
 
             # add probability
-            offset6 = 0
-            y_offset = 0
-            for i in range(len(self.clusters_targets)):
-                idx = np.array(self.leiden_cl) == i
-                e = self.embeddings[idx]
+            # offset6 = 0
+            # y_offset = 0
+            # for i in range(len(self.clusters_targets)):
+                # idx = np.array(self.leiden_cl) == i
+                # e = self.embeddings[idx]
 
-                x = e[1].values
-                y = e[2].values
+                # x = e[1].values
+                # y = e[2].values
 
-                if e.shape[0] <= ignore_clusters:
-                    continue
+                # if e.shape[0] <= ignore_clusters:
+                    # continue
 
-                item = self.res_pred2.iloc[i]
-                ct = item[0]
-                prob = item[1]
+                # item = self.res_pred2.iloc[i]
+                # ct = item[0]
+                # prob = item[1]
                 
-                if ct == 'Unknown':
-                    prob = 'NA'
-                else:
-                    prob = '{:.2f}'.format(prob)
+                # if ct == 'Unknown':
+                    # prob = 'NA'
+                # else:
+                    # prob = '{:.2f}'.format(prob)
 
-                lt = leg1.text(offset5 + 0.1, 1-0.03*i - 0.047, prob, size=5)
+                # lt = leg1.text(offset5 + 0.1, 1-0.03*i - 0.047, prob, size=5)
 
-                renderer = fig.canvas.get_renderer()
-                bb = lt.get_window_extent(renderer)
-                bbox_data = leg1.transAxes.inverted().transform(bb)
+                # renderer = fig.canvas.get_renderer()
+                # bb = lt.get_window_extent(renderer)
+                # bbox_data = leg1.transAxes.inverted().transform(bb)
 
-                if bbox_data[1][0] > offset6:
-                    offset6 = bbox_data[1][0]
+                # if bbox_data[1][0] > offset6:
+                    # offset6 = bbox_data[1][0]
 
-                y_offset = bbox_data[1][1]
+                # y_offset = bbox_data[1][1]
 
-            if dark_bg:
-                line_col = '#ffffff'
-            else:
-                line_col = '#000000'
+            #if dark_bg:
+            #    line_col = '#ffffff'
+            #else:
+            #    line_col = '#000000'
 
-            leg1.vlines(offset4+0.05, y_offset-0.015, 1-0.03, color=line_col, clip_on=False,
-                        lw=0.5)
+            #leg1.vlines(offset4+0.05, y_offset-0.015, 1-0.03, color=line_col, clip_on=False,
+            #            lw=0.5)
 
             # header
             leg1.text(0.30, 0.99, 'cluster', size=5, rotation=90)
             leg1.text(offset + 0.1, 0.99, 'no. cells', size=5, rotation=90)
             leg1.text(offset2 + 0.1, 0.99, 'marker-based\nprediction', size=5, rotation=90)
             leg1.text(offset3 + 0.1, 0.99, 'p-value', size=5, rotation=90)
-            leg1.text(offset4 + 0.1, 0.99, 'SVM-based\nprediction', size=5, rotation=90)
-            leg1.text(offset5 + 0.1, 0.99, 'probability', size=5, rotation=90)
+            #leg1.text(offset4 + 0.1, 0.99, 'SVM-based\nprediction', size=5, rotation=90)
+            #leg1.text(offset5 + 0.1, 0.99, 'probability', size=5, rotation=90)
 
         main_ax.set_ylabel('%s1' % method, size=6)
         main_ax.set_xlabel('%s2' % method, size=6)

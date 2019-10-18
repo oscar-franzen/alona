@@ -59,16 +59,15 @@ ERCC spikes can be included and will be automatically detected and handled. Make
 Here is one example of calling the pipeline using the data set [GSM3689776](https://www.ncbi.nlm.nih.gov/geo/download/?acc=GSM3689776&format=file&file=GSM3689776%5Fmouse%5F10X%5Fmatrix%2Etxt%2Egz).
 ```bash
 python3 -m alona \
-        --species mouse        # specifies our input data is from mouse
-        --embedding tSNE       # tSNE is defualt if not specified
-        --dark_bg \            # use black background in scatter plots
-        --hvg_n 1000 \         # use 1000 top highly variable genes
-        --leiden_res 0.1 \     # clustering parameter
-        --output GSM3689776 \  # output directory name
+        --species human \
+        --embedding tSNE \
+        --dark_bg \
+        --hvg_n 1000 \
+        --leiden_res 0.1 \
+        --output ~/Temp/test \
         --header yes \
         --minexpgenes 0.001 \
-        --nomito \             # ignore mitochondrial genes in the analysis
-        GSM3689776_mouse_10X_matrix.txt.gz
+        --nomito GSM3689776_mouse_10X_matrix.txt.gz
 ```
 
 # Output files
