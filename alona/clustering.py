@@ -457,8 +457,8 @@ class AlonaClustering(AlonaCell):
             mismatches = {}
             for i in range(len(self.clusters_targets)):
                 ct_method1 = self.res_pred.iloc[i][1]
-                ct_method2 = self.res_pred2.iloc[i][0]
-                mismatches[i] = not (ct_method1 == ct_method2)
+                #ct_method2 = self.res_pred2.iloc[i][0]
+                #mismatches[i] = not (ct_method1 == ct_method2)
 
             # add number of cells
             offset2 = 0
@@ -497,9 +497,8 @@ class AlonaClustering(AlonaCell):
                 ct = pred[1]
 
                 l = {'x' : offset2 + 0.1, 'y' : 1-0.03*i - 0.047, 's' : ct, 'size' : 6}
-                if mismatches[i]:
-                    l['color'] = 'red'
-
+                #if mismatches[i]:
+                #    l['color'] = 'red'
                 lt = leg1.text(**l)
 
                 renderer = fig.canvas.get_renderer()

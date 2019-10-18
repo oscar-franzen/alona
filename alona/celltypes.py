@@ -44,7 +44,6 @@ class AlonaCellTypePred(AlonaClustering):
         self.markers = None
         self.marker_freq = None
         self.res_pred = None
-        self.res_pred2 = None
         super().__init__()
 
     def median_exp(self):
