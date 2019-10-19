@@ -40,12 +40,10 @@ OUTPUT = {
 
 # Reference data
 GENOME = {
-    'ENTREZ_GENE_IDS' : '/genome/MGI_Gene_Model_Coord.txt.C',
     'MOUSE_GENOME_ANNOTATIONS' : '/genome/Mus_musculus.GRCm38.gencode.vM17.primary_assembly.annotation.gene_level.ERCC.gtf',
-    'HUMAN_GENE_SYMBOLS_TO_ENTREZ' : '/genome/hgnc_complete_set.txt',
-    'MOUSE_VS_HUMAN_ORTHOLOGS' : '/genome/human_to_mouse_1_to_1_orthologs.tsv',
     'MOUSE_EXON_LENGTHS' : '/genome/Mus_musculus.GRCm38.gencode.vM17.primary_assembly.annotation.gene_level.gtf.exon_lengths',
-    'MOUSE_GENE_SYMBOLS' : '/genome/mouse_gene_symbols.txt'
+    'SYMBOLS_MOUSE' : '/genome/mouse.gencode_v23.genes.txt',
+    'SYMBOLS_HUMAN' : '/genome/human.gencode_v32.genes.txt'
 }
 
 MARKERS = {

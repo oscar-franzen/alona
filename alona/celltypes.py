@@ -16,11 +16,11 @@ import sys
 import subprocess
 from collections import defaultdict
 
-import pandas as pd
 import numpy as np
+import pandas as pd
+from scipy.stats import fisher_exact
 from sklearn.preprocessing import scale
 from sklearn.preprocessing import MinMaxScaler
-from scipy.stats import fisher_exact
 import matplotlib.pyplot as plt
 import matplotlib.transforms as transforms
 import matplotlib.patches as patches
@@ -38,26 +38,24 @@ class AlonaCellTypePred(AlonaClustering):
     """
 
     def __init__(self):
-        self.median_expr = None
         self.markers = None
         self.marker_freq = None
         self.res_pred = None
         super().__init__()
 
-    def median_exp(self):
+    def median_exp(self, data_norm):
         """ Represent each cluster with median gene expression. """
         log_debug('median_exp() Computing median expression per cluster')
-
         clust = self.leiden_cl
-        data = self.data_norm
+        data = data_norm
         fn = self.get_wd() + OUTPUT['FILENAME_MEDIAN_EXP']
         ret = data.groupby(clust, axis=1).aggregate(np.median)
         ret = ret.iloc[:, ret.columns.isin(self.clusters_targets)]
-        self.median_expr = ret
         if type(self.anno) == pd.core.frame.DataFrame:
             ret = pd.concat([self.anno['desc'], ret], axis=1)
         ret.to_csv(fn, header=True, sep='\t')
         log_debug('median_exp() finished')
+        return ret
         
     def mean_exp(self):
         """ Represent each cluster with mean gene expression. """
@@ -73,8 +71,29 @@ class AlonaCellTypePred(AlonaClustering):
         ret.to_csv(fn, header=True, sep='\t')
         log_debug('mean_exp() finished')
     
-    def get_gene_symbols(self, inp_symbols):
-        if self.species == 'mouse':
+    def get_gene_symbols(self, data_norm):
+        if self.params['species'] == 'mouse':
+            f = GENOME['SYMBOLS_MOUSE']
+        else:
+            f = GENOME['SYMBOLS_HUMAN']
+        refs = pd.read_csv(get_alona_dir()+f, sep='\t', header=None)
+        refs.index = refs.iloc[:, 0]
+        t = refs.iloc[:, 1].value_counts()==1
+        t = t[t]
+        refs = refs[refs.iloc[:, 1].isin(t.index)]
+        if not data_norm.index.str.match('ENSMU').any() and \
+           not data_norm.index.str.match('ENSG').any():
+               return data_norm
+        if data_norm.index.str.match('^ENS(G|MUS)[0-9]+$').any():
+            data_norm = data_norm.iloc[data_norm.index.isin(refs.index), :]
+            refs = refs.iloc[refs.index.isin(data_norm.index), :]
+            refs = refs.reindex(data_norm.index)
+            data_norm.index = refs.iloc[:, 1]
+        else:
+            pass
+            # median_expr.index.str.extract('^(.+)_.+')[0].str.upper()
+        data_norm.index = data_norm.index.str.upper()
+        return data_norm
 
     def CTA_RANK_F(self, marker_plot=False):
         """
@@ -83,16 +102,15 @@ class AlonaCellTypePred(AlonaClustering):
         if not self.params['species'] in ['mouse', 'human']:
             log_info('"--species other", skipping cell type prediction')
             return
+        log_debug('CTA_RANK_F() starting')
         #import joblib
         #joblib.dump(self, 'q.jl')
-        log_debug('CTA_RANK_F() starting')
-        median_expr = self.median_expr.copy()
-        
-        symbs = get_gene_symbols(median_expr.index.values)
-        
+        data_norm = self.data_norm.copy()
+        data_norm = self.get_gene_symbols(data_norm)
+        median_expr = self.median_exp(data_norm)
         markers = self.markers
-        marker_freq = self.marker_freq
-        input_symbols = median_expr.index.str.extract('^(.+)_.+')[0].str.upper()
+        freq = self.marker_freq
+        input_symbols = median_expr.index
         median_expr.index = input_symbols
         # (1) centering is done by subtracting the column means
         # (2) scaling is done by dividing the (centered) by their standard deviations
@@ -103,7 +121,7 @@ class AlonaCellTypePred(AlonaClustering):
         #fn = get_alona_dir() + GENOME['MOUSE_GENE_SYMBOLS']
         #mgs = pd.read_csv(fn, header=None)
         #mgs = mgs[0].str.upper()
-        markers = markers[markers[markers.columns[0]].isin(mgs)]
+        #markers = markers[markers[markers.columns[0]].isin(mgs)]
         dd = defaultdict(list)
         for item in markers.groupby('cell type'):
             dd[item[0]] = set(item[1][item[1].columns[0]])
@@ -111,9 +129,9 @@ class AlonaCellTypePred(AlonaClustering):
         # Down-weighting overlapping genes improves gene set analysis
         # Tarca AL, Draghici S, Bhatti G, Romero R
         # BMC Bioinformatics 2012 13:136
-        s = mgs.unique()
-        s_freqs = marker_freq[marker_freq.index.isin(s)]
-        weights = 1+np.sqrt(((max(marker_freq)-s_freqs)/(max(marker_freq)-min(marker_freq))))
+        #s = mgs.unique()
+        #s_freqs = marker_freq[marker_freq.index.isin(s)]
+        weights = 1+np.sqrt(((max(freq)-freq)/(max(freq)-min(freq))))
 
         def _guess_cell_type(x):
             rr = median_expr.loc[:, median_expr.columns == x.name].values.flatten()
@@ -122,7 +140,6 @@ class AlonaCellTypePred(AlonaClustering):
             # genes _not_ expressed in this cell cluster
             genes_not_exp = set(x.index[rr == 0])
             res = list()
-
             for ct in dd:
                 s = dd[ct]
                 x_ss = x[x.index.isin(s)]
@@ -215,9 +232,8 @@ class AlonaCellTypePred(AlonaClustering):
             dff = dff.sort_values('cell types')
             dff.index = np.arange(1, dff.shape[0]+1)
             target_genes = dff.gene
-            symbs = self.data_norm.index.str.extract('^(.+)_.+')[0].str.upper()
-            data_slice = self.data_norm.loc[symbs.isin(target_genes).values]
-            data_slice.index = data_slice.index.str.extract('^(.+)_.+')[0].str.upper()
+            symbs = data_norm.index
+            data_slice = data_norm.loc[symbs.isin(target_genes)]
             cell_ids = pd.DataFrame({'ids' : data_slice.columns.values,
                                      'cluster' : self.leiden_cl})
             cell_ids = cell_ids[cell_ids['cluster'].isin(self.clusters_targets)]
@@ -291,9 +307,11 @@ class AlonaCellTypePred(AlonaClustering):
         """ Load gene to cell type markers. """
         log_debug('Loading markers...')
         ma = pd.read_csv(get_alona_dir() + MARKERS['PANGLAODB'], sep='\t')
-        # restrict to mouse
-        ma = ma[ma.species.str.match('Mm')]
-        self.markers = ma
+        if self.params['species'] == 'mouse':
+            s = 'Mm'
+        else:
+            s = 'Hs'
+        ma = ma[ma.species.str.find(s)>-1]
         ui = ma.iloc[:, ma.columns == 'ubiquitousness index']
         ma = ma[np.array(ui).flatten() < 0.05]
         log_debug('Markers loaded')
