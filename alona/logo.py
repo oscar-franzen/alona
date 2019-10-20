@@ -1,6 +1,5 @@
 import logging
 from .constants import (RED, END)
-from ._version import __version__
 
 def show_logo(nologo):
     if not nologo:

@@ -136,8 +136,8 @@ Options:
   -h, --header [auto|yes|no]      Data has a header line. The default setting
                                   is to autodetect if a header is present or
                                   not.  [default: auto]
-  -m, --nomito                    Exclude mitochondrial genes from analysis.
-                                  [default: False]
+  -m, --remove_mito [yes|no]      Remove mitochondrial genes from analysis
+                                  [default: no]
   --hvg [seurat|Brennecke2013|scran|Chen2016|M3Drop_smartseq2|M3Drop_UMI]
                                   Method to use for identifying highly
                                   variable genes.  [default: seurat]
@@ -188,6 +188,8 @@ Options:
                                   mouse]
   --dark_bg                       Use dark background in scatter plots.
                                   [default: False]
+  --de_direction [any|up|down]    Direction for differential gene expression
+                                  analysis.
   --add_celltypes TEXT            Add markers for these additional cell types
                                   to the heatmap plot. Separate multiple cell
                                   types with commas.
@@ -204,6 +206,7 @@ Options:
                                   barcodes).
   --violin_top INTEGER            Generate violin plots for the specified
                                   number of top expressed genes per cluster.
+                                  [default: 10]
   --timestamp                     Add timestamp label to plots.  [default:
                                   False]
   -lf, --logfile TEXT             Name of log file. Set to /dev/null if you
