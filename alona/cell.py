@@ -82,7 +82,7 @@ set to log2.')
 
     def remove_mito(self):
         """ Remove mitochondrial genes. """
-        if self.params['nomito']:
+        if self.params['remove_mito'] == 'yes':
             log_debug('Removing mitochondrial genes')
             mt_count = self.data.index.str.contains('^mt-', regex=True, case=False)
             if np.sum(mt_count) > 0:
