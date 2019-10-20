@@ -96,7 +96,7 @@ class AlonaBase():
             os.mkdir(self.get_wd() + '/plots')
             os.mkdir(self.get_wd() + '/csvs')
             os.mkdir(self.get_wd() + '/csvs/CTA_RANK_F')
-            os.mkdir(self.get_wd() + '/csvs/SVM')
+            #os.mkdir(self.get_wd() + '/csvs/SVM')
         except FileExistsError:
             log_info('Output directory already exists (%s), resuming.' %
                      self.get_wd())
