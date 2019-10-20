@@ -18,7 +18,6 @@ import datetime
 import numpy as np
 from sklearn.cluster import KMeans
 
-from ._version import __version__
 from .log import log_error
 
 def is_binary(filename):
