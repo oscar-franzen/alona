@@ -55,8 +55,8 @@ data values. The default setting is to autodetect this character.',
 autodetect if a header is present or not.', type=click.Choice(['auto', 'yes', 'no']),
               default='auto', show_default=True)
 
-@click.option('-m', '--remove_mito', help='Remove mitochondrial genes from analysis \
-(yes/no).', default='no', show_default=True)
+@click.option('-m', '--remove_mito', help='Remove mitochondrial genes from analysis',
+              type=click.Choice(['yes', 'no'], default='no', show_default=True)
 
 @click.option('--hvg', help='Method to use for identifying highly variable genes.',
               type=click.Choice(['seurat', 'Brennecke2013', 'scran', 'Chen2016',
