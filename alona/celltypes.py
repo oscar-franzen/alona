@@ -81,6 +81,7 @@ class AlonaCellTypePred(AlonaClustering):
         t = refs.iloc[:, 1].value_counts()==1
         t = t[t]
         refs = refs[refs.iloc[:, 1].isin(t.index)]
+        data_norm.index = data_norm.index.str.upper()
         if not data_norm.index.str.match('ENSMU').any() and \
            not data_norm.index.str.match('ENSG').any():
                return data_norm
@@ -92,7 +93,6 @@ class AlonaCellTypePred(AlonaClustering):
         else:
             pass
             # median_expr.index.str.extract('^(.+)_.+')[0].str.upper()
-        data_norm.index = data_norm.index.str.upper()
         return data_norm
 
     def CTA_RANK_F(self, marker_plot=False):
@@ -105,6 +105,7 @@ class AlonaCellTypePred(AlonaClustering):
         log_debug('CTA_RANK_F() starting')
         #import joblib
         #joblib.dump(self, 'q.jl')
+        #sys.exit()
         data_norm = self.data_norm.copy()
         data_norm = self.get_gene_symbols(data_norm)
         median_expr = self.median_exp(data_norm)
