@@ -66,7 +66,7 @@ python3 -m alona \
         --output ~/Temp/test \
         --header yes \
         --minexpgenes 0.001 \
-        --nomito GSM3689776_mouse_10X_matrix.txt.gz
+        --remove_mito yes GSM3689776_mouse_10X_matrix.txt.gz
 ```
 
 # Output files
