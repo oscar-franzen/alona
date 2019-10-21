@@ -140,12 +140,13 @@ expressed genes per cluster.', type=int, default=10, show_default=True)
 @click.option('-lf', '--logfile', help='Name of log file. Set to /dev/null if you want to \
 disable logging to a file.', default='alona.log', show_default=True)
 
-@click.option('-ll', '--loglevel', help='Set how much runtime information is written to \
+@click.option('--loglevel', help='Set how much runtime information is written to \
 the log file.', type=click.Choice(['regular', 'debug']), default='regular',
 show_default=True)
 
-@click.option('-n', '--nologo', help='Hide the logo.', is_flag=True,
-              default=False)
+@click.option('--nologo', help='Hide the logo.', is_flag=True, default=False)
+              
+@click.option('--timeout', help='Timeout for uncompression.', is_flag=True, default=False)
 
 @click.option('--seed', help='Set seed to get reproducible results.', type=int,
 show_default=True)
@@ -158,7 +159,7 @@ def run(filename, output, dataformat, minreads, minexpgenes, qc_auto, mrnafull,
         leiden_partition, leiden_res, ignore_small_clusters, annotations,
         custom_clustering, embedding, perplexity, species, dark_bg, de_direction,
         add_celltypes, overlay_genes, highlight_specific_cells, violin_top, timestamp,
-        logfile, loglevel, nologo, seed, version):
+        logfile, loglevel, nologo, timeout, seed, version):
 
     # confirm the genome reference files can be found
     for item in GENOME:
@@ -209,7 +210,8 @@ tried: %s' % (GENOME[item], path))
         'exclude_gene' : exclude_gene,
         'annotations' : annotations,
         'custom_clustering' : custom_clustering,
-        'de_direction' : de_direction
+        'de_direction' : de_direction,
+        'timeout' : timeout
     }
 
     alonacell = AlonaFindmarkers()

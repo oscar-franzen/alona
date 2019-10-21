@@ -172,47 +172,67 @@ class AlonaBase():
                 log_debug('gzip data detected.')
                 # confirm integrity
                 try:
-                    out = subprocess.check_output('gzip -t %s' % (abs_path), shell=True,
+                    cmd = 'gzip -t %s' % (abs_path)
+                    if self.params['timeout']:
+                        cmd = 'timeout 60s %s' % cmd
+                    out = subprocess.check_output(cmd, shell=True,
                                                   stderr=subprocess.STDOUT)
                     out = out.decode('ascii')
                 except subprocess.CalledProcessError as exc:
                     if re.search('unexpected end of file', exc.output.decode('ascii')):
                         log_error('Error: input file is corrupt.')
                 # uncompress
-                os.system('gzip -d -c %s > %s' % (abs_path, mat_out))
+                cmd = 'gzip -d -c %s > %s' % (abs_path, mat_out)
+                if self.params['timeout']:
+                    cmd = 'timeout 60s %s' % cmd
+                os.system(cmd)
             elif re.search(' Zip archive data,', out):
                 log_debug('zip data detected.')
                 # confirm integrity
                 try:
                     # don't use Zip -T because it only accepts files ending with .zip
-                    out = subprocess.check_output("gzip -t %s" % (abs_path), shell=True,
+                    cmd = 'gzip -t %s' % abs_path
+                    if self.params['timeout']:
+                        cmd = 'timeout 60s %s' % cmd
+                    out = subprocess.check_output(cmd, shell=True,
                                                   stderr=subprocess.STDOUT)
                     out = out.decode('ascii')
                 except subprocess.CalledProcessError as exc:
                     if re.search(' unexpected end of file', exc.output.decode('ascii')):
                         log_error('Error: input file is corrupt.')
                 # check that the archive only contains one file
-                out = subprocess.check_output('unzip -v %s | wc -l' % (abs_path),
-                                              shell=True)
+                cmd = 'unzip -v %s | wc -l' % abs_path
+                if self.params['timeout']:
+                    cmd = 'timeout 60s %s' % cmd
+                out = subprocess.check_output(cmd, shell=True)
                 out = out.decode('ascii').replace('\n', '')
                 no_files = int(out) - 5
                 if no_files != 1:
                     log_error('More than one file in input archive.')
                 # Files  created  by  zip  can be uncompressed by gzip only if they have
                 # a single member compressed with the 'deflation' method.
-                os.system('zcat %s > %s' % (abs_path, mat_out))
+                cmd = 'zcat %s > %s' % (abs_path, mat_out)
+                if self.params['timeout']:
+                    cmd = 'timeout 60s %s' % cmd
+                os.system(cmd)
             elif re.search(' bzip2 compressed data,', out):
                 log_debug('bzip2 data detected.')
                 # confirm integrity
                 try:
-                    out = subprocess.check_output('bzip2 -t %s' % (abs_path), shell=True,
+                    cmd = 'bzip2 -t %s' % abs_path
+                    if self.params['timeout']:
+                        cmd = 'timeout 60s %s' % cmd
+                    out = subprocess.check_output(cmd, shell=True,
                                                   stderr=subprocess.STDOUT)
                     out = out.decode('ascii')
                 except subprocess.CalledProcessError as exc:
                     if re.search('file ends unexpectedly', exc.output.decode('ascii')):
                         log_error('Input file is corrupt.')
                 # uncompress
-                os.system('bzip2 -d -c %s > %s' % (abs_path, mat_out))
+                cmd = 'bzip2 -d -c %s > %s' % (abs_path, mat_out)
+                if self.params['timeout']:
+                    cmd = 'timeout 60s %s' % cmd
+                os.system(cmd)
             else:
                 log_error('Invalid format of the input file.')
         else:
