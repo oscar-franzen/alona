@@ -25,7 +25,7 @@ It depends on your goals. The goal of alona is to enable fast exploratory analys
 `alona` relies heavily on numpy, pandas, matplotlib, scipy and others. Complete list of dependencies (missing dependencies are installed if `pip3` is used for installation, see below): click, matplotlib, numpy, pandas, scipy, scikit-learn, leidenalg, umap-learn, statsmodels, igraph, and seaborn.
 
 ### Install using git and pip3
-The fastest way to install `alona` is to first clone the GitHub repository and then use [pip3](https://en.wikipedia.org/wiki/Pip_(package_manager)) to install it. `pip3` is a package manager for Python packages. If you don't have `pip3` installed, it can be installed by the following command on Debian-based systems (e.g. Ubuntu):
+The fastest way to install `alona` is to first clone the GitHub repository and then use [pip](https://en.wikipedia.org/wiki/Pip_(package_manager)) to install it. `pip` is a package manager for Python. If you don't have `pip` installed, it can be installed by the following command on Debian-based systems (e.g. Ubuntu):
 ```bash
 sudo apt-get install python3-pip
 ```
