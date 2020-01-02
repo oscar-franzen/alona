@@ -16,6 +16,7 @@ import numpy as np
 from sklearn.cluster import KMeans
 
 from .log import log_error
+from . import __version__
 
 
 def is_binary(filename):
