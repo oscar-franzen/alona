@@ -1,14 +1,13 @@
-"""
- alona
+"""alona
 
- Description:
- An analysis pipeline for scRNA-seq data.
+ Description: An analysis pipeline for scRNA-seq data.
 
  How to use:
  https://github.com/oscar-franzen/alona/
 
  Contact:
  Oscar Franzen <p.oscar.franzen@gmail.com>
+
 """
 
 import re
@@ -25,6 +24,7 @@ import scipy.io
 from .log import (log_info, log_debug, log_error, log_warning)
 from .constants import (GENOME, OUTPUT)
 from .utils import (get_alona_dir, random_str, is_binary)
+
 
 class AlonaBase():
     """
@@ -91,7 +91,7 @@ class AlonaBase():
     def create_work_dir(self):
         """ Creates a working directory for temporary and output files. """
         try:
-            log_debug('creating output directory: %s' %self.get_wd())
+            log_debug('creating output directory: %s' % self.get_wd())
             os.mkdir(self.get_wd())
             os.mkdir(self.get_wd() + '/plots')
             os.mkdir(self.get_wd() + '/csvs')
@@ -113,20 +113,22 @@ class AlonaBase():
         return self
 
     def matrix_market(self):
-        """
-        Unpacks data in matrix market format (used by NCBI GEO). A sparse format.
-        https://math.nist.gov/MatrixMarket/formats.html
+        """Unpacks data in matrix market format (used by NCBI GEO). A sparse
+        format.  https://math.nist.gov/MatrixMarket/formats.html
+
         """
         log_debug('entering matrix_market()')
         input_file = self.params['input_filename']
         out_dir = self.get_wd()
         mat_out = self.get_matrix_file()
-        
+
         if re.search('.tar.gz$', input_file):
-            out = subprocess.check_output("tar -ztf %s" % (input_file), shell=True)
+            out = subprocess.check_output(
+                "tar -ztf %s" % (input_file), shell=True)
         else:
-            out = subprocess.check_output("tar -tf %s" % (input_file), shell=True)
-        
+            out = subprocess.check_output(
+                "tar -tf %s" % (input_file), shell=True)
+
         files_found = 0
         for fn in out.decode('ascii').split('\n'):
             if fn != '' and (fn == 'barcodes.tsv' or 'genes.tsv' or 'matrix.mtx'):
@@ -151,7 +153,8 @@ class AlonaBase():
         log_debug('exiting matrix_market()')
 
     def unpack_data(self):
-        """ Unpacks compressed data and if no compression is used, symlinks to data. """
+        """Unpacks compressed data and if no compression is used, symlinks to
+           data."""
         input_file = self.params['input_filename']
         abs_path = os.path.abspath(input_file)
         mat_out = self.get_matrix_file()
@@ -244,15 +247,15 @@ class AlonaBase():
         #mag = magic.Magic(mime=True)
         # don't use `from_file` (it doesn't follow symlinks)
         #f_type = mag.from_buffer(open(mat_out, 'r').read(1024))
-        #if f_type != 'text/plain':
+        # if f_type != 'text/plain':
         #    log_error('Input file is not plain text (found type=%s).' % f_type)
 
-    #def cleanup(self):
+    # def cleanup(self):
     #    """ Removes temporary files. """
     #    if self.params['cleanup']:
     #        # remove temporary files
     #        log_debug('Cleaning up (`--cleanup` is set)')
-    #        
+    #
     #        for item in ('input.mat',)+tuple(OUTPUT.values()):
     #            log_debug('removing %s' % garbage)
     #
@@ -263,7 +266,7 @@ class AlonaBase():
 
     def _guess_delimiter(self):
         """ Determines the data delimiter character. """
-        dcount = {' ' : 0, '\t' : 0, ',' : 0}
+        dcount = {' ': 0, '\t': 0, ',': 0}
         i = 0
         fh = open(self.get_matrix_file(), 'r')
         for line in fh:
@@ -288,7 +291,8 @@ class AlonaBase():
                 used_delim = '\t'
             elif used_delim == 'SPACE':
                 used_delim = ' '
-        log_debug('delimiter is: "%s" (ASCII code=%s)' % (used_delim, ord(used_delim)))
+        log_debug('delimiter is: "%s" (ASCII code=%s)' %
+                  (used_delim, ord(used_delim)))
         self._delimiter = used_delim
         return used_delim
 
@@ -313,9 +317,8 @@ class AlonaBase():
         return ret
 
     def sanity_check_columns(self):
-        """
-        Sanity check on data integrity. Terminates if column count is not consistent.
-        """
+        """ Sanity check on data integrity. Terminates if column count
+        is not consistent.  """
         with open(self.get_matrix_file(), 'r') as fh:
             if self._has_header:
                 next(fh)
@@ -326,7 +329,8 @@ class AlonaBase():
             if len(cols.keys()) > 1:
                 log_error('Rows in your data matrix have different \
 number of columns (every row must have the same number of columns).')
-            log_info('%s columns detected.' % '{:,}'.format(cols.popitem()[0]-1))
+            log_info('%s columns detected.' %
+                     '{:,}'.format(cols.popitem()[0]-1))
 
     def sanity_check_genes(self):
         """ Sanity check on gene count. Terminates if gene count is too low. """
@@ -337,7 +341,8 @@ number of columns (every row must have the same number of columns).')
             for _ in fh:
                 count += 1
             if count < 1000:
-                log_error('Number of genes (n=%s) in the input data is too low.' % count)
+                log_error( 'Number of genes (n=%s) in the input data \
+is too low.' % count)
             log_info('%s genes detected' % '{:,}'.format(count))
 
     def sanity_check_gene_dups(self):
@@ -360,21 +365,21 @@ number of columns (every row must have the same number of columns).')
             if _cancel:
                 log_error('Gene duplicates detected.')
 
-    #def load_mouse_gene_symbols(self):
+    # def load_mouse_gene_symbols(self):
     #    """ Loads genome annotations. """
         # with open(get_alona_dir() + GENOME['MOUSE_GENOME_ANNOTATIONS'], 'r') as fh:
             # for line in fh:
                 # if not re.search('gene_id "ERCC_', line):
-                    # m = re.search(r'gene_id "(.+?)_(.+?)\.[0-9]+"', line)
-                    # symbol, ensembl = m.group(1), m.group(2)
-                    # self.mouse_symbols[symbol] = '%s_%s' % (symbol, ensembl)
-                    # self.mouse_ensembls[ensembl] = '%s_%s' % (symbol, ensembl)
+                # m = re.search(r'gene_id "(.+?)_(.+?)\.[0-9]+"', line)
+                # symbol, ensembl = m.group(1), m.group(2)
+                # self.mouse_symbols[symbol] = '%s_%s' % (symbol, ensembl)
+                # self.mouse_ensembls[ensembl] = '%s_%s' % (symbol, ensembl)
         # with open(get_alona_dir() + GENOME['ENTREZ_GENE_IDS'], 'r') as fh:
             # next(fh)
             # for line in fh:
                 # gene_id_as_number, ens = line.rstrip('\n').split(' ')
                 # if gene_id_as_number != 'null':
-                    # self.mouse_entrez[gene_id_as_number] = ens
+                # self.mouse_entrez[gene_id_as_number] = ens
 
     def check_gene_name_column_id_present(self):
         """ Checks if the header line has a column attribute. """
@@ -382,8 +387,8 @@ number of columns (every row must have the same number of columns).')
         with open(self.get_matrix_file(), 'r') as fh:
             header = next(fh)
             line2 = next(fh)
-            self._has_gene_id_column_id = len(header.split(self._delimiter)) == \
-                                          len(line2.split(self._delimiter))
+            s = len(header.split(self._delimiter))
+            self._has_gene_id_column_id = s == len(line2.split(self._delimiter))
             if self._has_gene_id_column_id:
                 log_info('A column ID for the gene symbols was identified.')
 
@@ -399,8 +404,9 @@ number of columns (every row must have the same number of columns).')
                         a = val.split('/')[-1]
                         basename = self.params['input_filename'].split('/')[-1]
                         if a != basename:
-                            log_error('Input filename is different with the filename \
-specified in settings.txt (%s). Try using a different output directory' % a)
+                            log_error('Input filename is different \
+with the filename specified in settings.txt (%s). Try using a \
+different output directory' % a)
         with open(settings_file, 'w') as f:
             for p in self.params:
                 f.write('%s\t%s\n' % (p, self.params[p]))
@@ -414,5 +420,5 @@ specified in settings.txt (%s). Try using a different output directory' % a)
         self.sanity_check_columns()
         self.sanity_check_genes()
         self.sanity_check_gene_dups()
-        #self.load_mouse_gene_symbols()
+        # self.load_mouse_gene_symbols()
         self.check_gene_name_column_id_present()

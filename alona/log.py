@@ -1,20 +1,16 @@
-"""
- alona
+""" alona
 
- Description:
- An analysis pipeline for scRNA-seq data.
+ Description: An analysis pipeline for scRNA-seq data.
 
- How to use:
- https://github.com/oscar-franzen/alona/
+ How to use: https://github.com/oscar-franzen/alona/
 
- Contact:
- Oscar Franzen, <p.oscar.franzen@gmail.com>
-"""
+ Contact: Oscar Franzen, <p.oscar.franzen@gmail.com> """
 
 import sys
 import logging
 
 from .constants import (RED, GREEN, END, YELLOW)
+
 
 def init_logging(loglevel, logfile):
     if loglevel == 'regular':
@@ -40,14 +36,18 @@ def init_logging(loglevel, logfile):
     console.setFormatter(formatter)
     logging.getLogger('').addHandler(console)
 
+
 def log_info(msg):
     logging.info('%s%s%s', GREEN, msg, END)
-    
+
+
 def log_debug(msg):
     logging.debug('%s', msg)
-    
+
+
 def log_warning(msg):
     logging.warning('%s%s%s', YELLOW, msg, END)
+
 
 def log_error(msg='error'):
     logging.error('%s%s%s', RED, msg, END)

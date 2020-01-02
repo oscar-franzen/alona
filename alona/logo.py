@@ -3,6 +3,7 @@ import logging
 import alona
 from .constants import (RED, END)
 
+
 def show_logo(nologo):
     if not nologo:
         print('''

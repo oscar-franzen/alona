@@ -1,15 +1,10 @@
-"""
- alona
+""" alona
 
- Description:
- An analysis pipeline for scRNA-seq data.
+ Description: An analysis pipeline for scRNA-seq data.
 
- How to use:
- https://github.com/oscar-franzen/alona/
+ How to use: https://github.com/oscar-franzen/alona/
 
- Contact:
- Oscar Franzen <p.oscar.franzen@gmail.com>
-"""
+ Contact: Oscar Franzen <p.oscar.franzen@gmail.com> """
 
 import os
 import sys
@@ -31,6 +26,7 @@ from .constants import (OUTPUT, GENOME, MARKERS)
 from .log import (log_info, log_debug, log_error)
 from .utils import (get_alona_dir, get_time, uniqueColors)
 from .stats import p_adjust_bh
+
 
 class AlonaCellTypePred(AlonaClustering):
     """
@@ -56,7 +52,7 @@ class AlonaCellTypePred(AlonaClustering):
         ret.to_csv(fn, header=True, sep='\t')
         log_debug('median_exp() finished')
         return ret
-        
+
     def mean_exp(self):
         """ Represent each cluster with mean gene expression. """
         log_debug('mean_exp() Computing mean expression per cluster')
@@ -70,7 +66,7 @@ class AlonaCellTypePred(AlonaClustering):
             ret = pd.concat([self.anno['desc'], ret], axis=1)
         ret.to_csv(fn, header=True, sep='\t')
         log_debug('mean_exp() finished')
-    
+
     def get_gene_symbols(self, data_norm):
         if self.params['species'] == 'mouse':
             f = GENOME['SYMBOLS_MOUSE']
@@ -78,13 +74,13 @@ class AlonaCellTypePred(AlonaClustering):
             f = GENOME['SYMBOLS_HUMAN']
         refs = pd.read_csv(get_alona_dir()+f, sep='\t', header=None)
         refs.index = refs.iloc[:, 0]
-        t = refs.iloc[:, 1].value_counts()==1
+        t = refs.iloc[:, 1].value_counts() == 1
         t = t[t]
         refs = refs[refs.iloc[:, 1].isin(t.index)]
         data_norm.index = data_norm.index.str.upper()
         if not data_norm.index.str.match('ENSMU').any() and \
            not data_norm.index.str.match('ENSG').any():
-               return data_norm
+            return data_norm
         if data_norm.index.str.match('^ENS(G|MUS)[0-9]+$').any():
             data_norm = data_norm.iloc[data_norm.index.isin(refs.index), :]
             refs = refs.iloc[refs.index.isin(data_norm.index), :]
@@ -96,16 +92,15 @@ class AlonaCellTypePred(AlonaClustering):
         return data_norm
 
     def CTA_RANK_F(self, marker_plot=False):
-        """
-        Cell Type Activity and Rank-based annotation with a one-sided Fisher's Exact test
-        """
+        """ Cell Type Activity and Rank-based annotation with a
+        one-sided Fisher's Exact test """
         if not self.params['species'] in ['mouse', 'human']:
             log_info('"--species other", skipping cell type prediction')
             return
         log_debug('CTA_RANK_F() starting')
         #import joblib
         #joblib.dump(self, 'q.jl')
-        #sys.exit()
+        # sys.exit()
         data_norm = self.data_norm.copy()
         data_norm = self.get_gene_symbols(data_norm)
         median_expr = self.median_exp(data_norm)
@@ -114,11 +109,13 @@ class AlonaCellTypePred(AlonaClustering):
         input_symbols = median_expr.index
         median_expr.index = input_symbols
         # (1) centering is done by subtracting the column means
-        # (2) scaling is done by dividing the (centered) by their standard deviations
-        median_expr_Z = pd.DataFrame(scale(median_expr, with_mean=True, axis=0))
+        # (2) scaling is done by dividing the (centered) by their
+        # standard deviations
+        median_expr_Z = pd.DataFrame(
+            scale(median_expr, with_mean=True, axis=0))
         median_expr_Z.index = median_expr.index
         median_expr_Z.columns = median_expr.columns
-        ## reference symbols
+        # reference symbols
         #fn = get_alona_dir() + GENOME['MOUSE_GENE_SYMBOLS']
         #mgs = pd.read_csv(fn, header=None)
         #mgs = mgs[0].str.upper()
@@ -135,7 +132,8 @@ class AlonaCellTypePred(AlonaClustering):
         weights = 1+np.sqrt(((max(freq)-freq)/(max(freq)-min(freq))))
 
         def _guess_cell_type(x):
-            rr = median_expr.loc[:, median_expr.columns == x.name].values.flatten()
+            rr = median_expr.loc[:, median_expr.columns ==
+                                 x.name].values.flatten()
             # genes expressed in this cell cluster
             genes_exp = set(x.index[rr > 0])
             # genes _not_ expressed in this cell cluster
@@ -144,28 +142,32 @@ class AlonaCellTypePred(AlonaClustering):
             for ct in dd:
                 s = dd[ct]
                 x_ss = x[x.index.isin(s)]
-                if len(x_ss) == 0: continue
+                if len(x_ss) == 0:
+                    continue
                 gene_weights = weights[weights.index.isin(x_ss.index)]
                 gene_weights = pd.Series(gene_weights, x_ss.index)
                 activity_score = sum(x_ss * gene_weights)/len(x_ss)**0.3
                 # how many expressed genesets are found in the geneset?
-                ct_exp = len(genes_exp&s)
+                ct_exp = len(genes_exp & s)
                 # how many _non_ expressed genes are found in the geneset?
-                ct_non_exp = len(genes_not_exp&s)
+                ct_non_exp = len(genes_not_exp & s)
                 # how many expressed genes are NOT found in the geneset?
                 ct_exp_not_found = len(genes_exp-s)
                 # how many _non_ expressed genes are NOT found in the geneset?
                 not_exp_not_found_in_geneset = len(genes_not_exp-s)
                 # one sided fisher
                 contigency_tbl = [[ct_exp, ct_non_exp],
-                                  [ct_exp_not_found, not_exp_not_found_in_geneset]]
-                odds_ratio, pval = fisher_exact(contigency_tbl, alternative='greater')
-                markers_found = ','.join(list(genes_exp&s))
-                if markers_found == '': markers_found = 'NA'
-                res.append({'activity_score' : activity_score,
-                            'ct' : ct,
-                            'pvalue' : pval,
-                            'markers' : markers_found})
+                                  [ct_exp_not_found,
+                                  not_exp_not_found_in_geneset]]
+                odds_ratio, pval = fisher_exact(
+                    contigency_tbl, alternative='greater')
+                markers_found = ','.join(list(genes_exp & s))
+                if markers_found == '':
+                    markers_found = 'NA'
+                res.append({'activity_score': activity_score,
+                            'ct': ct,
+                            'pvalue': pval,
+                            'markers': markers_found})
             res = sorted(res, key=lambda k: k['activity_score'], reverse=True)
             return res
         ret = median_expr_Z.apply(func=_guess_cell_type, axis=0)
@@ -201,8 +203,8 @@ class AlonaCellTypePred(AlonaClustering):
             # sort on all the cell types that the gene occurs in
             zx = self.res_pred['cell type'] != 'Unknown'
             if not np.any(zx):
-                log_debug('Not generating marker plot, because all cell types were \
-"Unknown".')
+                log_debug('Not generating marker plot, because all \
+cell types were "Unknown".')
                 return
             ct_targets = self.res_pred[zx]['cell type'].unique()
             zx = self.res_pred['cell type'].isin(ct_targets)
@@ -211,10 +213,12 @@ class AlonaCellTypePred(AlonaClustering):
                 for item in add_ct.upper().split(','):
                     if not np.any(df['cell type'] == item):
                         zx = self.markers['cell type'].str.upper() == item
-                        ct_mark = self.markers[zx]['official gene symbol'].str.cat(sep=',')
+                        key = 'official gene symbol'
+                        ct_mark = self.markers[zx][key].str.cat(sep=',')
                         zx = self.markers['cell type'].str.upper() == item
                         l = self.markers[zx]['cell type'].unique()[0]
-                        zx = pd.Series([l, ct_mark], index=['cell type', 'markers'])
+                        zx = pd.Series([l, ct_mark], index=[
+                                       'cell type', 'markers'])
                         df = df.append(zx, ignore_index=True)
                         ct_targets = np.append(ct_targets, l)
             dff = df['markers'].str.split(',', expand=True)
@@ -229,25 +233,29 @@ class AlonaCellTypePred(AlonaClustering):
             for item in dff.groupby(['value']):
                 gene.append(item[0])
                 celltypes.append(','.join(sorted(item[1]['cell type'].values)))
-            dff = pd.DataFrame({'gene' : gene, 'cell types' : celltypes})
+            dff = pd.DataFrame({'gene': gene, 'cell types': celltypes})
             dff = dff.sort_values('cell types')
             dff.index = np.arange(1, dff.shape[0]+1)
             target_genes = dff.gene
             symbs = data_norm.index
             data_slice = data_norm.loc[symbs.isin(target_genes)]
-            cell_ids = pd.DataFrame({'ids' : data_slice.columns.values,
-                                     'cluster' : self.leiden_cl})
-            cell_ids = cell_ids[cell_ids['cluster'].isin(self.clusters_targets)]
+            cell_ids = pd.DataFrame({'ids': data_slice.columns.values,
+                                     'cluster': self.leiden_cl})
+            cell_ids = cell_ids[cell_ids['cluster'].isin(
+                self.clusters_targets)]
             cell_ids = cell_ids.sort_values(by='cluster')
-            data_slice = data_slice.loc[:, data_slice.columns.isin(cell_ids['ids'].values)]
+            data_slice = data_slice.loc[:, data_slice.columns.isin(
+                cell_ids['ids'].values)]
             data_slice = data_slice.reindex(cell_ids['ids'], axis=1)
             data_slice = data_slice.reindex(dff['gene'], axis=0)
             plt.clf()
-            fig_size_y = round(data_slice.shape[0]/8) # 8 genes per inch
-            fig, ax = plt.subplots(nrows=1, ncols=1, figsize=(15, fig_size_y)) # xy
+            fig_size_y = round(data_slice.shape[0]/8)  # 8 genes per inch
+            fig, ax = plt.subplots(
+                nrows=1, ncols=1, figsize=(15, fig_size_y))  # xy
             ax = sb.heatmap(data_slice,
                             linewidth=0,
-                            cbar_kws={"shrink": 0.5}) # controls size of the colorbar
+                            # controls size of the colorbar
+                            cbar_kws={"shrink": 0.5})
             ax.get_xaxis().set_visible(False)
             ax.get_yaxis().set_visible(False)
             cbar = ax.collections[0].colorbar.ax
@@ -257,30 +265,36 @@ class AlonaCellTypePred(AlonaClustering):
             ax.set_ylim([data_slice.shape[0], 0])
             ax.set_xlim([0, data_slice.shape[1]])
             # x coordinate is axes and y coordinate is data
-            trans = transforms.blended_transform_factory(ax.transAxes, ax.transData)
+            trans = transforms.blended_transform_factory(
+                ax.transAxes, ax.transData)
             # add gene labels
-            y_data_coord = 1 # data coordinates starts at 1
+            y_data_coord = 1  # data coordinates starts at 1
             for gene in data_slice.index:
                 ax.text(x=-0.012-0.012*len(ct_targets), y=y_data_coord, s=gene,
                         horizontalalignment='right', clip_on=False, size=7,
                         transform=trans)
                 y_data_coord += 1
             ax.collections[0].colorbar.ax.tick_params(labelsize=6)
-            ax.collections[0].colorbar.set_label('gene expression (log2 scale)', size=6)
+            ax.collections[0].colorbar.set_label(
+                'gene expression (log2 scale)', size=6)
             grid = np.array(sorted(ct_targets))
             # cell type labels
             offset = -0.012-0.012*len(ct_targets)+0.006
             for idx, ct in enumerate(grid):
-                ax.text(offset+idx*0.011, 0-0.50, ct, size=6, rotation=90, clip_on=False,
-                        transform=trans, color=ct_color[idx])
+                ax.text(offset+idx*0.011, 0-0.50, ct, size=6,
+                        rotation=90, clip_on=False, transform=trans,
+                        color=ct_color[idx])
             index = 0
             for idx, d in dff.iterrows():
                 z = d[1].split(',')
                 for p in z:
                     i = np.where(grid == p)[0][0]
-                    rect = patches.Rectangle((offset+i*0.011, index+0.3), 0.005, 0.6,
-                                             linewidth=2, facecolor=ct_color[i],
-                                             clip_on=False, transform=trans)
+                    rect = patches.Rectangle((offset+i*0.011,
+                                             index+0.3), 0.005, 0.6,
+                                             linewidth=2,
+                                             facecolor=ct_color[i],
+                                             clip_on=False,
+                                             transform=trans)
                     ax.add_patch(rect)
                 index += 1
             # add cluster indicators
@@ -295,13 +309,13 @@ class AlonaCellTypePred(AlonaClustering):
                 # cluster index
                 ax.text(x=xmin, y=-1.2, s=cl, size=5)
                 xmin += cell_count
-                #ax.get_xlim()[1]
+                # ax.get_xlim()[1]
             if self.params['timestamp']:
                 plt.figtext(0.05, 0.05, get_time(), size=4)
             fn = self.get_wd() + OUTPUT['FILENAME_MARKER_HEATMAP']
             plt.savefig(fn, bbox_inches='tight')
             #import joblib
-            #joblib.dump(self,'q.jl')
+            # joblib.dump(self,'q.jl')
         log_debug('CTA_RANK_F() finished')
 
     def load_markers(self):
@@ -312,11 +326,12 @@ class AlonaCellTypePred(AlonaClustering):
             s = 'Mm'
         else:
             s = 'Hs'
-        ma = ma[ma.species.str.find(s)>-1]
+        ma = ma[ma.species.str.find(s) > -1]
         ui = ma.iloc[:, ma.columns == 'ubiquitousness index']
         ma = ma[np.array(ui).flatten() < 0.05]
         log_debug('Markers loaded')
         # marker frequency across the cell types
-        ma_ss = ma.iloc[:, ma.columns.isin(['official gene symbol', 'cell type'])]
+        ma_ss = ma.iloc[:, ma.columns.isin(
+            ['official gene symbol', 'cell type'])]
         self.marker_freq = ma_ss[ma_ss.columns[0]].value_counts()
         self.markers = ma_ss

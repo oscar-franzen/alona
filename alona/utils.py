@@ -1,11 +1,8 @@
-"""
- This file contains some utility functions used by alona.
+""" This file contains some utility functions used by alona.
 
- How to use alona:
- https://github.com/oscar-franzen/alona/
+ How to use alona: https://github.com/oscar-franzen/alona/
 
- Contact: Oscar Franzen <p.oscar.franzen@gmail.com>
-"""
+ Contact: Oscar Franzen <p.oscar.franzen@gmail.com> """
 
 import os
 import sys
@@ -20,6 +17,7 @@ from sklearn.cluster import KMeans
 
 from .log import log_error
 
+
 def is_binary(filename):
     """ Checks if the file is binary. """
     with open(filename, 'rb') as fh:
@@ -28,15 +26,18 @@ def is_binary(filename):
                 return True
     return False
 
+
 def random_str():
     """ Generates a random 8 character string. """
     return str(uuid.uuid4()).split('-')[0]
+
 
 def get_time():
     """ Get current date (international format), time, and time zone. """
     currentDT = datetime.datetime.now()
     ts = currentDT.strftime("%Y-%m-%d %H:%M ") + time.tzname[0]
     return ts
+
 
 def print_version(ctx, param, value):
     """ Prints alona version number. """
@@ -46,16 +47,20 @@ def print_version(ctx, param, value):
     \nhttps://github.com/oscar-franzen/alona' % __version__)
     ctx.exit()
 
+
 def get_alona_dir():
     """ Returns the alona base directory. """
     return os.path.dirname(inspect.getfile(log_error)) + '/'
 
-def get_random_color(pastel_fac=0.5):
+
+def get_random_color(fac=0.5):
     r = random.uniform
-    return [(x+pastel_fac)/(1.0+pastel_fac) for x in [r(0, 1.0) for i in [1, 2, 3]]]
+    return [(x+fac)/(1.0+fac) for x in [r(0, 1.0) for i in [1, 2, 3]]]
+
 
 def color_distance(c1, c2):
     return sum([abs(x[0]-x[1]) for x in zip(c1, c2)])
+
 
 def generate_new_color(existing_colors, pastel_fac=0.5):
     max_distance = None
@@ -64,17 +69,19 @@ def generate_new_color(existing_colors, pastel_fac=0.5):
         color = get_random_color(pastel_fac=pastel_fac)
         if not existing_colors:
             return color
-        best_distance = min([color_distance(color, c) for c in existing_colors])
+        best_distance = min([color_distance(color, c)
+                             for c in existing_colors])
         if not max_distance or best_distance > max_distance:
             max_distance = best_distance
             best_color = color
     return best_color
 
+
 def uniqueColors(n_colors):
     """
-    Generates unique colors.
-    C code is borrowed from the R package colorspace and ported to Python.
-    The kmeans concept is borrowed from the R package randomcoloR.
+    Generates unique colors.  C code is borrowed from the R package
+    colorspace and ported to Python.  The kmeans concept is borrowed
+    from the R package randomcoloR.
 
     Parameters:
     n_colors (int): Number of colors to generate

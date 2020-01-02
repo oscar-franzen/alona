@@ -1,21 +1,16 @@
-"""
- This file contains clustering methods used by alona.
+""" This file contains clustering methods used by alona.
 
  In general, it flows like this:
 
     1. identify highly variable genes (HVG), retrieve N genes
-    2. perform PCA on the HVG, retrieve N components
-    3. adjust PCAs by weight
-    4. compute KNN
-    5. compute SNN from KNN, prune SNN graph
-    6. identify communities with leiden algo
-    7. run t-SNE or UMAP on the PCAs
+    2. perform PCA on the HVG, retrieve N components 3. adjust PCAs by
+    weight 4. compute KNN 5. compute SNN from KNN, prune SNN graph
+    6. identify communities with leiden algo 7. run t-SNE or UMAP on
+    the PCAs
 
- How to use alona:
- https://github.com/oscar-franzen/alona/
+ How to use alona: https://github.com/oscar-franzen/alona/
 
- Contact: Oscar Franzen <p.oscar.franzen@gmail.com>
-"""
+ Contact: Oscar Franzen <p.oscar.franzen@gmail.com> """
 
 import os
 import re
@@ -46,6 +41,7 @@ from .log import (log_info, log_debug, log_error, log_warning)
 from .constants import OUTPUT
 from .utils import (get_alona_dir, uniqueColors, get_time)
 
+
 class AlonaClustering(AlonaCell):
     """
     Clustering class.
@@ -54,7 +50,7 @@ class AlonaClustering(AlonaCell):
     def __init__(self):
         self.hvg = None
         self.pca_components = None
-        self.embeddings = None # pd.DataFrame
+        self.embeddings = None  # pd.DataFrame
         self.nn_idx = None
         self.snn_graph = None
         self.leiden_cl = None
@@ -67,11 +63,12 @@ class AlonaClustering(AlonaCell):
 
     def find_variable_genes(self):
         log_debug('Entering find_variable_genes()')
-        hvg_finder = AlonaHighlyVariableGenes(hvg_method=self.params['hvg_method'],
+        v = self.params['hvg_method']
+        hvg_finder = AlonaHighlyVariableGenes(hvg_method=v,
                                               hvg_n=self.params['hvg_n'],
                                               data_norm=self.data_norm,
                                               data_ERCC=self.data_ERCC)
-            
+
         self.hvg = hvg_finder.find()
         if type(self.anno) == pd.core.frame.DataFrame:
             w = pd.DataFrame(self.hvg, index=self.hvg, columns=['gene'])
@@ -83,36 +80,37 @@ class AlonaClustering(AlonaCell):
         log_debug('Finished find_variable_genes()')
 
     def PCA(self, out_path):
-        """
-        Calculate principal components.
-        Default is to approximate PCA using truncated singular value decomposition (IRLBA).
+        """ Calculate principal components.  Default is to approximate
+        PCA using truncated singular value decomposition (IRLBA).
 
-        The augmented implicitly restarted Lanczos bidiagonalization algorithm (IRLBA)
-        finds a few approximate largest singular values and corresponding singular
-        vectors using a method of Baglama and Reichel.
+        The augmented implicitly restarted Lanczos bidiagonalization
+        algorithm (IRLBA) finds a few approximate largest singular
+        values and corresponding singular vectors using a method of
+        Baglama and Reichel.
 
-        A fast and memory-efficient way to compute a partial SVD, principal
-        components, and some specialized partial eigenvalue decompositions.
+        A fast and memory-efficient way to compute a partial SVD,
+        principal components, and some specialized partial eigenvalue
+        decompositions.
 
-        Reference:
-        Baglama, James, and Lothar Reichel. “Augmented implicitly restarted Lanczos
-        bidiagonalization methods.” SIAM Journal on Scientific Computing 27.1 (2005):
-        19-42.
+        Reference: Baglama, James, and Lothar Reichel. “Augmented
+        implicitly restarted Lanczos bidiagonalization methods.” SIAM
+        Journal on Scientific Computing 27.1 (2005): 19-42.
 
         Some useful notes about the R implementation:
-        http://bwlewis.github.io/irlba/
-        """
+        http://bwlewis.github.io/irlba/ """
         log_debug('Running PCA...')
-        
+
         n_comp = self.params['pca_n']
         index_v = self.data_norm.index.isin(self.hvg)
         sliced = self.data_norm[index_v]
         seed = self.params['seed']
         if self.params['pca'] == 'irlb':
-            lanc = alona.irlbpy.lanczos(sliced, nval=n_comp, maxit=1000, seed=seed)
+            lanc = alona.irlbpy.lanczos(
+                sliced, nval=n_comp, maxit=1000, seed=seed)
             # weighing by var
             self.pca_components = np.dot(lanc.V, np.diag(lanc.s))
-            self.pca_components = pd.DataFrame(self.pca_components, index=sliced.columns)
+            self.pca_components = pd.DataFrame(
+                self.pca_components, index=sliced.columns)
         elif self.params['pca'] == 'regular':
             sliced = sliced.transpose()
             x = scale(sliced, with_mean=True, with_std=False)
@@ -121,9 +119,10 @@ class AlonaClustering(AlonaCell):
             d = s[1]
             s_d = d/np.sqrt(x.shape[0]-1)
             retx = x.dot(v)
-            retx = retx[:,0:n_comp]
+            retx = retx[:, 0:n_comp]
             self.pca_components = retx
-            self.pca_components = pd.DataFrame(self.pca_components, index=sliced.index)
+            self.pca_components = pd.DataFrame(
+                self.pca_components, index=sliced.index)
         self.pca_components.to_csv(path_or_buf=out_path, sep=',', header=None)
         log_debug('Finished PCA')
 
@@ -138,16 +137,14 @@ class AlonaClustering(AlonaCell):
             log_error('Method not implemented.')
 
     def UMAP(self, out_path):
-        """
-        Projects data to a two dimensional space using the UMAP algorithm.
+        """ Projects data to a two dimensional space using the UMAP
+        algorithm.
 
-        References:
-        McInnes L, Healy J, Melville J, arxiv, 2018
+        References: McInnes L, Healy J, Melville J, arxiv, 2018
 
         https://arxiv.org/abs/1802.03426
         https://github.com/lmcinnes/umap
-        https://umap-learn.readthedocs.io/en/latest/
-        """
+        https://umap-learn.readthedocs.io/en/latest/ """
         log_debug('Entering UMAP()')
         seed = self.params['seed']
         reducer = umap.UMAP(random_state=seed)
@@ -159,12 +156,12 @@ class AlonaClustering(AlonaCell):
         log_debug('Exiting UMAP()')
 
     def tSNE(self, out_path):
-        """
-        Projects data to a two dimensional space using the tSNE algorithm.
+        """ Projects data to a two dimensional space using the tSNE
+        algorithm.
 
-        van der Maaten, L.J.P.; Hinton, G.E. Visualizing High-Dimensional Data
-        Using t-SNE. Journal of Machine Learning Research 9:2579-2605, 2008.
-        """
+        van der Maaten, L.J.P.; Hinton, G.E. Visualizing
+        High-Dimensional Data Using t-SNE. Journal of Machine Learning
+        Research 9:2579-2605, 2008.  """
         log_debug('Running t-SNE...')
         seed = self.params['seed']
         perplexity = self.params['perplexity']
@@ -180,9 +177,8 @@ class AlonaClustering(AlonaCell):
         log_debug('Finished t-SNE')
 
     def knn(self, inp_k, filename=''):
-        """
-        Nearest Neighbour Search. Finds the k number of near neighbours for each cell.
-        """
+        """ Nearest Neighbour Search. Finds the k number of near
+        neighbours for each cell.  """
         log_debug('Performing Nearest Neighbour Search')
         k = inp_k
         nbrs = NearestNeighbors(n_neighbors=k, algorithm='ball_tree')
@@ -192,12 +188,11 @@ class AlonaClustering(AlonaCell):
         log_debug('Finished NNS')
 
     def snn(self, k, prune_snn):
-        """
-        Computes Shared Nearest Neighbor (SNN) Graph
-        Link weights are number of shared nearest neighbors, so we need to get
-        the sum of SNN similarities over all KNNs, which is done with a matrix operation.
-        See: http://mlwiki.org/index.php/SNN_Clustering
-        """
+        """ Computes Shared Nearest Neighbor (SNN) Graph Link weights
+        are number of shared nearest neighbors, so we need to get the
+        sum of SNN similarities over all KNNs, which is done with a
+        matrix operation.  See:
+        http://mlwiki.org/index.php/SNN_Clustering """
         log_debug('Computing SNN graph...')
         snn_path = self.get_wd() + OUTPUT['FILENAME_SNN_GRAPH']
         if os.path.exists(snn_path):
@@ -210,13 +205,14 @@ class AlonaClustering(AlonaCell):
         rows = np.array(melted[melted.columns[0]])
         cols = np.array(melted[melted.columns[1]])
         d = [1]*len(rows)
-        rows = np.array(list(melted[melted.columns[0]].values) + \
-            list(range(1, self.nn_idx.shape[0]+1)))
-        cols = np.array(list(melted[melted.columns[1]]) + \
-            list(list(range(1, self.nn_idx.shape[0]+1))))
+        rows = np.array(list(melted[melted.columns[0]].values) +
+                        list(range(1, self.nn_idx.shape[0]+1)))
+        cols = np.array(list(melted[melted.columns[1]]) +
+                        list(list(range(1, self.nn_idx.shape[0]+1))))
         d = [1]*len(rows)
         knn_sparse = coo_matrix((d, (rows-1, cols-1)),
-                                shape=(self.nn_idx.shape[0], self.nn_idx.shape[0]))
+                                shape=(self.nn_idx.shape[0],
+                                       self.nn_idx.shape[0]))
         snn_sparse = knn_sparse*knn_sparse.transpose()
         # prune using same logic as FindClusters in Seurat
         #aa = snn_sparse.nonzero()
@@ -227,33 +223,35 @@ class AlonaClustering(AlonaCell):
         for i, j, v in zip(cx.row, cx.col, cx.data):
             item = (i, j, v)
             strength = v/(k+(k-v))
-            
+
             if strength > prune_snn:
                 node1.append(i)
                 node2.append(j)
             else:
                 pruned_count += 1
         perc_pruned = (pruned_count/len(cx.row))*100
-        log_debug('%.2f%% (n=%s) of links pruned' % (perc_pruned,
-                                                     '{:,}'.format(pruned_count)))
+        s = '{:,}'.format(pruned_count)
+        log_debug('%.2f%% (n=%s) of links pruned' % (perc_pruned, s))
         if perc_pruned > 80:
             log_warning('more than 80% of the edges were pruned')
-        df = pd.DataFrame({'source_node' : node1, 'target_node' : node2})
+        df = pd.DataFrame({'source_node': node1, 'target_node': node2})
         df.to_csv(snn_path, header=None, index=None)
         self.snn_graph = df
         log_debug('Done computing SNN.')
-    
+
     def leiden_prep(self):
         """ Post-clustering stuff. """
         fn = self.get_wd() + OUTPUT['FILENAME_CLUSTERS_LEIDEN']
         idx = self.data_norm.columns
-        pd.DataFrame(self.leiden_cl, index=idx).to_csv(fn, header=False, index=True)
+        pd.DataFrame(self.leiden_cl, index=idx).to_csv(
+            fn, header=False, index=True)
         cl, counts = np.unique(self.leiden_cl, return_counts=True)
         ignore_clusters = self.params['ignore_small_clusters']
-        self.n_clusters = np.sum(counts>ignore_clusters)
+        self.n_clusters = np.sum(counts > ignore_clusters)
         n = len(set(self.leiden_cl))
-        log_info('there are %s cell clusters (n=%s are OK)' % (n, self.n_clusters))
-        self.clusters_targets = cl[counts>ignore_clusters]
+        log_info('there are %s cell clusters (n=%s are OK)' %
+                 (n, self.n_clusters))
+        self.clusters_targets = cl[counts > ignore_clusters]
         log_debug(('cluster', 'cells'))
         for item in zip(cl, counts):
             log_debug(item)
@@ -262,15 +260,13 @@ class AlonaClustering(AlonaCell):
             self.cluster_colors = uniqueColors(len(self.clusters_targets))
 
     def leiden(self):
-        """
-        Cluster the SNN graph using the Leiden algorithm.
+        """ Cluster the SNN graph using the Leiden algorithm.
 
         https://github.com/vtraag/leidenalg
 
-        From Louvain to Leiden: guaranteeing well-connected communities
-        Traag V, Waltman L, van Eck NJ
-        https://arxiv.org/abs/1810.08473
-        """
+        From Louvain to Leiden: guaranteeing well-connected
+        communities Traag V, Waltman L, van Eck NJ
+        https://arxiv.org/abs/1810.08473 """
         log_debug('Running leiden clustering...')
         res = self.params['leiden_res']
         seed = self.params['seed']
@@ -303,7 +299,8 @@ class AlonaClustering(AlonaCell):
             self.preclust = self.preclust.loc[t, :]
             if self.data_norm.shape[1] != self.preclust.shape[0]:
                 log_error('Number of cells mismatch (data_norm and preclust)')
-            self.data_norm = self.data_norm.reindex(self.preclust['cell'], axis=1)
+            self.data_norm = self.data_norm.reindex(
+                self.preclust['cell'], axis=1)
             self.leiden_cl = list(self.preclust['cluster'])
             self.leiden_prep()
         else:
@@ -321,7 +318,8 @@ class AlonaClustering(AlonaCell):
         ignore_clusters = self.params['ignore_small_clusters']
         highlight_specific_cells = self.params['highlight_specific_cells']
         if highlight_specific_cells:
-            highlight_specific_cells = re.sub(' ', '', highlight_specific_cells).split(',')
+            highlight_specific_cells = re.sub(
+                ' ', '', highlight_specific_cells).split(',')
         else:
             highlight_specific_cells = []
         if dark_bg:
@@ -335,10 +333,11 @@ class AlonaClustering(AlonaCell):
             plt.savefig('/tmp/_.pdf', bbox_inches='tight')
             plt.close()
         plt.clf()
-        fig = plt.figure() # num=None, figsize=(5, 5)
+        fig = plt.figure()  # num=None, figsize=(5, 5)
         grid = plt.GridSpec(nrows=1, ncols=5, hspace=0.2, wspace=0.2)
-        main_ax = plt.subplot(grid[0, 0:4]) # python note, A:B (A=0 indexed, B=1 indexed)
-        leg1 = plt.subplot(grid[0, -1]) # 3 is 0 indexed
+        # python note, A:B (A=0 indexed, B=1 indexed)
+        main_ax = plt.subplot(grid[0, 0:4])
+        leg1 = plt.subplot(grid[0, -1])  # 3 is 0 indexed
         leg1.set_xlim(0, 1)
         leg1.set_ylim(0, 1)
         leg1.axis('off')
@@ -360,18 +359,20 @@ class AlonaClustering(AlonaCell):
             col = self.cluster_colors[i]
             if np.any(e.index.isin(highlight_specific_cells)):
                 special_cell = e[e.index.isin(highlight_specific_cells)]
-                special_cells.append({ 'np' : special_cell,
-                                       'col' : col,
-                                       'cell_id' : special_cell.index.values })
-                e = e.drop(special_cell.index,axis=0)
+                special_cells.append({'np': special_cell,
+                                      'col': col,
+                                      'cell_id': special_cell.index.values})
+                e = e.drop(special_cell.index, axis=0)
             x = e[1].values
             y = e[2].values
             if e.shape[0] <= ignore_clusters:
                 ignored_count += 1
                 continue
-            main_ax.scatter(x, y, s=marker_size, color=col, label=self.clusters_targets[i])
+            main_ax.scatter(x, y, s=marker_size, color=col,
+                            label=self.clusters_targets[i])
             lab = i
-            rect = mpatches.Rectangle((0.05, 1-0.03*i - 0.05), width=0.20, height=0.02,
+            rect = mpatches.Rectangle((0.05, 1-0.03*i - 0.05),
+                                      width=0.20, height=0.02,
                                       linewidth=0, facecolor=col)
             leg1.add_patch(rect)
             an = leg1.annotate(lab, xy=(0.3, 1-0.03*i - 0.047), size=6)
@@ -380,18 +381,20 @@ class AlonaClustering(AlonaCell):
             bbox_data = leg1.transAxes.inverted().transform(bb)
             if bbox_data[1][0] > offset:
                 offset = bbox_data[1][0]
-        
+
         for special in special_cells:
             x = special['np'][1].values
             y = special['np'][2].values
             col = special['col']
             cell_id = special['cell_id']
-            main_ax.scatter(x, y, s=marker_size*2, marker='^', c=col, edgecolor='black',
+            main_ax.scatter(x, y, s=marker_size*2, marker='^', c=col,
+                            edgecolor='black',
                             linewidth='0.2')
-            for i in range(0,len(x)):
+            for i in range(0, len(x)):
                 main_ax.annotate(cell_id[i], (x[i]+1, y[i]), size=5)
         if ignored_count:
-            log_warning('Ignoring %s cluster(s) (too few cells)' % (ignored_count))
+            log_warning('Ignoring %s cluster(s) (too few cells)' %
+                        (ignored_count))
         if self.params['species'] in ['mouse', 'human']:
             # check cell type predictions that mismatch between the two methods
             mismatches = {}
@@ -426,8 +429,9 @@ class AlonaClustering(AlonaCell):
                     continue
                 pred = self.res_pred.iloc[i]
                 ct = pred[1]
-                l = {'x' : offset2 + 0.1, 'y' : 1-0.03*i - 0.047, 's' : ct, 'size' : 6}
-                #if mismatches[i]:
+                l = {'x': offset2 + 0.1, 'y': 1 -
+                     0.03*i - 0.047, 's': ct, 'size': 6}
+                # if mismatches[i]:
                 #    l['color'] = 'red'
                 lt = leg1.text(**l)
                 renderer = fig.canvas.get_renderer()
@@ -501,7 +505,7 @@ class AlonaClustering(AlonaCell):
                 # item = self.res_pred2.iloc[i]
                 # ct = item[0]
                 # prob = item[1]
-                
+
                 # if ct == 'Unknown':
                     # prob = 'NA'
                 # else:
@@ -518,18 +522,19 @@ class AlonaClustering(AlonaCell):
 
                 # y_offset = bbox_data[1][1]
 
-            #if dark_bg:
+            # if dark_bg:
             #    line_col = '#ffffff'
-            #else:
+            # else:
             #    line_col = '#000000'
 
-            #leg1.vlines(offset4+0.05, y_offset-0.015, 1-0.03, color=line_col, clip_on=False,
+            # leg1.vlines(offset4+0.05, y_offset-0.015, 1-0.03, color=line_col, clip_on=False,
             #            lw=0.5)
 
             # header
             leg1.text(0.30, 0.99, 'cluster', size=5, rotation=90)
             leg1.text(offset + 0.1, 0.99, 'no. cells', size=5, rotation=90)
-            leg1.text(offset2 + 0.1, 0.99, 'marker-based\nprediction', size=5, rotation=90)
+            leg1.text(offset2 + 0.1, 0.99,
+                      'marker-based\nprediction', size=5, rotation=90)
             leg1.text(offset3 + 0.1, 0.99, 'p-value', size=5, rotation=90)
             #leg1.text(offset4 + 0.1, 0.99, 'SVM-based\nprediction', size=5, rotation=90)
             #leg1.text(offset5 + 0.1, 0.99, 'probability', size=5, rotation=90)
@@ -538,8 +543,10 @@ class AlonaClustering(AlonaCell):
         # smaller than default tick label size
         main_ax.tick_params(axis='both', which='major', labelsize=5)
         input_fn = self.params['input_filename']
-        main_ax.set_title('%s\n%s' % (title, input_fn.split('/')[-1]), fontsize=7)
-        fn = self.get_wd() + OUTPUT['FILENAME_CELL_SCATTER_PLOT_PREFIX'] + method + '.pdf'
+        main_ax.set_title('%s\n%s' %
+                          (title, input_fn.split('/')[-1]), fontsize=7)
+        fn = self.get_wd() + \
+            OUTPUT['FILENAME_CELL_SCATTER_PLOT_PREFIX'] + method + '.pdf'
         if self.params['timestamp']:
             plt.figtext(0.05, 0, get_time(), size=5)
         plt.savefig(fn, bbox_inches='tight')
@@ -547,13 +554,14 @@ class AlonaClustering(AlonaCell):
         log_debug('Done generating scatter plot.')
 
     def genes_exp_per_cluster(self, title=''):
-        """ Makes a violin plot of number of expressed genes per cluster. """
+        """ Makes a violin plot of number of expressed genes per
+        cluster. """
         log_debug('Entering genes_exp_per_cluster()')
         data_norm = self.data_norm
         cl = self.leiden_cl
         ignore_clusters = self.params['ignore_small_clusters']
         cluster_colors = self.cluster_colors
-        data_points = [] # array of arrays
+        data_points = []  # array of arrays
         labels = []
         ticks = []
         idx = 1
@@ -583,7 +591,8 @@ class AlonaClustering(AlonaCell):
         log_debug('Exiting genes_exp_per_cluster()')
 
     def cell_scatter_plot_w_gene_overlay(self, title=''):
-        """ Makes scatter plot(s) with overlaid gene expression on cells. """
+        """ Makes scatter plot(s) with overlaid gene expression on
+        cells. """
         log_debug('Inside cell_scatter_plot_w_gene_overlay()')
         method = self.params['embedding']
         genes = self.params['overlay_genes']
@@ -593,7 +602,8 @@ class AlonaClustering(AlonaCell):
             genes = []
         data_norm = self.data_norm
         if self.params['species'] in ['mouse', 'human']:
-            symbs = pd.Series(data_norm.index.str.extract('(.+)_')[0]).str.upper()
+            symbs = pd.Series(
+                data_norm.index.str.extract('(.+)_')[0]).str.upper()
         else:
             symbs = pd.Series(data_norm.index.str.upper())
         cell_count = self.embeddings.shape[0]
@@ -603,23 +613,26 @@ class AlonaClustering(AlonaCell):
             marker_size = 3
         cmap = sb.cubehelix_palette(as_cmap=True)
         for gene in genes:
-            row = data_norm.iloc[(symbs==gene).values]
+            row = data_norm.iloc[(symbs == gene).values]
             x = self.embeddings[1].values
             y = self.embeddings[2].values
             plt.clf()
             fig, ax = plt.subplots(nrows=1, ncols=1, figsize=(7, 5))
             #zscore = ((row-row.mean(axis=1)[0])/row.std(axis=1)[0]).values[0]
-            points = ax.scatter(x, y, s=marker_size, c=row.values[0], cmap=cmap)
+            points = ax.scatter(x, y, s=marker_size,
+                                c=row.values[0], cmap=cmap)
             cb = fig.colorbar(points)
             cb.set_label('%s gene expression (log2 scale)' % (gene))
-            fn = self.get_wd() + OUTPUT['FILENAME_CELL_SCATTER_PLOT_PREFIX'] + gene + '.pdf'
+            fn = self.get_wd() + \
+                OUTPUT['FILENAME_CELL_SCATTER_PLOT_PREFIX'] + gene + '.pdf'
             if self.params['timestamp']:
                 plt.figtext(0.05, 0, get_time(), size=5)
             plt.savefig(fn, bbox_inches='tight')
         log_debug('Finished cell_scatter_plot_w_gene_overlay()')
 
     def violin_top(self, title=''):
-        """ Makes violin plots of the top expressed genes per cluster. """
+        """ Makes violin plots of the top expressed genes per
+        cluster. """
         log_debug('Entering violin_top()')
         data_norm = self.data_norm
         n = self.params['violin_top']
@@ -627,7 +640,8 @@ class AlonaClustering(AlonaCell):
         ignore_clusters = self.params['ignore_small_clusters']
         plt.clf()
         fig_size_y = round(len(self.clusters_targets)*2)
-        fig, ax = plt.subplots(nrows=self.n_clusters, ncols=1, figsize=(7, fig_size_y))
+        fig, ax = plt.subplots(nrows=self.n_clusters,
+                               ncols=1, figsize=(7, fig_size_y))
         fig.subplots_adjust(hspace=1)
         idx = 0
         for cluster_id, d in data_norm.groupby(by=cl, axis=1):
@@ -637,12 +651,13 @@ class AlonaClustering(AlonaCell):
             top = exp_mean.sort_values(ascending=False).head(n).index
             d_filt = d[d.index.isin(top)]
             d_filt = d_filt.reindex(top)
-            data_points = [] # array of arrays
+            data_points = []  # array of arrays
             for i, row in d_filt.iterrows():
                 data_points.append(row.values)
-            vp = ax[idx].violinplot(data_points, showmeans=False, showmedians=True)
+            vp = ax[idx].violinplot(
+                data_points, showmeans=False, showmedians=True)
             ax[idx].grid(axis='y')
-            ax[idx].set_xticks(list(range(1,n+1)))
+            ax[idx].set_xticks(list(range(1, n+1)))
             gene_labels = top
             ax[idx].set_xticklabels(gene_labels, size=5, rotation='vertical')
             ax[idx].set_ylabel('gene expression', size=6)

@@ -2,7 +2,7 @@ import sys
 
 name = 'alona'
 
-__version__ = '0.3.4'
+__version__ = '0.3.5'
 __license__ = 'GPLv3'
 __author__ = 'Oscar Franzén'
 __email__ = 'p.oscar.franzen@gmail.com'

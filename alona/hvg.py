@@ -1,15 +1,10 @@
-"""
- alona
+""" alona
 
- Description:
- Methods to identify highly variable genes.
+ Description: Methods to identify highly variable genes.
 
- How to use:
- https://github.com/oscar-franzen/alona/
+ How to use: https://github.com/oscar-franzen/alona/
 
- Contact:
- Oscar Franzen <p.oscar.franzen@gmail.com>
-"""
+ Contact: Oscar Franzen <p.oscar.franzen@gmail.com> """
 
 import sys
 
@@ -30,6 +25,7 @@ from .glm.families import Gamma
 
 from .log import (log_info, log_debug, log_error, log_warning)
 from .stats import p_adjust_bh
+
 
 class AlonaHighlyVariableGenes():
     """
@@ -67,16 +63,17 @@ class AlonaHighlyVariableGenes():
         return mat.mean(axis=1)
 
     def hvg_brennecke(self, norm_ERCC=None, fdr=0.1, minBiolDisp=0.5):
-        """
-        Implements the method of Brennecke et al. (2013) to identify highly variable genes.
-        Largely follows the function BrenneckeGetVariableGenes from the R package M3Drop.
+        """ Implements the method of Brennecke et al. (2013) to
+        identify highly variable genes.  Largely follows the function
+        BrenneckeGetVariableGenes from the R package M3Drop.
 
-        The below code fits data using GLM with Fisher Scoring. GLM code copied from
-        (credits to @madrury for this code): https://github.com/madrury/py-glm
+        The below code fits data using GLM with Fisher Scoring. GLM
+        code copied from (credits to @madrury for this code):
+        https://github.com/madrury/py-glm
 
-        Brennecke et al. (2013) Accounting for technical noise in single-cell RNA-seq
-        experiments. Nature Methods 10.1038/nmeth.2645
-        """
+        Brennecke et al. (2013) Accounting for technical noise in
+        single-cell RNA-seq experiments. Nature Methods
+        10.1038/nmeth.2645 """
 
         data_norm = self.data_norm
 
@@ -108,7 +105,8 @@ class AlonaHighlyVariableGenes():
 
         gamma_model = GLM(family=Gamma())
 
-        x = pd.DataFrame({'a0' : [1]*len(meansSp[useForFit]), 'a1tilde' : 1/meansSp[useForFit]})
+        x = pd.DataFrame( {'a0': [1]*len(meansSp[useForFit]),
+                           'a1tilde': 1/meansSp[useForFit]})
 
         # modified to use the identity link function
         gamma_model.fit(np.array(x), y=np.array(cv2Sp[useForFit]))
@@ -126,18 +124,19 @@ class AlonaHighlyVariableGenes():
 
         p = 1-scipy.stats.chi2.cdf(q, m-1)
         padj = p_adjust_bh(p)
-        res = pd.DataFrame({'gene': meansGenes.index, 'pvalue' : p, 'padj' : padj})
+        res = pd.DataFrame(
+            {'gene': meansGenes.index, 'pvalue': p, 'padj': padj})
         filt = res[res['padj'] < fdr]['gene']
 
         return np.array(filt.head(self.hvg_n))
 
     def hvg_seurat(self):
-        """
-        Retrieves a list of highly variable genes. Mimics Seurat's `FindVariableGenes`.
-        The function bins the genes according to average expression, then calculates
-        dispersion for each bin as variance to mean ratio. Within each bin, Z-scores are
-        calculated and returned. Z-scores are ranked and the top 1000 are selected.
-        """
+        """ Retrieves a list of highly variable genes. Mimics Seurat's
+        `FindVariableGenes`.  The function bins the genes according to
+        average expression, then calculates dispersion for each bin as
+        variance to mean ratio. Within each bin, Z-scores are
+        calculated and returned. Z-scores are ranked and the top 1000
+        are selected.  """
 
         data_norm = self.data_norm
 
@@ -168,27 +167,27 @@ class AlonaHighlyVariableGenes():
         return ret
 
     def hvg_scran(self):
-        """
-        This function implements the approach from scran to identify highly variable genes.
+        """ This function implements the approach from scran to
+        identify highly variable genes.
 
         Expression counts should be normalized and on a log scale.
 
         Outline of the steps:
 
-        1. fits a polynomial regression model to mean and variance of the technical genes
-        2. decomposes the total variance of the biological genes by subtracting the
-           technical variance predicted by the fit
-        3. sort based on biological variance
+        1. fits a polynomial regression model to mean and variance of
+        the technical genes 2. decomposes the total variance of the
+        biological genes by subtracting the technical variance
+        predicted by the fit 3. sort based on biological variance
 
-        Reference:
-        Lun ATL, McCarthy DJ, Marioni JC (2016). “A step-by-step workflow for low-level
-        analysis of single-cell RNA-seq data with Bioconductor.” F1000Research,
-        doi.org/10.12688/f1000research.9501.2
-        """
+        Reference: Lun ATL, McCarthy DJ, Marioni JC (2016). “A
+        step-by-step workflow for low-level analysis of single-cell
+        RNA-seq data with Bioconductor.” F1000Research,
+        doi.org/10.12688/f1000research.9501.2 """
 
         if self.data_ERCC.empty:
-            log_error(None, 'Running "--hvg scran" requires ERCC spikes in the dataset. \
-these should begin with ERCC- followed by numbers.')
+            log_error(None, 'Running "--hvg scran" requires ERCC \
+spikes in the dataset. \ these should begin with ERCC- followed by \
+numbers.')
 
         norm_data = self.data_norm
         norm_ERCC = self.data_ERCC
@@ -210,13 +209,14 @@ these should begin with ERCC- followed by numbers.')
 
         #plt.scatter(x, y, color='red')
         #plt.plot(x, pol_reg.predict(poly_reg.fit_transform(np.array(x).reshape(-1,1))), color='blue')
-        #plt.xlabel('mean')
-        #plt.ylabel('var')
-        #plt.show()
+        # plt.xlabel('mean')
+        # plt.ylabel('var')
+        # plt.show()
 
         # predict and remove technical variance
         bio_means = norm_data.mean(axis=1)
-        vars_pred = pol_reg.predict(poly_reg.fit_transform(np.array(bio_means).reshape(-1, 1)))
+        vars_pred = pol_reg.predict(poly_reg.fit_transform(
+            np.array(bio_means).reshape(-1, 1)))
         vars_bio_total = norm_data.var(axis=1)
 
         # biological variance component
@@ -225,13 +225,12 @@ these should begin with ERCC- followed by numbers.')
         return vars_bio_bio.head(self.hvg_n).index.values
 
     def hvg_chen2016(norm_data):
-        """
-        This function implements the approach from Chen (2016) to identify highly variable
-        genes.
+        """ This function implements the approach from Chen (2016) to
+        identify highly variable genes.
         https://bmcgenomics.biomedcentral.com/articles/10.1186/s12864-016-2897-6
 
-        The code is essentially a direct translation of the R code from:
-        https://github.com/hillas/scVEGs/blob/master/scVEGs.r
+        The code is essentially a direct translation of the R code
+        from: https://github.com/hillas/scVEGs/blob/master/scVEGs.r
 
         Expression counts should be normalized and not on a log scale.
         """
@@ -255,10 +254,10 @@ these should begin with ERCC- followed by numbers.')
             y = k*x+m
             return y
 
-        #plt.clf()
+        # plt.clf()
         #plt.scatter(np.log10(xdata), ydata, color='red')
-        #plt.scatter(np.log10(xdata), predict(*res, np.log10(xdata)), color='blue')
-        #plt.show()
+        # plt.scatter(np.log10(xdata), predict(*res, np.log10(xdata)), color='blue')
+        # plt.show()
 
         xSeq = np.arange(min(np.log10(xdata)), max(np.log10(xdata)), 0.005)
 
@@ -280,17 +279,18 @@ these should begin with ERCC- followed by numbers.')
         else:
             ix = ix[0]
 
-        xSeq_all = 10**np.arange(min(np.log10(xdata)), max(np.log10(xdata)), 0.001)
+        xSeq_all = 10**np.arange(min(np.log10(xdata)),
+                                 max(np.log10(xdata)), 0.001)
 
         xSeq = xSeq[cdx[0]:ix]
         ySeq = ySeq[cdx[0]:ix]
 
         reg = LinearRegression().fit(np.log10(xSeq).reshape(-1, 1), ySeq)
 
-        #plt.clf()
+        # plt.clf()
         #plt.scatter(np.log10(xSeq), ySeq, color='red')
         #plt.scatter(xSeq, reg.predict(np.array(xSeq).reshape(-1,1)), color='blue')
-        #plt.show()
+        # plt.show()
 
         ydataFit = reg.predict(np.log10(xSeq_all).reshape(-1, 1))
 
@@ -300,8 +300,10 @@ these should begin with ERCC- followed by numbers.')
         cvDist = []
 
         for i in range(0, len(logX)):
-            cx = np.nonzero((logXseq >= (logX[i] - 0.2)) & (logXseq < (logX[i] + 0.2)))[0]
-            tmp = np.sqrt((logXseq[cx] - logX[i])**2 + (ydataFit[cx] - ydata[i])**2)
+            cx = np.nonzero(
+                (logXseq >= (logX[i] - 0.2)) & (logXseq < (logX[i] + 0.2)))[0]
+            tmp = np.sqrt((logXseq[cx] - logX[i])**2 +
+                          (ydataFit[cx] - ydata[i])**2)
             tx = np.argmin(tmp)
 
             if logXseq[cx[tx]] > logX[i]:
@@ -333,7 +335,8 @@ these should begin with ERCC- followed by numbers.')
         pRaw = 1-norm.cdf(cvDist, loc=distFit[0], scale=distFit[1])
         pAdj = p_adjust_bh(pRaw)
 
-        res = pd.DataFrame({'gene': norm_data.index, 'pvalue' : pRaw, 'padj' : pAdj})
+        res = pd.DataFrame(
+            {'gene': norm_data.index, 'pvalue': pRaw, 'padj': pAdj})
         res = res.sort_values(by='pvalue')
 
         filt = res[res['padj'] < 0.10]['gene']
@@ -341,19 +344,22 @@ these should begin with ERCC- followed by numbers.')
         return np.array(filt.head(self.hvg_n))
 
     def hvg_M3Drop_smartseq2(self, norm_data):
-        """
-        This function implements the approach from M3Drop to identify highly variable genes
-        and takes an alternative approach by using genes' dropout rates instead of 
-        variance. In short, this method calculates dropout rates and mean expression for
-        every gene, then models these with the Michaelis-Menten equation (parameters
-        are estimated with maximum likelihood optimization). The basis for using MM
-        is because most dropouts are caused by failure of the enzyme reverse transcriptase,
-        thus the dropout rate can be modelled with theory developed for enzyme reactions.
+        """ This function implements the approach from M3Drop to
+        identify highly variable genes and takes an alternative
+        approach by using genes' dropout rates instead of variance. In
+        short, this method calculates dropout rates and mean
+        expression for every gene, then models these with the
+        Michaelis-Menten equation (parameters are estimated with
+        maximum likelihood optimization). The basis for using MM is
+        because most dropouts are caused by failure of the enzyme
+        reverse transcriptase, thus the dropout rate can be modelled
+        with theory developed for enzyme reactions.
 
         Use this method with SMART-seq2 data.
 
-        The method is briefly described here: https://doi.org/10.1093/bioinformatics/bty1044
-        R code: https://github.com/tallulandrews/M3Drop
+        The method is briefly described here:
+        https://doi.org/10.1093/bioinformatics/bty1044 R code:
+        https://github.com/tallulandrews/M3Drop
 
         Expression counts should be normalized and not on a log scale.
         """
@@ -365,7 +371,8 @@ these should begin with ERCC- followed by numbers.')
         gene_info_p_stderr = np.sqrt(gene_info_p*(1-gene_info_p)/ncells)
 
         gene_info_s = norm_data.mean(axis=1)
-        gene_info_s_stderr = np.sqrt((np.mean(norm_data**2, axis=1) - gene_info_s**2)/ncells)
+        gene_info_s_stderr = np.sqrt(
+            (np.mean(norm_data**2, axis=1) - gene_info_s**2)/ncells)
 
         xes = np.log(gene_info_s)/np.log(10)
 
@@ -381,7 +388,8 @@ these should begin with ERCC- followed by numbers.')
             return -1*np.sum(R)
 
         theta_start = np.array([3, 0.25])
-        res = minimize(neg_loglike, theta_start, method='Nelder-Mead', options={'disp': True})
+        res = minimize(neg_loglike, theta_start,
+                       method='Nelder-Mead', options={'disp': True})
         est = res.x
 
         krt = est[0]
@@ -396,7 +404,8 @@ these should begin with ERCC- followed by numbers.')
         S_mean = gene_info_s
         K_equiv = p_obs*S_mean/(1-p_obs)
         S_err = gene_info_s_stderr
-        K_equiv_err = abs(K_equiv)*np.sqrt((S_err/S_mean)**2 + (p_err/p_obs)**2)
+        K_equiv_err = abs(K_equiv)*np.sqrt((S_err/S_mean)
+                                           ** 2 + (p_err/p_obs)**2)
         K_equiv_log = np.log(K_equiv)
         thing = K_equiv-K_equiv_err
         thing[thing <= 0] = 10**-100
@@ -409,45 +418,46 @@ these should begin with ERCC- followed by numbers.')
         pval = 1 - norm.cdf(Z)
         pval[always_detected] = 1
         padj = p_adjust_bh(pval)
-        #pval[is.na(pval)] <- 1; # deal with never detected
-        #effect_size <- K_equiv/fit$K;
-        #effect_size[is.na(effect_size)] <- 1; # deal with never detected
+        # pval[is.na(pval)] <- 1; # deal with never detected
+        # effect_size <- K_equiv/fit$K;
+        # effect_size[is.na(effect_size)] <- 1; # deal with never detected
 
-        res = pd.DataFrame({'gene': norm_data.index, 'pvalue' : pval, 'padj' : padj})
+        res = pd.DataFrame(
+            {'gene': norm_data.index, 'pvalue': pval, 'padj': padj})
         res = res.sort_values(by='pvalue')
         filt = res[res['padj'] < 0.10]['gene']
 
         return np.array(filt.head(self.hvg_n))
 
     def hvg_M3Drop_UMI(self, data):
-        """
-        This function implements the approach from M3Drop to identify highly variable genes
-        and takes an alternative approach to identify highly variable genes by using
-        the dropout rate instead of the variance.
+        """ This function implements the approach from M3Drop to
+        identify highly variable genes and takes an alternative
+        approach to identify highly variable genes by using the
+        dropout rate instead of the variance.
 
         Use this method with UMI data.
 
-        The method is briefly described here: https://doi.org/10.1093/bioinformatics/bty1044
-        R code: https://github.com/tallulandrews/M3Drop
+        The method is briefly described here:
+        https://doi.org/10.1093/bioinformatics/bty1044 R code:
+        https://github.com/tallulandrews/M3Drop
 
-        Expression counts should be raw read counts.
-        """
+        Expression counts should be raw read counts."""
 
-        tjs = data.sum(axis=1) # no. mol/gene
-        tis = data.sum(axis=0) # no. mol/cell
-        
-        djs = data.shape[1]-np.sum(data>0,axis=1) # dropouts no. per gene
-        dis = data.shape[0]-np.sum(data>0,axis=0) # dropouts no. per cell
+        tjs = data.sum(axis=1)  # no. mol/gene
+        tis = data.sum(axis=0)  # no. mol/cell
+
+        djs = data.shape[1]-np.sum(data > 0, axis=1)  # dropouts no. per gene
+        dis = data.shape[0]-np.sum(data > 0, axis=0)  # dropouts no. per cell
 
         nc = data.shape[1]
         ng = data.shape[0]
-        
+
         # total sampled molecules
         total = sum(tis)
-        
+
         min_size = 10**-10
         my_rowvar = []
-        
+
         for i, row in data.iterrows():
             mu_is = tjs[i]*tis/total
             my_rowvar.append(np.var(row-mu_is))
@@ -458,50 +468,51 @@ these should begin with ERCC- followed by numbers.')
         max_size = 10*max(size)
         size[size < 0] = max_size
         size[size < min_size] = min_size
-        
+
         size_g = size
         forfit = (size < max(size_g)) & (tjs > 0) & (size_g > 0)
         higher = (np.log(tjs/nc)/np.log(2)) > 4
-        
-        if sum(higher==True) > 2000:
+
+        if sum(higher == True) > 2000:
             forfit = higher & forfit
-        
+
         rg = LinearRegression()
-        X = np.array(np.log((tjs/nc)[forfit])).reshape(-1,1)
+        X = np.array(np.log((tjs/nc)[forfit])).reshape(-1, 1)
         y = np.array(np.log(size_g[forfit]))
         rg.fit(X=X, y=y)
         coef_1 = rg.intercept_
         coef_2 = rg.coef_[0]
-        
+
         exp_size = np.exp(coef_1 + coef_2 * np.log(tjs/nc))
-        
+
         droprate_exp = []
         droprate_exp_err = []
-        
-        for i in range(0,ng):
+
+        for i in range(0, ng):
             mu_is = tjs[i]*tis/total
             p_is = (1+mu_is/exp_size[i])**(-exp_size[i])
             p_var_is = p_is*(1-p_is)
             droprate_exp.append(sum(p_is)/nc)
             droprate_exp_err.append(np.sqrt(sum(p_var_is)/(nc**2)))
-            
+
         droprate_exp = np.array(droprate_exp)
         droprate_exp[droprate_exp < (1/nc)] = 1/nc
         droprate_obs = djs/nc
         droprate_obs_err = np.sqrt(droprate_obs*(1-droprate_obs)/nc)
 
         diff = droprate_obs-droprate_exp
-        
+
         droprate_exp_err = np.array(droprate_exp_err)
         combined_err = np.sqrt(droprate_exp_err**2+droprate_obs_err**2)
 
         Zed = diff/combined_err
         pvalues = 1-norm.cdf(Zed)
         pvalues = pd.Series(pvalues, index=data.index)
-        
+
         padj = p_adjust_bh(pvalues)
 
-        res = pd.DataFrame({'gene': data.index, 'pvalue' : pvalues, 'padj' : padj})
+        res = pd.DataFrame(
+            {'gene': data.index, 'pvalue': pvalues, 'padj': padj})
         res = res.sort_values(by='pvalue')
         filt = res[res['padj'] < 0.10]['gene']
 
